@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+    <com.miittech.you.weight.Titlebar
+        android:id="@+id/titlebar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/step1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:text="按贴片的LOGO按钮"
+        android:layout_below="@+id/titlebar"
+        android:layout_centerHorizontal="true"/>
+
+    <RelativeLayout
+        android:id="@+id/step2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/titlebar"
+        android:layout_marginTop="60dp"
+        android:layout_centerHorizontal="true">
+        <com.miittech.you.weight.CircleProgressBar
+            android:id="@+id/progressbar"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerHorizontal="true"
+            app:roundProgressColor="#1a9be8"
+            app:roundColor="#c3e9ff"
+            app:textColor="#1a9be8"
+            app:textSize="20dp"
+            app:roundWidth="3dp"/>
+        <TextView
+            android:id="@+id/tv_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="正在激活"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/progressbar"
+            android:layout_marginTop="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="尽量是您的手机和设备靠近"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/tv_progress"
+            android:layout_marginTop="10dp"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/step3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/titlebar"
+        android:layout_marginTop="60dp"
+        android:layout_centerHorizontal="true">
+        <ImageView
+            android:id="@+id/img_connect_status"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:src="@drawable/ic_device_connect_success"
+            android:layout_centerHorizontal="true"/>
+        <TextView
+            android:id="@+id/tv_connect_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/img_connect_status"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/colorPrimary"
+            android:textSize="22dp"
+            android:text="绑定成功"/>
+
+        <TextView
+            android:id="@+id/tv_connect_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/tv_connect_status"
+            android:layout_marginTop="10dp"
+            android:textSize="20dp"
+            android:text="请重新绑定"/>
+
+    </RelativeLayout>
+</RelativeLayout>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:orientation="horizontal">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/tv_item1"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:text="手机"
+            android:clickable="true"
+            android:textColor="@drawable/sl_type_selector"
+            android:textIsSelectable="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:textSize="22dp" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/tv_item2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:text="邮箱"
+            android:textColor="@drawable/sl_type_selector"
+            android:textIsSelectable="true"
+            android:focusableInTouchMode="false"
+            android:focusable="false"
+            android:clickable="true"
+            android:textSize="22dp" />
+    </RelativeLayout>
+</LinearLayout>

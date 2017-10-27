@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#FF2A2B36</color>
+    <color name="windowBg">#FFE6E6E6</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="red">#FFFF0000</color>
+    <color name="input_hint">#FF888888</color>
+    <color name="tab_color_unselect">#FF979797</color>
+    <color name="text_color_gray">#FFA8A8A8</color>
+    <color name="text_color_sure">#FFFF463B</color>
+    <color name="text_color_cancel">#FF027BFF</color>
+
+    <color name="text_friend_state1">#FF969696</color>
+    <color name="text_friend_state2">#24ad1d</color>
+    <color name="text_friend_state4">#4a90e2</color>
+    <color name="text_friend_state16">#ff2b2b</color>
+</resources>

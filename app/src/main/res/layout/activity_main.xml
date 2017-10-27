@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.miittech.you.activity.MainActivity">
+    <com.miittech.you.weight.Titlebar
+        android:id="@+id/titlebar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <FrameLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:layout_below="@id/titlebar"
+        android:layout_above="@+id/tab_menus"
+        android:layout_marginBottom="1dp" >
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/tab_menus"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/white"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/tab_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:drawableTop="@drawable/sl_tab_img_list"
+            android:layout_centerHorizontal="true"
+            android:textColor="@drawable/sl_tab_text_color"
+            android:gravity="center"
+            android:text="@string/text_tab_list"/>
+        <TextView
+            android:id="@+id/tab_map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:drawableTop="@drawable/sl_tab_img_map"
+            android:layout_centerHorizontal="true"
+            android:textColor="@drawable/sl_tab_text_color"
+            android:gravity="center"
+            android:text="@string/text_tab_map"/>
+        <TextView
+            android:id="@+id/tab_events"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:drawableTop="@drawable/sl_tab_img_events"
+            android:layout_centerHorizontal="true"
+            android:textColor="@drawable/sl_tab_text_color"
+            android:gravity="center"
+            android:text="@string/text_tab_events"/>
+    </LinearLayout>
+</RelativeLayout>
