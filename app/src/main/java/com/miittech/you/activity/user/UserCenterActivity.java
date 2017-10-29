@@ -152,7 +152,7 @@ public class UserCenterActivity extends BaseActivity {
                             aysnUserInfo(response.getUrl());
                             setUserHeadImg(response.getUrl());
                         } else {
-                            ToastUtils.showShort(response.getErrmsg());
+                            response.onError(UserCenterActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {

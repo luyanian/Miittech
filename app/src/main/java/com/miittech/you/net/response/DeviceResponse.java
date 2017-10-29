@@ -2,6 +2,7 @@ package com.miittech.you.net.response;
 
 import android.content.Context;
 
+import com.google.gson.annotations.SerializedName;
 import com.ryon.mutils.ToastUtils;
 
 import java.io.Serializable;
@@ -16,6 +17,7 @@ public class DeviceResponse extends BaseResponse {
     private int valid;//1:可用，0：不可用(已被其他绑int定),-1：不合法贴片id
     private int bindstate;//1：已绑定 0：未绑定
     private List<DevlistBean> devlist;
+
 
     public String getDevid() {
         return devid;
@@ -41,6 +43,7 @@ public class DeviceResponse extends BaseResponse {
         this.bindstate = bindstate;
     }
 
+
     public List<DevlistBean> getDevlist() {
         return devlist;
     }
@@ -49,32 +52,27 @@ public class DeviceResponse extends BaseResponse {
         this.devlist = devlist;
     }
 
-    /**
-     * devlist : [{"devid":"97EACA00AB06","devname":"","devimg":"","devtype":1,"groupid":0,"groupname":"","devbattery":100,"devstate":1,"devposstate":-1,"lasttime":"","usedstate":1,"bindstate":1,"bindtime":"20171019143917","friendid":"0","locinfo":{"lat":0,"lng":0,"addr":"","lasttime":""}}]
-     * errcode : 0
-     * errmsg : success
-     */
-
-    public static class DevlistBean implements Serializable{
+    public static class DevlistBean implements Serializable {
         /**
-         * devid : 97EACA00AB06
-         * devname :
-         * devimg :
+         * devid : 06AB00CAEAB2
+         * devname : Mg==
+         * devimg : https://openservice.wisdomsky.cn/qianji/imgs/YOU715090967410935y6MJVQLQ2ZsHA8z318lHKSJPlseJV0Z.png
          * devtype : 1
-         * groupid : 0
-         * groupname :
+         * groupid : 1
+         * groupname : 6ZKl5YyZ
          * devbattery : 100
          * devstate : 1
          * devposstate : -1
-         * lasttime :
+         * lasttime : 20171026210429
          * usedstate : 1
          * bindstate : 1
-         * bindtime : 20171019143917
+         * bindtime : 20171027172304
          * friendid : 0
-         * locinfo : {"lat":0,"lng":0,"addr":"","lasttime":""}
+         * locinfo : {"lat":39.109509,"lng":117.189281,"addr":"5aSp5rSl5biC5ZKM5bmz5Yy65ZCM5a6J6YGTNTHlj7c=","lasttime":"20171026210429"}
          */
 
-        private String devid;
+        @SerializedName("devid")
+        private String devidX;
         private String devname;
         private String devimg;
         private int devtype;
@@ -85,17 +83,18 @@ public class DeviceResponse extends BaseResponse {
         private int devposstate;
         private String lasttime;
         private int usedstate;
-        private int bindstate;
+        @SerializedName("bindstate")
+        private int bindstateX;
         private String bindtime;
         private String friendid;
         private LocinfoBean locinfo;
 
-        public String getDevid() {
-            return devid;
+        public String getDevidX() {
+            return devidX;
         }
 
-        public void setDevid(String devid) {
-            this.devid = devid;
+        public void setDevidX(String devidX) {
+            this.devidX = devidX;
         }
 
         public String getDevname() {
@@ -178,12 +177,12 @@ public class DeviceResponse extends BaseResponse {
             this.usedstate = usedstate;
         }
 
-        public int getBindstate() {
-            return bindstate;
+        public int getBindstateX() {
+            return bindstateX;
         }
 
-        public void setBindstate(int bindstate) {
-            this.bindstate = bindstate;
+        public void setBindstateX(int bindstateX) {
+            this.bindstateX = bindstateX;
         }
 
         public String getBindtime() {
@@ -212,30 +211,30 @@ public class DeviceResponse extends BaseResponse {
 
         public static class LocinfoBean implements Serializable{
             /**
-             * lat : 0
-             * lng : 0
-             * addr :
-             * lasttime :
+             * lat : 39.109509
+             * lng : 117.189281
+             * addr : 5aSp5rSl5biC5ZKM5bmz5Yy65ZCM5a6J6YGTNTHlj7c=
+             * lasttime : 20171026210429
              */
 
-            private int lat;
-            private int lng;
+            private double lat;
+            private double lng;
             private String addr;
             private String lasttime;
 
-            public int getLat() {
+            public double getLat() {
                 return lat;
             }
 
-            public void setLat(int lat) {
+            public void setLat(double lat) {
                 this.lat = lat;
             }
 
-            public int getLng() {
+            public double getLng() {
                 return lng;
             }
 
-            public void setLng(int lng) {
+            public void setLng(double lng) {
                 this.lng = lng;
             }
 

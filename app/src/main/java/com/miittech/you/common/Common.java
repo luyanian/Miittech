@@ -150,4 +150,10 @@ public class Common {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
         return format.format(new Date());
     }
+
+    public static String formatTimeStr(String time){
+        String temp = time;
+
+        return temp;
+    }
 }

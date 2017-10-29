@@ -126,6 +126,9 @@ public class ListFragment extends Fragment implements OnDeviceItemClick {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                     initDeviceList(response.getDevlist());
+                    if(!response.isSuccessful()){
+                        response.onError(getActivity());
+                    }
                     }
                 }, new Consumer<Throwable>() {
                     @Override

@@ -1,15 +1,14 @@
 package com.miittech.you.activity.device;
 
-import android.bluetooth.BluetoothGatt;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.PersistableBundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
@@ -61,7 +60,12 @@ public class DeviceDetailActivity extends BaseActivity {
     LinearLayout llTips;
     @BindView(R.id.ll_options)
     LinearLayout llOptions;
-    public static final String EXTRA_MAC="mac";
+    @BindView(R.id.tv_device_location)
+    TextView tvDeviceLocation;
+    @BindView(R.id.tv_device_time)
+    TextView tvDeviceTime;
+
+    public static final String EXTRA_MAC = "mac";
     private DeviceResponse.DevlistBean device;
 
     @Override
@@ -69,9 +73,9 @@ public class DeviceDetailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_detail);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,"设备");
+        initTitleBar(titlebar, "设备");
         titlebar.showBackOption();
-        titlebar.setTitleBarOptions(new TitleBarOptions(){
+        titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override
             public void onBack() {
                 super.onBack();
@@ -79,15 +83,15 @@ public class DeviceDetailActivity extends BaseActivity {
             }
         });
 
-        typeSelector.setItemText("小贴士","功能");
+        typeSelector.setItemText("小贴士", "功能");
         typeSelector.setTypeSelectorChangeLisener(new TypeSelectorChangeLisener() {
             @Override
             public void onTabSelectorChanged(int item) {
-                if(item==0){
+                if (item == 0) {
                     llTips.setVisibility(View.VISIBLE);
                     llOptions.setVisibility(View.GONE);
                 }
-                if(item==1){
+                if (item == 1) {
                     llTips.setVisibility(View.GONE);
                     llOptions.setVisibility(View.VISIBLE);
                 }
@@ -103,17 +107,23 @@ public class DeviceDetailActivity extends BaseActivity {
         super.onSaveInstanceState(outState, outPersistentState);
     }
 
-    private void initViewData(DeviceResponse.DevlistBean device){
+    private void initViewData(DeviceResponse.DevlistBean device) {
         tvDeviceName.setText(device.getDevname());
+        tvDeviceLocation.setText(device.getLocinfo().getAddr());
+        tvDeviceTime.setText(device.getLasttime());
+
+        Glide.with(this)
+                .load(device.getDevimg())
+                .into(imgDeviceIcon);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode==RESULT_OK&&data!=null){
-            if(data.hasExtra(IntentExtras.DEVICE.NAME)){
+        if (resultCode == RESULT_OK && data != null) {
+            if (data.hasExtra(IntentExtras.DEVICE.NAME)) {
                 String name = data.getStringExtra(IntentExtras.DEVICE.NAME);
-                if(!StringUtils.isEmpty(name)) {
+                if (!StringUtils.isEmpty(name)) {
                     tvDeviceName.setText(name);
                 }
             }
@@ -139,7 +149,7 @@ public class DeviceDetailActivity extends BaseActivity {
 
     private void unbindDevice() {
         Map param = new HashMap();
-        param.put("devid", device.getDevid());
+        param.put("devid", device.getDevidX());
         param.put("method", Params.METHOD.UNBIND);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getUserId());
@@ -155,10 +165,10 @@ public class DeviceDetailActivity extends BaseActivity {
                 .subscribe(new Consumer<DeviceResponse>() {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
-                        if(response.isSuccessful()) {
+                        if (response.isSuccessful()) {
                             ToastUtils.showShort("删除成功！");
                             finish();
-                        }else{
+                        } else {
                             response.onError(DeviceDetailActivity.this);
                         }
                     }
