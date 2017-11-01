@@ -1,4 +1,4 @@
-package com.miittech.you.net.global;
+package com.miittech.you.global;
 
 import java.util.Date;
 
@@ -94,6 +94,12 @@ public class Params {
     public static class BIND_STATE{
         public static final int BIND=1;//正常绑定
         public static final int UNBIND=0;//已解绑（已解绑的贴片自动隐藏）
+    }
+
+
+    public static class BLEMODE{
+        public static final int MODE_WORK=0;
+        public static final int MODE_BIND=0;
     }
 
 }

@@ -1,29 +1,18 @@
 package com.miittech.you.net;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.miittech.you.R;
-import com.miittech.you.net.global.HttpUrl;
+import com.miittech.you.global.HttpUrl;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.ToastUtils;
 
-import java.io.IOException;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;

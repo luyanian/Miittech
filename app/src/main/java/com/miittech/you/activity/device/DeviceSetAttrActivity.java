@@ -6,7 +6,6 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
@@ -17,9 +16,8 @@ import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.global.HttpUrl;
-import com.miittech.you.net.global.Params;
-import com.miittech.you.net.global.PubParam;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.CircleImageView;
@@ -27,7 +25,6 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.ToastUtils;
 
 import java.io.File;
 import java.util.HashMap;
@@ -80,7 +77,10 @@ public class DeviceSetAttrActivity extends BaseActivity {
             @Override
             public void onComplete() {
                 super.onComplete();
-
+                Intent intent = new Intent(DeviceSetAttrActivity.this,DeviceSelectRingActivity.class);
+                intent.putExtra(IntentExtras.DEVICE.ID,address);
+                intent.putExtra(IntentExtras.DEVICE.NAME,tvDeviceName.getText().toString());
+                startActivity(intent);
             }
         });
         address = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
@@ -122,6 +122,9 @@ public class DeviceSetAttrActivity extends BaseActivity {
                     // 如果裁剪并压缩了，以取压缩路径为准，因为是先裁剪后压缩的
                     String path = localMedia.getPath();
                     uploadImage(path);
+                    break;
+                case 0:
+                    tvDeviceName.setText(data.getStringExtra(IntentExtras.DEVICE.NAME));
                     break;
             }
         }
@@ -171,7 +174,7 @@ public class DeviceSetAttrActivity extends BaseActivity {
                 });
     }
 
-    private void doDeviceIconEditAttr(String iconUrl) {
+    private void doDeviceIconEditAttr(final String iconUrl) {
         Map devattrMap = new HashMap();
         devattrMap.put("devimg",iconUrl);
         Map param = new HashMap();
@@ -194,7 +197,7 @@ public class DeviceSetAttrActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if(response.isSuccessful()){
-                            Glide.with(DeviceSetAttrActivity.this).load(response.getUrl()).into(imgDeviceIcon);
+                            Glide.with(DeviceSetAttrActivity.this).load(iconUrl).into(imgDeviceIcon);
                         }
                     }
                 }, new Consumer<Throwable>() {

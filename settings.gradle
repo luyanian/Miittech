@@ -1,1 +1,1 @@
-include ':app', ':mutils', ':FastBleLib'
+include ':app', ':mutils'

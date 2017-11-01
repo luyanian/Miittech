@@ -6,16 +6,16 @@ import android.util.Base64;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
-import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.entity.Detailinfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.entity.Repdata;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.global.HttpUrl;
-import com.miittech.you.net.global.Params;
-import com.miittech.you.net.global.PubParam;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.Params;
+import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.RegexUtils;
@@ -24,7 +24,6 @@ import com.ryon.mutils.ToastUtils;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -137,8 +136,18 @@ public class Common {
                     }
                 });
     }
-    public static String getMac(String address){
+    public static String formatMac2DevId(String address){
         return address.replace(":","").toUpperCase();
+    }
+    public static String formatDevId2Mac(String devId){
+        String mac ="";
+        for(int i=0;i<devId.length();i++){
+            mac=mac+devId.charAt(i);
+            if(i%2==1&&i!=devId.length()-1){
+                mac=mac+":";
+            }
+        }
+        return mac.toUpperCase();
     }
     public static String decodeBase64(String text){
         return new String(Base64.decode(text, Base64.DEFAULT));
@@ -155,5 +164,18 @@ public class Common {
         String temp = time;
 
         return temp;
+    }
+    public static byte[] formatBleMsg(int modeBind, String msg){
+        byte[] temp = ConvertUtils.hexString2Bytes(msg);
+        byte[] data = new byte[temp.length+1];
+        if(modeBind==Params.BLEMODE.MODE_BIND){
+            data[0] = 02;
+        }else if(modeBind==Params.BLEMODE.MODE_WORK) {
+            data[0] = 01;
+        }
+        for (int i=0;i<temp.length;i++){
+            data[i+1]=temp[i];
+        }
+        return  data;
     }
 }

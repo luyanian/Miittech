@@ -4,31 +4,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.global.HttpUrl;
-import com.miittech.you.net.global.PubParam;
-import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.Titlebar;
-import com.ryon.mutils.EncryptUtils;
-import com.ryon.mutils.LogUtils;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 
 /**
  * Created by Administrator on 2017/10/19.
@@ -60,7 +44,7 @@ public class DeviceSetClassifyActivity extends BaseActivity {
     @OnClick({R.id.ll_yaoshi, R.id.ll_qianbao, R.id.ll_shoutibao, R.id.ll_diannao, R.id.ll_zixingche, R.id.ll_qiche, R.id.ll_xiangji, R.id.ll_yusan, R.id.ll_yifu, R.id.ll_shenfezheng, R.id.ll_huzhao, R.id.ll_xinglixiang, R.id.ll_beibao, R.id.ll_shoutixiang, R.id.ll_qita})
     public void onViewClicked(View view) {
         Intent intent = new Intent(this,DeviceSetAttrActivity.class);
-        intent.putExtra(IntentExtras.DEVICE.ID,deviceAddress);
+        intent.putExtras(getIntent());
         switch (view.getId()) {
             case R.id.ll_yaoshi:
                 intent.putExtra(IntentExtras.DEVICE.CLASSIFY,"钥匙");

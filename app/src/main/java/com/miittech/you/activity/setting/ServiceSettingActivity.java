@@ -72,7 +72,6 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
             case R.id.check_bluetooth:
                 final BleManager bleManager = new BleManager(this);
                 if(b){
-
                     if(bleManager.isSupportBle()){
                         bleManager.enableBluetooth();
                     }

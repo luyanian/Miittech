@@ -3,18 +3,16 @@ package com.miittech.you.activity.device;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.global.HttpUrl;
-import com.miittech.you.net.global.PubParam;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
@@ -22,7 +20,6 @@ import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

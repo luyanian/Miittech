@@ -238,8 +238,15 @@
         <activity android:name=".activity.device.DeviceSetAttrActivity"/>
         <activity android:name=".activity.device.DeviceEditNameActivity"/>
         <activity android:name=".activity.device.DeviceDetailActivity"/>
+        <activity android:name=".activity.device.DeviceSelectRingActivity"/>
 
         <service android:name=".service.BluetoothService"/>
+        <receiver android:name=".receiver.BluetoothReceiver">
+            <intent-filter android:priority="1000">
+                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST"/>
+                <action android:name="android.bluetooth.device.action.FOUND" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -1,4 +1,6 @@
-package com.miittech.you.net.global;
+package com.miittech.you.global;
+
+import com.miittech.you.global.Params;
 
 import java.io.Serializable;
 

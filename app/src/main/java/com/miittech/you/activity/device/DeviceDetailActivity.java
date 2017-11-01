@@ -13,13 +13,14 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.global.HttpUrl;
-import com.miittech.you.net.global.Params;
-import com.miittech.you.net.global.PubParam;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.Params;
+import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
@@ -31,6 +32,7 @@ import com.ryon.mutils.ToastUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -64,15 +66,19 @@ public class DeviceDetailActivity extends BaseActivity {
     TextView tvDeviceLocation;
     @BindView(R.id.tv_device_time)
     TextView tvDeviceTime;
-
-    public static final String EXTRA_MAC = "mac";
     private DeviceResponse.DevlistBean device;
+//    private BleManager bleManager;
+
+    public final static UUID serviceUUID= UUID.fromString("00001802-0000-1000-8000-00805f9b34fb");
+    public final static UUID characteristicUUID= UUID.fromString("00002a06-0000-1000-80000-00805f9b34fb");
+    public final static UUID descriptorUUID = UUID.fromString("00002a06-0000-1000-80000-00805f9b34fb");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_detail);
         ButterKnife.bind(this);
+//        bleManager = new BleManager(this);
         initTitleBar(titlebar, "设备");
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
@@ -98,7 +104,7 @@ public class DeviceDetailActivity extends BaseActivity {
             }
         });
         typeSelector.setSelectItem(0);
-        device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(EXTRA_MAC);
+        device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         initViewData(device);
     }
 
@@ -134,6 +140,7 @@ public class DeviceDetailActivity extends BaseActivity {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.rl_find_or_bell:
+                doFindOrBell();
                 break;
             case R.id.btn_option_map:
                 break;
@@ -145,6 +152,38 @@ public class DeviceDetailActivity extends BaseActivity {
                 unbindDevice();
                 break;
         }
+    }
+
+    private void doFindOrBell() {
+//        if(bleManager==null||!bleManager.isBlueEnable()||!bleManager.isConnected()){
+//            return;
+//        }
+//        try {
+//            bleManager.writeDevice(
+//                    "1802",
+//                    "2A06",
+//                    HexUtil.hexStringToBytes("0x01"),
+//                    new BleCharacterCallback() {
+//                        @Override
+//                        public void onSuccess(BluetoothGattCharacteristic characteristic) {
+//                            ToastUtils.showShort(characteristic.getDescriptors().toString());
+//                        }
+//
+//                        @Override
+//                        public void onFailure(BleException exception) {
+//                            ToastUtils.showShort(exception.getDescription());
+//                        }
+//
+//                        @Override
+//                        public void onInitiatedResult(boolean result) {
+//                            ToastUtils.showShort(String.valueOf(result));
+//                        }
+//                    });
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+
+
     }
 
     private void unbindDevice() {

@@ -1,9 +1,7 @@
 package com.miittech.you.fragment;
 
-import android.bluetooth.BluetoothGatt;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,23 +12,21 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnDeviceItemClick;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.global.HttpUrl;
-import com.miittech.you.net.global.Params;
-import com.miittech.you.net.global.PubParam;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.Params;
+import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.DeviceResponse;
-import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,10 +121,10 @@ public class ListFragment extends Fragment implements OnDeviceItemClick {
                 .subscribe(new Consumer<DeviceResponse>() {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
-                    initDeviceList(response.getDevlist());
-                    if(!response.isSuccessful()){
-                        response.onError(getActivity());
-                    }
+                        initDeviceList(response.getDevlist());
+                        if(!response.isSuccessful()){
+                            response.onError(getActivity());
+                        }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -160,7 +156,7 @@ public class ListFragment extends Fragment implements OnDeviceItemClick {
     @Override
     public void onItemClick(DeviceResponse.DevlistBean devlistBean) {
         Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
-        intent.putExtra(DeviceDetailActivity.EXTRA_MAC,devlistBean);
+        intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
         startActivity(intent);
     }
 }

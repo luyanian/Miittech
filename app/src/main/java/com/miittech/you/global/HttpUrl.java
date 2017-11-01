@@ -1,4 +1,4 @@
-package com.miittech.you.net.global;
+package com.miittech.you.global;
 
 import retrofit2.http.Url;
 
