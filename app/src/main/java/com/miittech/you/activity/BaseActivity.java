@@ -1,27 +1,13 @@
 package com.miittech.you.activity;
 
-import android.Manifest;
-import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothManager;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.clj.fastble.BleManager;
-import com.luck.picture.lib.permissions.RxPermissions;
-import com.miittech.you.receiver.BluetoothReceiver;
+import com.inuker.bluetooth.library.connect.listener.BluetoothStateListener;
+import com.miittech.you.ble.ClientManager;
 import com.miittech.you.weight.Titlebar;
-
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 
 public class BaseActivity extends AppCompatActivity{
 
@@ -32,24 +18,14 @@ public class BaseActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        initBle();
+        ClientManager.getClient().registerBluetoothStateListener(new BluetoothStateListener() {
+            @Override
+            public void onBluetoothStateChanged(boolean openOrClosed) {
+
+            }
+        });
     }
 
-    private void initBle() {
-        RxPermissions rxPermissions = new RxPermissions(this);
-        rxPermissions.request(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Boolean>() {
-                    @Override
-                    public void accept(Boolean aBoolean) throws Exception {
-                        if (aBoolean) {
-
-                        }
-                    }
-                });
-
-    }
 
 
     public void initTitleBar(Titlebar titlebar,int strId){

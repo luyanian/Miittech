@@ -172,6 +172,8 @@ public class Common {
             data[0] = 02;
         }else if(modeBind==Params.BLEMODE.MODE_WORK) {
             data[0] = 01;
+        }else if(modeBind==Params.BLEMODE.MODE_UNBIND){
+            data[0] = 04;
         }
         for (int i=0;i<temp.length;i++){
             data[i+1]=temp[i];

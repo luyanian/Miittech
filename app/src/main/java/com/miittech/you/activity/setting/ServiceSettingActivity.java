@@ -1,14 +1,12 @@
 package com.miittech.you.activity.setting;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-
-import com.clj.fastble.BleManager;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.dialog.DialogUtils;
@@ -17,6 +15,7 @@ import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.impl.TitleBarOptions;
 import com.ryon.mutils.AppUtils;
+import com.vise.baseble.ViseBle;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -70,18 +69,17 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
         MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(this);
         switch (compoundButton.getId()){
             case R.id.check_bluetooth:
-                final BleManager bleManager = new BleManager(this);
                 if(b){
-                    if(bleManager.isSupportBle()){
-                        bleManager.enableBluetooth();
-                    }
+                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    enableBtIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    ServiceSettingActivity.this.startActivity(enableBtIntent);
                 }else{
                     msgTipDialog.setTitle("蓝牙服务已关闭").setMsg("关闭蓝牙服务后，贴片将不能与您的手机连接，是否确定关闭");
                     msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
                         @Override
                         public void onSure() {
                             super.onSure();
-                            bleManager.disableBluetooth();
+                            ViseBle.getInstance().getBluetoothAdapter().disable();
                         }
 
                         @Override

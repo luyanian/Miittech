@@ -2,21 +2,15 @@ package com.miittech.you.activity.device;
 
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
+import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import com.clj.fastble.BleManager;
-import com.clj.fastble.conn.BleCharacterCallback;
-import com.clj.fastble.conn.BleGattCallback;
-import com.clj.fastble.data.ScanResult;
-import com.clj.fastble.exception.BleException;
 import com.google.gson.Gson;
 import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
@@ -35,10 +29,21 @@ import com.miittech.you.weight.CircleProgressBar;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.ToastUtils;
+import com.vise.baseble.ViseBle;
+import com.vise.baseble.callback.IBleCallback;
+import com.vise.baseble.callback.IConnectCallback;
+import com.vise.baseble.callback.scan.IScanCallback;
+import com.vise.baseble.callback.scan.SingleFilterScanCallback;
+import com.vise.baseble.common.PropertyType;
+import com.vise.baseble.core.BluetoothGattChannel;
+import com.vise.baseble.core.DeviceMirror;
+import com.vise.baseble.exception.BleException;
+import com.vise.baseble.model.BluetoothLeDevice;
+import com.vise.baseble.model.BluetoothLeDeviceStore;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -71,14 +76,11 @@ public class DeviceAddStepActivity extends BaseActivity{
     TextView tvConnectMsg;
     @BindView(R.id.step3)
     RelativeLayout step3;
-
-    private BleManager bleManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_add_step);
         ButterKnife.bind(this);
-        bleManager = new BleManager(this);
         initTitleBar(titlebar, R.string.text_logo);
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
@@ -103,28 +105,46 @@ public class DeviceAddStepActivity extends BaseActivity{
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
-                            bleManager.scanfuzzyNameAndConnect(
-                                    DEVICE_NAME,
-                                    TIME_OUT,
-                                    true,
-                                    new BleGattCallback() {
+                            //该方式是扫到指定设备就停止扫描
+                            ViseBle.getInstance().startScan(new SingleFilterScanCallback(new IScanCallback() {
+                                @Override
+                                public void onDeviceFound(BluetoothLeDeviceStore bluetoothLeDeviceStore) {
+                                    step1.setVisibility(View.GONE);
+                                    step3.setVisibility(View.GONE);
+                                    step2.setVisibility(View.VISIBLE);
+                                    progressbar.setProgress(0);
+                                    tvProgress.setText("正在激活");
+                                }
 
+                                @Override
+                                public void onScanFinish(BluetoothLeDeviceStore bluetoothLeDeviceStore) {
+                                    ViseBle.getInstance().connect(bluetoothLeDeviceStore.getDeviceList().get(0), new IConnectCallback() {
                                         @Override
-                                        public void onFoundDevice(ScanResult scanResult) {
-                                            step1.setVisibility(View.GONE);
-                                            step3.setVisibility(View.GONE);
-                                            step2.setVisibility(View.VISIBLE);
-                                            progressbar.setProgress(0);
-                                            tvProgress.setText("正在激活");
+                                        public void onConnectSuccess(DeviceMirror deviceMirror) {
+                                            BluetoothGattChannel bluetoothGattChannel = new BluetoothGattChannel.Builder()
+                                                    .setBluetoothGatt(deviceMirror.getBluetoothGatt())
+                                                    .setPropertyType(PropertyType.PROPERTY_WRITE)
+                                                    .setServiceUUID(UUID.fromString(BleCommon.userServiceUUID))
+                                                    .setCharacteristicUUID(UUID.fromString(BleCommon.userCharacteristicLogUUID))
+                                                    .builder();
+                                            deviceMirror.bindChannel(new IBleCallback() {
+                                                @Override
+                                                public void onSuccess(byte[] data, BluetoothGattChannel bluetoothGattChannel, BluetoothLeDevice bluetoothLeDevice) {
+                                                    vertifyDevice(bluetoothLeDevice.getDevice());
+                                                }
+
+                                                @Override
+                                                public void onFailure(BleException exception) {
+                                                    LogUtils.e(exception);
+                                                }
+                                            }, bluetoothGattChannel);
+                                            byte[] data = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
+                                            deviceMirror.writeData(data);
+
                                         }
 
                                         @Override
-                                        public void onConnecting(BluetoothGatt gatt, int status) {
-
-                                        }
-
-                                        @Override
-                                        public void onConnectError(BleException exception) {
+                                        public void onConnectFailure(BleException exception) {
                                             step1.setVisibility(View.GONE);
                                             step2.setVisibility(View.GONE);
                                             step3.setVisibility(View.VISIBLE);
@@ -135,41 +155,18 @@ public class DeviceAddStepActivity extends BaseActivity{
                                         }
 
                                         @Override
-                                        public void onConnectSuccess(final BluetoothGatt gatt, int status) {
-                                            byte[] data = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
-                                            bleManager.writeDevice(
-                                                    BleCommon.serviceUUID,
-                                                    BleCommon.characteristicUUID,
-                                                    data,
-                                                    new BleCharacterCallback() {
-                                                        @Override
-                                                        public void onSuccess(BluetoothGattCharacteristic characteristic) {
-                                                            vertifyDevice(gatt.getDevice());
-                                                        }
-
-                                                        @Override
-                                                        public void onFailure(BleException exception) {
-
-                                                        }
-
-                                                        @Override
-                                                        public void onInitiatedResult(boolean result) {
-
-                                                        }
-                                                    });
+                                        public void onDisconnect(boolean isActive) {
+                                            LogUtils.d(isActive);
                                         }
-
-                                        @Override
-                                        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-
-                                        }
-
-                                        @Override
-                                        public void onDisConnected(BluetoothGatt gatt, int status, BleException exception) {
-
-                                        }
-
                                     });
+                                }
+
+                                @Override
+                                public void onScanTimeout() {
+
+                                }
+                            }).setDeviceName(DEVICE_NAME));
+
 
                         }
                     }
@@ -277,4 +274,32 @@ public class DeviceAddStepActivity extends BaseActivity{
                     }
                 });
     }
+
+    /**
+     * Location service if enable
+     *
+     * @param context
+     * @return location is enable if return true, otherwise disable.
+     */
+    public static final boolean isLocationEnable(Context context) {
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        boolean networkProvider = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        boolean gpsProvider = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (networkProvider || gpsProvider) return true;
+        return false;
+    }
+//    private void setLocationService() {
+//        Intent locationIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+//        this.startActivityForResult(locationIntent, REQUEST_CODE_LOCATION_SETTINGS);
+//    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if (requestCode == REQUEST_CODE_LOCATION_SETTINGS) {
+//            if (isLocationEnable(this)) {
+//                //定位已打开的处理
+//            } else {
+//                //定位依然没有打开的处理
+//            }
+//        } else super.onActivityResult(requestCode, resultCode, data);
+//    }
 }

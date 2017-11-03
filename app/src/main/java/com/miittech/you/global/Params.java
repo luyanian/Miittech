@@ -99,7 +99,12 @@ public class Params {
 
     public static class BLEMODE{
         public static final int MODE_WORK=0;
-        public static final int MODE_BIND=0;
+        public static final int MODE_BIND=1;
+        public static final int MODE_UNBIND=2;
+    }
+    public static class BLE_CMD{
+        public static final byte[] CMD_ALERT_START = new byte[]{0x02};
+        public static final byte[] CMD_ALERT_END = new byte[]{0x00};
     }
 
 }
