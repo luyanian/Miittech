@@ -30,14 +30,6 @@ import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
-import com.vise.baseble.ViseBle;
-import com.vise.baseble.callback.IBleCallback;
-import com.vise.baseble.callback.IConnectCallback;
-import com.vise.baseble.common.PropertyType;
-import com.vise.baseble.core.BluetoothGattChannel;
-import com.vise.baseble.core.DeviceMirror;
-import com.vise.baseble.exception.BleException;
-import com.vise.baseble.model.BluetoothLeDevice;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,15 +68,12 @@ public class DeviceDetailActivity extends BaseActivity {
     @BindView(R.id.tv_device_time)
     TextView tvDeviceTime;
     private DeviceResponse.DevlistBean device;
-//    private BleManager bleManager;
-    public DeviceMirror deviceMirror;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_detail);
         ButterKnife.bind(this);
-//        bleManager = new BleManager(this);
         initTitleBar(titlebar, "设备");
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
@@ -112,7 +101,7 @@ public class DeviceDetailActivity extends BaseActivity {
         typeSelector.setSelectItem(0);
         device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         initViewData(device);
-        autoConnect(device);
+        App.getInstance().addMac(Common.formatDevId2Mac(device.getDevidX()));
     }
 
     @Override
@@ -162,62 +151,7 @@ public class DeviceDetailActivity extends BaseActivity {
     }
 
     private void doFindOrBell() {
-        if(deviceMirror==null){
-            autoConnect(device);
-            return;
-        }
-        try {
-            BluetoothGattChannel bluetoothGattChannel = new BluetoothGattChannel.Builder()
-                    .setBluetoothGatt(deviceMirror.getBluetoothGatt())
-                    .setPropertyType(PropertyType.PROPERTY_WRITE)
-                    .setServiceUUID(UUID.fromString(BleCommon.serviceUUID))
-                    .setCharacteristicUUID(UUID.fromString(BleCommon.characteristicUUID))
-                    .builder();
-            deviceMirror.bindChannel(new IBleCallback() {
-                @Override
-                public void onSuccess(byte[] data, BluetoothGattChannel bluetoothGattChannel, BluetoothLeDevice bluetoothLeDevice) {
-                    LogUtils.d(data);
-                }
-
-                @Override
-                public void onFailure(com.vise.baseble.exception.BleException exception) {
-                    LogUtils.e(exception);
-                }
-            }, bluetoothGattChannel);
-            deviceMirror.writeData(Params.BLE_CMD.CMD_ALERT_START);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-//        if(bleManager==null||!bleManager.isBlueEnable()||!bleManager.isConnected()){
-//            return;
-//        }
-//        try {
-//            bleManager.writeDevice(
-//                    "1802",
-//                    "2A06",
-//                    HexUtil.hexStringToBytes("0x01"),
-//                    new BleCharacterCallback() {
-//                        @Override
-//                        public void onSuccess(BluetoothGattCharacteristic characteristic) {
-//                            ToastUtils.showShort(characteristic.getDescriptors().toString());
-//                        }
-//
-//                        @Override
-//                        public void onFailure(BleException exception) {
-//                            ToastUtils.showShort(exception.getDescription());
-//                        }
-//
-//                        @Override
-//                        public void onInitiatedResult(boolean result) {
-//                            ToastUtils.showShort(String.valueOf(result));
-//                        }
-//                    });
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-
-
+       App.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()));
     }
 
     private void unbindDevice() {
@@ -239,6 +173,7 @@ public class DeviceDetailActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if (response.isSuccessful()) {
+                            App.getInstance().delMac(Common.formatDevId2Mac(device.getDevidX()));
                             ToastUtils.showShort("删除成功！");
                             finish();
                         } else {
@@ -251,90 +186,5 @@ public class DeviceDetailActivity extends BaseActivity {
                         throwable.printStackTrace();
                     }
                 });
-    }
-
-    private void autoConnect(DeviceResponse.DevlistBean devlistBean) {
-//        bleManager.scanMacAndConnect(
-//                Common.formatDevId2Mac(devlistBean.getDevidX()),
-//                3000,
-//                true,
-//                new BleGattCallback() {
-//                    @Override
-//                    public void onConnectError(BleException exception) {
-//
-//                    }
-//                    @Override
-//                    public void onConnectSuccess(BluetoothGatt gatt, int status) {
-//                        settingWorkMode(gatt.getDevice().getAddress());
-//                    }
-//                    @Override
-//                    public void onDisConnected(BluetoothGatt gatt, int status, BleException exception) {
-//
-//                    }
-//                }
-//        );
-        ViseBle.getInstance().connectByMac(Common.formatDevId2Mac(devlistBean.getDevidX()), new IConnectCallback() {
-
-            @Override
-            public void onConnectSuccess(DeviceMirror deviceMirror) {
-                DeviceDetailActivity.this.deviceMirror = deviceMirror;
-                settingWorkMode(deviceMirror);
-            }
-
-            @Override
-            public void onConnectFailure(BleException exception) {
-                LogUtils.e(exception.getDescription());
-            }
-
-            @Override
-            public void onDisconnect(boolean isActive) {
-                LogUtils.d(isActive);
-            }
-        });
-    }
-
-    private void settingWorkMode(DeviceMirror deviceMirror) {
-        byte[] data = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getUserId());
-//        bleManager.writeDevice(
-//                BleCommon.serviceUUID,
-//                BleCommon.characteristicUUID,
-//                data,
-//                new BleCharacterCallback() {
-//                    @Override
-//                    public void onSuccess(BluetoothGattCharacteristic characteristic) {
-//                        LogUtils.d(characteristic.toString());
-//                    }
-//
-//                    @Override
-//                    public void onFailure(BleException exception) {
-//                        LogUtils.e(exception);
-//                    }
-//
-//                    @Override
-//                    public void onInitiatedResult(boolean result) {
-//                        LogUtils.d(result);
-//                    }
-//                });
-
-        BluetoothGattChannel bluetoothGattChannel = new BluetoothGattChannel.Builder()
-                .setBluetoothGatt(deviceMirror.getBluetoothGatt())
-                .setPropertyType(PropertyType.PROPERTY_WRITE)
-                .setServiceUUID(UUID.fromString(BleCommon.userServiceUUID))
-                .setCharacteristicUUID(UUID.fromString(BleCommon.userCharacteristicLogUUID))
-//                                                    .setDescriptorUUID(UUID.fromString(BleCommon.userDescriptorLogUUID))
-                .builder();
-        deviceMirror.bindChannel(new IBleCallback() {
-            @Override
-            public void onSuccess(byte[] data, BluetoothGattChannel bluetoothGattChannel, BluetoothLeDevice bluetoothLeDevice) {
-                LogUtils.d(data);
-            }
-
-            @Override
-            public void onFailure(com.vise.baseble.exception.BleException exception) {
-                LogUtils.e(exception);
-            }
-        }, bluetoothGattChannel);
-        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK,App.getUserId());
-        deviceMirror.writeData(dataWork);
     }
 }

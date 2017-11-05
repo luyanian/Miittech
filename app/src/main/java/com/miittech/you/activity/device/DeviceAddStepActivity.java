@@ -12,10 +12,19 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.google.gson.Gson;
+import com.inuker.bluetooth.library.Constants;
+import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
+import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
+import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
+import com.inuker.bluetooth.library.model.BleGattProfile;
+import com.inuker.bluetooth.library.search.SearchRequest;
+import com.inuker.bluetooth.library.search.SearchResult;
+import com.inuker.bluetooth.library.search.response.SearchResponse;
 import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.ble.ClientManager;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
@@ -29,17 +38,6 @@ import com.miittech.you.weight.CircleProgressBar;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.vise.baseble.ViseBle;
-import com.vise.baseble.callback.IBleCallback;
-import com.vise.baseble.callback.IConnectCallback;
-import com.vise.baseble.callback.scan.IScanCallback;
-import com.vise.baseble.callback.scan.SingleFilterScanCallback;
-import com.vise.baseble.common.PropertyType;
-import com.vise.baseble.core.BluetoothGattChannel;
-import com.vise.baseble.core.DeviceMirror;
-import com.vise.baseble.exception.BleException;
-import com.vise.baseble.model.BluetoothLeDevice;
-import com.vise.baseble.model.BluetoothLeDeviceStore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +50,8 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+
+import static com.inuker.bluetooth.library.Code.REQUEST_SUCCESS;
 
 /**
  * Created by Administrator on 2017/10/17.
@@ -105,67 +105,125 @@ public class DeviceAddStepActivity extends BaseActivity{
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
-                            //该方式是扫到指定设备就停止扫描
-                            ViseBle.getInstance().startScan(new SingleFilterScanCallback(new IScanCallback() {
+                            SearchRequest request = new SearchRequest.Builder()
+                                    .searchBluetoothLeDevice(3000, 5)   // 先扫BLE设备3次，每次3s
+                                    .searchBluetoothLeDevice(2000)      // 再扫BLE设备2s
+                                    .build();
+
+                            ClientManager.getClient().search(request, new SearchResponse() {
                                 @Override
-                                public void onDeviceFound(BluetoothLeDeviceStore bluetoothLeDeviceStore) {
+                                public void onSearchStarted() {
+
+                                }
+
+                                @Override
+                                public void onDeviceFounded(final SearchResult device) {
+                                    if(!device.getName().contains(DEVICE_NAME)){
+                                        return;
+                                    }
                                     step1.setVisibility(View.GONE);
                                     step3.setVisibility(View.GONE);
                                     step2.setVisibility(View.VISIBLE);
                                     progressbar.setProgress(0);
                                     tvProgress.setText("正在激活");
-                                }
 
-                                @Override
-                                public void onScanFinish(BluetoothLeDeviceStore bluetoothLeDeviceStore) {
-                                    ViseBle.getInstance().connect(bluetoothLeDeviceStore.getDeviceList().get(0), new IConnectCallback() {
+                                    BleConnectOptions options = new BleConnectOptions.Builder()
+                                            .setConnectRetry(3)   // 连接如果失败重试3次
+                                            .setConnectTimeout(30000)   // 连接超时30s
+                                            .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
+                                            .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                                            .build();
+
+                                    ClientManager.getClient().connect(device.getAddress(), options, new BleConnectResponse() {
                                         @Override
-                                        public void onConnectSuccess(DeviceMirror deviceMirror) {
-                                            BluetoothGattChannel bluetoothGattChannel = new BluetoothGattChannel.Builder()
-                                                    .setBluetoothGatt(deviceMirror.getBluetoothGatt())
-                                                    .setPropertyType(PropertyType.PROPERTY_WRITE)
-                                                    .setServiceUUID(UUID.fromString(BleCommon.userServiceUUID))
-                                                    .setCharacteristicUUID(UUID.fromString(BleCommon.userCharacteristicLogUUID))
-                                                    .builder();
-                                            deviceMirror.bindChannel(new IBleCallback() {
-                                                @Override
-                                                public void onSuccess(byte[] data, BluetoothGattChannel bluetoothGattChannel, BluetoothLeDevice bluetoothLeDevice) {
-                                                    vertifyDevice(bluetoothLeDevice.getDevice());
-                                                }
+                                        public void onResponse(int code, BleGattProfile data) {
+                                            if(code== Constants.CODE_CONNECT){
+                                                byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
+                                                ClientManager.getClient().write(device.getAddress(), BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, new BleWriteResponse() {
+                                                    @Override
+                                                    public void onResponse(int code) {
+                                                        if (code == REQUEST_SUCCESS) {
 
-                                                @Override
-                                                public void onFailure(BleException exception) {
-                                                    LogUtils.e(exception);
-                                                }
-                                            }, bluetoothGattChannel);
-                                            byte[] data = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
-                                            deviceMirror.writeData(data);
-
-                                        }
-
-                                        @Override
-                                        public void onConnectFailure(BleException exception) {
-                                            step1.setVisibility(View.GONE);
-                                            step2.setVisibility(View.GONE);
-                                            step3.setVisibility(View.VISIBLE);
-                                            imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-                                            tvConnectStatus.setText("绑定失败");
-                                            tvConnectMsg.setVisibility(View.VISIBLE);
-                                            tvConnectMsg.setText("没有找到设备，请重新绑定");
-                                        }
-
-                                        @Override
-                                        public void onDisconnect(boolean isActive) {
-                                            LogUtils.d(isActive);
+                                                        }
+                                                    }
+                                                });
+                                            }
                                         }
                                     });
+                                    LogUtils.v(String.format("device for %s\n%s", device.getAddress(), device.toString()));
                                 }
 
                                 @Override
-                                public void onScanTimeout() {
+                                public void onSearchStopped() {
 
                                 }
-                            }).setDeviceName(DEVICE_NAME));
+
+                                @Override
+                                public void onSearchCanceled() {
+
+                                }
+                            });
+//                            //该方式是扫到指定设备就停止扫描
+//                            ViseBle.getInstance().startScan(new SingleFilterScanCallback(new IScanCallback() {
+//                                @Override
+//                                public void onDeviceFound(BluetoothLeDeviceStore bluetoothLeDeviceStore) {
+//                                    step1.setVisibility(View.GONE);
+//                                    step3.setVisibility(View.GONE);
+//                                    step2.setVisibility(View.VISIBLE);
+//                                    progressbar.setProgress(0);
+//                                    tvProgress.setText("正在激活");
+//                                }
+//
+//                                @Override
+//                                public void onScanFinish(BluetoothLeDeviceStore bluetoothLeDeviceStore) {
+//                                    ViseBle.getInstance().connect(bluetoothLeDeviceStore.getDeviceList().get(0), new IConnectCallback() {
+//                                        @Override
+//                                        public void onConnectSuccess(DeviceMirror deviceMirror) {
+//                                            BluetoothGattChannel bluetoothGattChannel = new BluetoothGattChannel.Builder()
+//                                                    .setBluetoothGatt(deviceMirror.getBluetoothGatt())
+//                                                    .setPropertyType(PropertyType.PROPERTY_WRITE)
+//                                                    .setServiceUUID(UUID.fromString(BleCommon.userServiceUUID))
+//                                                    .setCharacteristicUUID(UUID.fromString(BleCommon.userCharacteristicLogUUID))
+//                                                    .builder();
+//                                            deviceMirror.bindChannel(new IBleCallback() {
+//                                                @Override
+//                                                public void onSuccess(byte[] data, BluetoothGattChannel bluetoothGattChannel, BluetoothLeDevice bluetoothLeDevice) {
+//                                                    vertifyDevice(bluetoothLeDevice.getDevice());
+//                                                }
+//
+//                                                @Override
+//                                                public void onFailure(BleException exception) {
+//                                                    LogUtils.e(exception);
+//                                                }
+//                                            }, bluetoothGattChannel);
+//                                            byte[] data = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
+//                                            deviceMirror.writeData(data);
+//
+//                                        }
+//
+//                                        @Override
+//                                        public void onConnectFailure(BleException exception) {
+//                                            step1.setVisibility(View.GONE);
+//                                            step2.setVisibility(View.GONE);
+//                                            step3.setVisibility(View.VISIBLE);
+//                                            imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
+//                                            tvConnectStatus.setText("绑定失败");
+//                                            tvConnectMsg.setVisibility(View.VISIBLE);
+//                                            tvConnectMsg.setText("没有找到设备，请重新绑定");
+//                                        }
+//
+//                                        @Override
+//                                        public void onDisconnect(boolean isActive) {
+//                                            LogUtils.d(isActive);
+//                                        }
+//                                    });
+//                                }
+//
+//                                @Override
+//                                public void onScanTimeout() {
+//
+//                                }
+//                            }).setDeviceName(DEVICE_NAME));
 
 
                         }

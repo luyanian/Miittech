@@ -1,29 +1,39 @@
 package com.miittech.you;
 
-import android.*;
-import android.Manifest;
 import android.app.Activity;
-import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 
 import com.baidu.mapapi.SDKInitializer;
-import com.luck.picture.lib.permissions.RxPermissions;
-import com.miittech.you.ble.common.BluetoothDeviceManager;
+import com.inuker.bluetooth.library.Constants;
+import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
+import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
+import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
+import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
+import com.inuker.bluetooth.library.model.BleGattProfile;
+import com.miittech.you.ble.ClientManager;
+import com.miittech.you.common.Common;
+import com.miittech.you.global.Params;
 import com.miittech.you.receiver.BluetoothReceiver;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.Utils;
-import com.vise.baseble.ViseBle;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
+import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
+import static com.inuker.bluetooth.library.Constants.STATUS_CONNECTED;
+import static com.inuker.bluetooth.library.Constants.STATUS_DISCONNECTED;
+import static com.miittech.you.common.BleCommon.characteristicUUID;
+import static com.miittech.you.common.BleCommon.serviceUUID;
+import static com.miittech.you.common.BleCommon.userCharacteristicLogUUID;
+import static com.miittech.you.common.BleCommon.userServiceUUID;
 
 /**
  * Created by Administrator on 2017/9/7.
@@ -31,6 +41,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class App extends MobApplication {
     private static App instance;
+    private List<String> mMacList = new ArrayList<>();
     @Override
     public void onCreate() {
         super.onCreate();
@@ -39,13 +50,10 @@ public class App extends MobApplication {
         Utils.init(getApplicationContext());
         registerActivityListener();
         registReciver();
-        BluetoothDeviceManager.getInstance().init(this);
-        ViseBle.getInstance().disconnect();
-        ViseBle.getInstance().clear();
     }
 
 
-    public static Application getInstance() {
+    public static App getInstance() {
         return instance;
     }
 
@@ -120,5 +128,86 @@ public class App extends MobApplication {
         intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         intent.setPriority(Integer.MAX_VALUE);
         registerReceiver(bluetoothReceiver, intent);
+    }
+
+    public void addMac(String mac){
+        if(StringUtils.isEmpty(mac)){
+            return;
+        }
+        if(!mMacList.contains(mac)) {
+            mMacList.add(mac);
+            connectDevice(mac);
+        }
+    }
+
+    public void delMac(String mac){
+        if(mMacList.contains(mac)){
+            ClientManager.getClient().getConnectStatus(mac);
+            byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, App.getUserId());
+            ClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
+                @Override
+                public void onResponse(int code) {
+                    if (code == REQUEST_SUCCESS) {
+
+                    }
+                }
+            });
+            mMacList.remove(mac);
+        }
+    }
+
+    private void connectDevice(final String mac) {
+        BleConnectOptions options = new BleConnectOptions.Builder()
+                .setConnectRetry(3)   // 连接如果失败重试3次
+                .setConnectTimeout(30000)   // 连接超时30s
+                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
+                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                .build();
+        ClientManager.getClient().connect(mac, options, new BleConnectResponse() {
+            @Override
+            public void onResponse(int code, BleGattProfile data) {
+                if(code== Constants.CODE_CONNECT){
+
+                }
+            }
+        });
+
+
+        BleConnectStatusListener mBleConnectStatusListener = new BleConnectStatusListener() {
+
+            @Override
+            public void onConnectStatusChanged(String mac, int status) {
+                if (status == STATUS_CONNECTED) {
+                    byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getUserId());
+                    ClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
+                        @Override
+                        public void onResponse(int code) {
+                            if (code == REQUEST_SUCCESS) {
+
+                            }
+                        }
+                    });
+                } else if (status == STATUS_DISCONNECTED) {
+
+                }
+            }
+        };
+        ClientManager.getClient().registerConnectStatusListener(mac, mBleConnectStatusListener);
+
+
+    }
+
+    public void doFindOrBell(String mac) {
+        if(ClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+            byte[] dataWork = new byte[]{02};
+            ClientManager.getClient().write(mac, serviceUUID, characteristicUUID, dataWork, new BleWriteResponse() {
+                @Override
+                public void onResponse(int code) {
+                    if (code == REQUEST_SUCCESS) {
+
+                    }
+                }
+            });
+        }
     }
 }

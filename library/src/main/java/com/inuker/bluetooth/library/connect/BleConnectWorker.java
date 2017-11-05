@@ -314,9 +314,9 @@ public class BleConnectWorker implements Handler.Callback, IBleConnectWorker, IB
         BluetoothGattCallback callback = new BluetoothGattResponse(mBluetoothGattResponse);
 
         if (Version.isMarshmallow()) {
-            mBluetoothGatt = mBluetoothDevice.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE);
+            mBluetoothGatt = mBluetoothDevice.connectGatt(context, true, callback, BluetoothDevice.TRANSPORT_LE);
         } else {
-            mBluetoothGatt = mBluetoothDevice.connectGatt(context, false, callback);
+            mBluetoothGatt = mBluetoothDevice.connectGatt(context, true, callback);
         }
 
         if (mBluetoothGatt == null) {
