@@ -240,6 +240,7 @@
         <activity android:name=".activity.device.DeviceDetailActivity"/>
         <activity android:name=".activity.device.DeviceSelectRingActivity"/>
         <service android:name=".service.BluetoothService"/>
+        <activity android:name=".activity.device.DeviceDetailSettingActivity"/>
         <receiver android:name=".receiver.BluetoothReceiver">
             <intent-filter android:priority="1000">
                 <action android:name="android.bluetooth.device.action.PAIRING_REQUEST"/>

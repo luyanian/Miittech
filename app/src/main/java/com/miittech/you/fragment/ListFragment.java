@@ -17,7 +17,7 @@ import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.global.IntentExtras;
-import com.miittech.you.impl.OnDeviceItemClick;
+import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -44,7 +44,7 @@ import okhttp3.RequestBody;
  * Created by Administrator on 2017/9/14.
  */
 
-public class ListFragment extends Fragment implements OnDeviceItemClick {
+public class ListFragment extends Fragment implements OnListItemClick<DeviceResponse.DevlistBean> {
     @BindView(R.id.rl_tip)
     RelativeLayout rlTip;
     @BindView(R.id.recyclerView)

@@ -4,9 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Miittech.iml" filepath="$PROJECT_DIR$/Miittech.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://E:\source\android\Miittech\baseble\baseble.iml" filepath="E:\source\android\Miittech\baseble\baseble.iml" />
       <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
-      <module fileurl="file://E:\source\android\Miittech\library\library.iml" filepath="E:\source\android\Miittech\library\library.iml" />
       <module fileurl="file://$PROJECT_DIR$/mutils/mutils.iml" filepath="$PROJECT_DIR$/mutils/mutils.iml" />
     </modules>
   </component>

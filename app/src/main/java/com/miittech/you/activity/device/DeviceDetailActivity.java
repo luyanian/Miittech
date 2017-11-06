@@ -143,6 +143,8 @@ public class DeviceDetailActivity extends BaseActivity {
             case R.id.btn_option_share:
                 break;
             case R.id.btn_option_setting:
+                Intent intent = new Intent(this,DeviceDetailSettingActivity.class);
+                startActivity(intent);
                 break;
             case R.id.btn_option_delete:
                 unbindDevice();

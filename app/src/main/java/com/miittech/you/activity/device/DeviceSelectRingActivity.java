@@ -1,28 +1,55 @@
 package com.miittech.you.activity.device;
 
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
+import com.miittech.you.adapter.SelectAdapter;
+import com.miittech.you.adapter.SelectRingAdapter;
+import com.miittech.you.common.Common;
+import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
+import com.miittech.you.global.Params;
+import com.miittech.you.global.PubParam;
+import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
+import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
+import com.ryon.mutils.EncryptUtils;
+import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.ToastUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 /**
  * Created by Administrator on 2017/10/30.
  */
 
-public class DeviceSelectRingActivity extends BaseActivity {
+public class DeviceSelectRingActivity extends BaseActivity implements OnListItemClick {
     @BindView(R.id.titlebar)
     Titlebar titlebar;
     @BindView(R.id.img_device_icon)
@@ -33,22 +60,11 @@ public class DeviceSelectRingActivity extends BaseActivity {
     TextView tvDeviceLocation;
     @BindView(R.id.tv_device_time)
     TextView tvDeviceTime;
-    @BindView(R.id.tv_item1)
-    TextView tvItem1;
-    @BindView(R.id.tv_item2)
-    TextView tvItem2;
-    @BindView(R.id.tv_item3)
-    TextView tvItem3;
-    @BindView(R.id.tv_item4)
-    TextView tvItem4;
-    @BindView(R.id.img_item1)
-    ImageView imgItem1;
-    @BindView(R.id.img_item2)
-    ImageView imgItem2;
-    @BindView(R.id.img_item3)
-    ImageView imgItem3;
-    @BindView(R.id.img_item4)
-    ImageView imgItem4;
+    @BindView(R.id.recyclerview)
+    RecyclerView recyclerview;
+
+    private SelectRingAdapter selectRingAdapter;
+    List<SoundListResponse.SourndlistBean> sourndlist = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,54 +90,51 @@ public class DeviceSelectRingActivity extends BaseActivity {
         });
 
         tvDeviceLocation.setText(getIntent().getStringExtra(IntentExtras.DEVICE.NAME));
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        recyclerview.setLayoutManager(mLayoutManager);
+        //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
+        recyclerview.setHasFixedSize(true);
+        selectRingAdapter = new SelectRingAdapter(this,sourndlist,this);
+        recyclerview.setAdapter(selectRingAdapter);
+        getSoundList();
     }
 
-    private void showCurrentImg(View view) {
-        if (imgItem1 == view) {
-            imgItem1.setVisibility(View.VISIBLE);
-            imgItem2.setVisibility(View.GONE);
-            imgItem3.setVisibility(View.GONE);
-            imgItem4.setVisibility(View.GONE);
-            tvDeviceTime.setText(tvItem1.getText().toString());
-        }
-        if (imgItem2 == view) {
-            imgItem1.setVisibility(View.GONE);
-            imgItem2.setVisibility(View.VISIBLE);
-            imgItem3.setVisibility(View.GONE);
-            imgItem4.setVisibility(View.GONE);
-            tvDeviceTime.setText(tvItem2.getText().toString());
-        }
-        if (imgItem3 == view) {
-            imgItem1.setVisibility(View.GONE);
-            imgItem2.setVisibility(View.GONE);
-            imgItem3.setVisibility(View.VISIBLE);
-            imgItem4.setVisibility(View.GONE);
-            tvDeviceTime.setText(tvItem3.getText().toString());
-        }
-        if (imgItem4 == view) {
-            imgItem1.setVisibility(View.GONE);
-            imgItem2.setVisibility(View.GONE);
-            imgItem3.setVisibility(View.GONE);
-            imgItem4.setVisibility(View.VISIBLE);
-            tvDeviceTime.setText(tvItem4.getText().toString());
-        }
+    @Override
+    public void onItemClick(Object o) {
+
     }
 
-    @OnClick({R.id.rl_item1, R.id.rl_item2, R.id.rl_item3, R.id.rl_item4})
-    public void onViewClicked(View view) {
-        switch (view.getId()) {
-            case R.id.rl_item1:
-                showCurrentImg(imgItem1);
-                break;
-            case R.id.rl_item2:
-                showCurrentImg(imgItem2);
-                break;
-            case R.id.rl_item3:
-                showCurrentImg(imgItem3);
-                break;
-            case R.id.rl_item4:
-                showCurrentImg(imgItem4);
-                break;
-        }
+    public void getSoundList(){
+        PubParam pubParam = new PubParam(App.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + App.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "soundlist/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), "");
+        ApiServiceManager.getInstance().buildApiService(this).postToGetSoundList(path,requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<SoundListResponse>() {
+                    @Override
+                    public void accept(SoundListResponse response) throws Exception {
+                        if(response.isSuccessful()){
+                            initSoundList(response.getSourndlist());
+                        }else{
+                            response.onError(DeviceSelectRingActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+
+    private void initSoundList(List<SoundListResponse.SourndlistBean> sourndlist) {
+        this.sourndlist.clear();
+        this.sourndlist.addAll(sourndlist);
+        selectRingAdapter.notifyDataSetChanged();
     }
 }

@@ -6,13 +6,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.miittech.you.R;
-import com.miittech.you.impl.OnDeviceItemClick;
+import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
-
 import java.util.List;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -24,9 +21,9 @@ public class EventTraceAdapter extends RecyclerView.Adapter {
 
     private List<DeviceResponse.DevlistBean> mData;
     private Context context;
-    private OnDeviceItemClick onDeviceItemClick;
+    private OnListItemClick onDeviceItemClick;
 
-    public EventTraceAdapter(Context context, List<DeviceResponse.DevlistBean> mData, OnDeviceItemClick onDeviceItemClick) {
+    public EventTraceAdapter(Context context, List<DeviceResponse.DevlistBean> mData, OnListItemClick onDeviceItemClick) {
         this.context = context;
         this.mData = mData;
         this.onDeviceItemClick = onDeviceItemClick;

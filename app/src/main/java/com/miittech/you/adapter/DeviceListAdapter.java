@@ -10,7 +10,7 @@ import com.bumptech.glide.Glide;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.common.Common;
-import com.miittech.you.impl.OnDeviceItemClick;
+import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
 import java.util.List;
 
@@ -25,9 +25,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
 
     private List<DeviceResponse.DevlistBean> mData;
     private Activity activity;
-    private OnDeviceItemClick onDeviceItemClick;
+    private OnListItemClick onDeviceItemClick;
 
-    public DeviceListAdapter(Activity activity, List<DeviceResponse.DevlistBean> mData, OnDeviceItemClick onDeviceItemClick) {
+    public DeviceListAdapter(Activity activity, List<DeviceResponse.DevlistBean> mData, OnListItemClick onDeviceItemClick) {
         this.activity = activity;
         this.mData = mData;
         this.onDeviceItemClick = onDeviceItemClick;
@@ -56,7 +56,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         holder.itemLocation.setText(devlistBean.getLocinfo().getAddr());
         holder.itemLocation.setText(devlistBean.getLasttime());
         Glide.with(activity).load(devlistBean.getDevimg()).into(holder.itemIcon);
-        autoConnect(devlistBean);
+        addMacList(devlistBean);
     }
 
     @Override
@@ -79,97 +79,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             ButterKnife.bind(this, view);
         }
     }
-    private void autoConnect(DeviceResponse.DevlistBean devlistBean) {
+    private void addMacList(DeviceResponse.DevlistBean devlistBean) {
         String macAddress = Common.formatDevId2Mac(devlistBean.getDevidX());
         App.getInstance().addMac(macAddress);
-//        BleConnectOptions options = new BleConnectOptions.Builder()
-//                .setConnectRetry(3)   // 连接如果失败重试3次
-//                .setConnectTimeout(30000)   // 连接超时30s
-//                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
-//                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
-//                .build();
-//        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getUserId());
-//        ClientManager.getClient().write(macAddress, UUID.fromString(userServiceUUID), UUID.fromString(userCharacteristicLogUUID), dataWork, new BleWriteResponse() {
-//            @Override
-//            public void onResponse(int code) {
-//                if (code == REQUEST_SUCCESS) {
-//
-//                }
-//            }
-//        });
-
-//        ClientManager.getClient().connect(macAddress, options, new BleConnectResponse() {
-//            @Override
-//            public void onResponse(int code, BleGattProfile data) {
-//                if(code==Constants.CODE_CONNECT){
-//                    byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getUserId());
-//                    ClientManager.getClient().write(macAddress, UUID.fromString(userServiceUUID), UUID.fromString(userCharacteristicLogUUID), dataWork, new BleWriteResponse() {
-//                        @Override
-//                        public void onResponse(int code) {
-//                            if (code == REQUEST_SUCCESS) {
-//
-//                            }
-//                        }
-//                    });
-//                }
-//            }
-//        });
-//
-//        ClientManager.getClient().registerConnectStatusListener(macAddress, new BleConnectStatusListener() {
-//            @Override
-//            public void onConnectStatusChanged(String mac, int status) {
-//                if (status == STATUS_CONNECTED) {
-//
-//                } else if (status == STATUS_DISCONNECTED) {
-//
-//                }
-//            }
-//        });
-
-
-//        if(ViseBle.getInstance().getConnectState(macAddress).getCode()!= ConnectState.CONNECT_DISCONNECT.getCode()){
-//           return;
-//        }
-//
-//        ViseBle.getInstance().connectByMac(macAddress, new IConnectCallback() {
-//            @Override
-//            public void onConnectSuccess(DeviceMirror deviceMirror) {
-//                settingWorkMode(deviceMirror);
-//            }
-//
-//            @Override
-//            public void onConnectFailure(BleException exception) {
-//                LogUtils.e(exception.getDescription());
-//            }
-//
-//            @Override
-//            public void onDisconnect(boolean isActive) {
-//                LogUtils.d(isActive);
-//            }
-//        });
-//    }
-//
-//    private void settingWorkMode(DeviceMirror deviceMirror) {
-//        byte[] data = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getUserId());
-//
-//        BluetoothGattChannel bluetoothGattChannel = new BluetoothGattChannel.Builder()
-//                .setBluetoothGatt(deviceMirror.getBluetoothGatt())
-//                .setPropertyType(PropertyType.PROPERTY_WRITE)
-//                .setServiceUUID(UUID.fromString(BleCommon.userServiceUUID))
-//                .setCharacteristicUUID(UUID.fromString(BleCommon.userCharacteristicLogUUID))
-//                .builder();
-//        deviceMirror.bindChannel(new IBleCallback() {
-//            @Override
-//            public void onSuccess(byte[] data, BluetoothGattChannel bluetoothGattChannel, BluetoothLeDevice bluetoothLeDevice) {
-//                LogUtils.d(data);
-//            }
-//
-//            @Override
-//            public void onFailure(com.vise.baseble.exception.BleException exception) {
-//                LogUtils.e(exception);
-//            }
-//        }, bluetoothGattChannel);
-//        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK,App.getUserId());
-//        deviceMirror.writeData(dataWork);
     }
 }

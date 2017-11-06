@@ -4,6 +4,7 @@ import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.RegisteCodeResponse;
+import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 
 import io.reactivex.Observable;
@@ -32,6 +33,9 @@ public interface ApiService {
 
     @POST()
     Observable<JsonObject> postNetRequestObject(@Url String url, @Body RequestBody body);
+
+    @POST()
+    Observable<SoundListResponse> postToGetSoundList(@Url String url, @Body RequestBody body);
 
     @Multipart
     @POST()

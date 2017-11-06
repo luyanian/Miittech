@@ -64,113 +64,11 @@
         android:layout_margin="10dp"
         android:textSize="20dp"
         android:textColor="#6d6d6d"/>
-    <LinearLayout
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-        <RelativeLayout
-            android:id="@+id/rl_item1"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp">
-            <TextView
-                android:id="@+id/tv_item1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="Don’t cry"
-                android:textSize="20dp"/>
-            <ImageView
-                android:id="@+id/img_item1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:src="@drawable/ic_device_rings_select"
-                android:layout_centerVertical="true"/>
-        </RelativeLayout>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@drawable/bg_lines"/>
-        <RelativeLayout
-            android:id="@+id/rl_item2"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp">
-            <TextView
-                android:id="@+id/tv_item2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="The Classic Call"
-                android:textSize="20dp"/>
-            <ImageView
-                android:id="@+id/img_item2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:src="@drawable/ic_device_rings_select"
-                android:layout_centerVertical="true"
-                android:visibility="gone"/>
-        </RelativeLayout>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@drawable/bg_lines"/>
-        <RelativeLayout
-            android:id="@+id/rl_item3"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp">
-            <TextView
-                android:id="@+id/tv_item3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="Blues for Slim"
-                android:textSize="20dp"/>
-            <ImageView
-                android:id="@+id/img_item3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:src="@drawable/ic_device_rings_select"
-                android:layout_centerVertical="true"
-                android:visibility="gone"/>
-        </RelativeLayout>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@drawable/bg_lines"/>
-        <RelativeLayout
-            android:id="@+id/rl_item4"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp">
-            <TextView
-                android:id="@+id/tv_item4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="County Fair"
-                android:textSize="20dp"/>
-            <ImageView
-                android:id="@+id/img_item4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:src="@drawable/ic_device_rings_select"
-                android:layout_centerVertical="true"
-                android:visibility="gone"/>
-        </RelativeLayout>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@drawable/bg_lines"/>
-    </LinearLayout>
-    
+        android:layout_margin="10dp"/>
+
 </LinearLayout>

@@ -6,8 +6,10 @@ import android.bluetooth.BluetoothDevice;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 
 import com.baidu.mapapi.SDKInitializer;
+import com.inuker.bluetooth.library.Code;
 import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
 import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
@@ -15,6 +17,7 @@ import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.inuker.bluetooth.library.model.BleGattProfile;
 import com.miittech.you.ble.ClientManager;
+import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.Params;
 import com.miittech.you.receiver.BluetoothReceiver;
@@ -139,6 +142,15 @@ public class App extends MobApplication {
             connectDevice(mac);
         }
     }
+    public void addMacSetWork(String mac) {
+        if(StringUtils.isEmpty(mac)){
+            return;
+        }
+        if(!mMacList.contains(mac)) {
+            mMacList.add(mac);
+            setWorkMode(mac);
+        }
+    }
 
     public void delMac(String mac){
         if(mMacList.contains(mac)){
@@ -172,29 +184,36 @@ public class App extends MobApplication {
             }
         });
 
-
         BleConnectStatusListener mBleConnectStatusListener = new BleConnectStatusListener() {
 
             @Override
             public void onConnectStatusChanged(String mac, int status) {
                 if (status == STATUS_CONNECTED) {
-                    byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getUserId());
-                    ClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
-                        @Override
-                        public void onResponse(int code) {
-                            if (code == REQUEST_SUCCESS) {
-
-                            }
-                        }
-                    });
+                    setWorkMode(mac);
                 } else if (status == STATUS_DISCONNECTED) {
 
                 }
             }
         };
         ClientManager.getClient().registerConnectStatusListener(mac, mBleConnectStatusListener);
+    }
+    public void setWorkMode(String mac){
+        if(ClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+            return;
+        }
+        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getUserId());
+        ClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
+            @Override
+            public void onResponse(int code) {
+                if (code == REQUEST_SUCCESS) {
 
-
+                }
+            }
+        });
+    }
+    public void setBindMode(String mac,BleWriteResponse response){
+        byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
+        ClientManager.getClient().write(mac, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, response);
     }
 
     public void doFindOrBell(String mac) {
@@ -203,11 +222,23 @@ public class App extends MobApplication {
             ClientManager.getClient().write(mac, serviceUUID, characteristicUUID, dataWork, new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
-                    if (code == REQUEST_SUCCESS) {
+                if (code == REQUEST_SUCCESS) {
 
-                    }
+                }
                 }
             });
         }
+    }
+
+
+    public void connectMac(String address,BleConnectResponse response) {
+        BleConnectOptions options = new BleConnectOptions.Builder()
+                .setConnectRetry(3)   // 连接如果失败重试3次
+                .setConnectTimeout(30000)   // 连接超时30s
+                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
+                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                .build();
+
+        ClientManager.getClient().connect(address, options,response);
     }
 }

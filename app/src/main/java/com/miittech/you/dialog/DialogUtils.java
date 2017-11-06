@@ -51,4 +51,15 @@ public class DialogUtils {
         ignoreAddDialog.show();
         return ignoreAddDialog;
     }
+    static SelectDialog selectDialog;
+    public static SelectDialog createSelectDialog(Context context){
+        if(selectDialog==null){
+            selectDialog = new SelectDialog(context);
+        }else{
+            if(selectDialog.isShowing()){
+                selectDialog.dismiss();
+            }
+        }
+        return selectDialog;
+    }
 }

@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.google.gson.Gson;
+import com.inuker.bluetooth.library.Code;
 import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
 import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
@@ -39,7 +40,9 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -76,6 +79,8 @@ public class DeviceAddStepActivity extends BaseActivity{
     TextView tvConnectMsg;
     @BindView(R.id.step3)
     RelativeLayout step3;
+
+    private List<String> mScanList = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +98,7 @@ public class DeviceAddStepActivity extends BaseActivity{
         step2.setVisibility(View.GONE);
         step3.setVisibility(View.GONE);
         step1.setVisibility(View.VISIBLE);
+        mScanList.clear();
         sacnDevice();
     }
 
@@ -121,35 +127,44 @@ public class DeviceAddStepActivity extends BaseActivity{
                                     if(!device.getName().contains(DEVICE_NAME)){
                                         return;
                                     }
+                                    if(mScanList.contains(device.getAddress())){
+                                        return;
+                                    }
+                                    mScanList.add(device.getAddress());
                                     step1.setVisibility(View.GONE);
                                     step3.setVisibility(View.GONE);
                                     step2.setVisibility(View.VISIBLE);
                                     progressbar.setProgress(0);
                                     tvProgress.setText("正在激活");
 
-                                    BleConnectOptions options = new BleConnectOptions.Builder()
-                                            .setConnectRetry(3)   // 连接如果失败重试3次
-                                            .setConnectTimeout(30000)   // 连接超时30s
-                                            .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
-                                            .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
-                                            .build();
-
-                                    ClientManager.getClient().connect(device.getAddress(), options, new BleConnectResponse() {
+                                    App.getInstance().connectMac(device.getAddress(),new BleConnectResponse(){
                                         @Override
                                         public void onResponse(int code, BleGattProfile data) {
-                                            if(code== Constants.CODE_CONNECT){
-                                                byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
-                                                ClientManager.getClient().write(device.getAddress(), BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, new BleWriteResponse() {
+                                            progressbar.setProgress(13);
+                                            if(code== Constants.REQUEST_SUCCESS){
+                                                App.getInstance().setBindMode(device.getAddress(),new BleWriteResponse() {
                                                     @Override
                                                     public void onResponse(int code) {
-                                                        if (code == REQUEST_SUCCESS) {
-
+                                                        if (code == Code.REQUEST_SUCCESS) {
+                                                            progressbar.setProgress(27);
+                                                            App.getInstance().addMacSetWork(device.getAddress());
+                                                            vertifyDevice(device.getAddress());
                                                         }
                                                     }
                                                 });
+                                            }else{
+                                                step1.setVisibility(View.GONE);
+                                                step2.setVisibility(View.GONE);
+                                                step3.setVisibility(View.VISIBLE);
+                                                imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
+                                                tvConnectStatus.setText("绑定失败");
+                                                tvConnectMsg.setVisibility(View.VISIBLE);
+                                                tvConnectMsg.setText("没有找到设备，请重新绑定");
                                             }
                                         }
                                     });
+
+
                                     LogUtils.v(String.format("device for %s\n%s", device.getAddress(), device.toString()));
                                 }
 
@@ -163,78 +178,15 @@ public class DeviceAddStepActivity extends BaseActivity{
 
                                 }
                             });
-//                            //该方式是扫到指定设备就停止扫描
-//                            ViseBle.getInstance().startScan(new SingleFilterScanCallback(new IScanCallback() {
-//                                @Override
-//                                public void onDeviceFound(BluetoothLeDeviceStore bluetoothLeDeviceStore) {
-//                                    step1.setVisibility(View.GONE);
-//                                    step3.setVisibility(View.GONE);
-//                                    step2.setVisibility(View.VISIBLE);
-//                                    progressbar.setProgress(0);
-//                                    tvProgress.setText("正在激活");
-//                                }
-//
-//                                @Override
-//                                public void onScanFinish(BluetoothLeDeviceStore bluetoothLeDeviceStore) {
-//                                    ViseBle.getInstance().connect(bluetoothLeDeviceStore.getDeviceList().get(0), new IConnectCallback() {
-//                                        @Override
-//                                        public void onConnectSuccess(DeviceMirror deviceMirror) {
-//                                            BluetoothGattChannel bluetoothGattChannel = new BluetoothGattChannel.Builder()
-//                                                    .setBluetoothGatt(deviceMirror.getBluetoothGatt())
-//                                                    .setPropertyType(PropertyType.PROPERTY_WRITE)
-//                                                    .setServiceUUID(UUID.fromString(BleCommon.userServiceUUID))
-//                                                    .setCharacteristicUUID(UUID.fromString(BleCommon.userCharacteristicLogUUID))
-//                                                    .builder();
-//                                            deviceMirror.bindChannel(new IBleCallback() {
-//                                                @Override
-//                                                public void onSuccess(byte[] data, BluetoothGattChannel bluetoothGattChannel, BluetoothLeDevice bluetoothLeDevice) {
-//                                                    vertifyDevice(bluetoothLeDevice.getDevice());
-//                                                }
-//
-//                                                @Override
-//                                                public void onFailure(BleException exception) {
-//                                                    LogUtils.e(exception);
-//                                                }
-//                                            }, bluetoothGattChannel);
-//                                            byte[] data = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
-//                                            deviceMirror.writeData(data);
-//
-//                                        }
-//
-//                                        @Override
-//                                        public void onConnectFailure(BleException exception) {
-//                                            step1.setVisibility(View.GONE);
-//                                            step2.setVisibility(View.GONE);
-//                                            step3.setVisibility(View.VISIBLE);
-//                                            imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-//                                            tvConnectStatus.setText("绑定失败");
-//                                            tvConnectMsg.setVisibility(View.VISIBLE);
-//                                            tvConnectMsg.setText("没有找到设备，请重新绑定");
-//                                        }
-//
-//                                        @Override
-//                                        public void onDisconnect(boolean isActive) {
-//                                            LogUtils.d(isActive);
-//                                        }
-//                                    });
-//                                }
-//
-//                                @Override
-//                                public void onScanTimeout() {
-//
-//                                }
-//                            }).setDeviceName(DEVICE_NAME));
-
-
                         }
                     }
                 });
     }
 
-    private void vertifyDevice(final BluetoothDevice device) {
-        progressbar.setProgress(20);
+    private void vertifyDevice(final String mac) {
+        progressbar.setProgress(38);
         Map param = new HashMap();
-        param.put("devid", Common.formatMac2DevId(device.getAddress()));
+        param.put("devid", Common.formatMac2DevId(mac));
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
@@ -251,7 +203,8 @@ public class DeviceAddStepActivity extends BaseActivity{
                     public void accept(DeviceResponse response) throws Exception {
                         progressbar.setProgress(40);
                         if(response.isVerSuccessful()){
-                            bindDevice(device);
+                            progressbar.setProgress(69);
+                            bindDevice(mac);
                         }else{
                             response.onError(DeviceAddStepActivity.this);
                         }
@@ -259,7 +212,6 @@ public class DeviceAddStepActivity extends BaseActivity{
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
-//                        bleManager.cancelScan();
                         step1.setVisibility(View.GONE);
                         step2.setVisibility(View.GONE);
                         step3.setVisibility(View.VISIBLE);
@@ -271,10 +223,10 @@ public class DeviceAddStepActivity extends BaseActivity{
                 });
     }
 
-    private void bindDevice(final BluetoothDevice device) {
-        progressbar.setProgress(60);
+    private void bindDevice(final String mac) {
+        progressbar.setProgress(81);
         Map param = new HashMap();
-        param.put("devid", Common.formatMac2DevId(device.getAddress()));
+        param.put("devid", Common.formatMac2DevId(mac));
         param.put("method", Params.METHOD.BINGD);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getUserId());
@@ -304,7 +256,7 @@ public class DeviceAddStepActivity extends BaseActivity{
                                 @Override
                                 public void run() {
                                     Intent intent = new Intent(DeviceAddStepActivity.this,DeviceSetClassifyActivity.class);
-                                    intent.putExtra(IntentExtras.DEVICE.ID,Common.formatMac2DevId(device.getAddress()));
+                                    intent.putExtra(IntentExtras.DEVICE.ID,Common.formatMac2DevId(mac));
 
                                     startActivity(intent);
                                 }

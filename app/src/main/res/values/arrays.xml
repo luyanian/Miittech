@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sings">
+        <item>Don’t cry</item>
+        <item>The Classic Call</item>
+        <item>Blues for Slim</item>
+        <item>County Fair</item>
+    </string-array>
+    <string-array name="repeat_time">
+        <item>3s</item>
+        <item>5s</item>
+        <item>10s</item>
+        <item>30s</item>
+        <item>60s</item>
+        <item>90s</item>
+        <item>120s</item>
+        <item>180s</item>
+        <item>240s</item>
+        <item>300s</item>
+    </string-array>
+</resources>
