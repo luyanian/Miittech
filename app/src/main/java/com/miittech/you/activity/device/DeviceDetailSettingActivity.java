@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.activity.MainActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.SelectDialog;
@@ -21,8 +22,10 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.ToastUtils;
@@ -56,6 +59,15 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
     CheckBox checkDisconnectRepeatedRemind;
     @BindView(R.id.check_repeated_remind)
     CheckBox checkRepeatedRemind;
+    @BindView(R.id.tv_info1)
+    TextView tvInfo1;
+    @BindView(R.id.tv_info2)
+    TextView tvInfo2;
+    @BindView(R.id.tv_info3)
+    TextView tvInfo3;
+
+
+    private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +83,25 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                 finish();
             }
         });
+        deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        initViews(deviceInfo);
         checkDisconnectRepeatedRemind.setOnCheckedChangeListener(this);
         checkRepeatedRemind.setOnCheckedChangeListener(this);
         checkVibrate.setOnCheckedChangeListener(this);
+    }
+
+    private void initViews(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo) {
+        tvBell.setText(this.deviceInfo.getAlertinfo().getName());
+        checkVibrate.setChecked((this.deviceInfo.getAlertinfo().getIsShake()==1)?true:false);
+        tvDisconnectReminderTime.setText(this.deviceInfo.getAlertinfo().getDuration()+"s");
+        checkDisconnectRepeatedRemind.setChecked((this.deviceInfo.getAlertinfo().getIsReconnect()==1)?true:false);
+        checkRepeatedRemind.setChecked((this.deviceInfo.getAlertinfo().getIsRepeat()==1)?true:false);
+        String info1 ="手机与“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”断开连接时响铃时长";
+        String info2 = "锁屏时手机和“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”断开连接后多次提醒，解锁手机或打开APP即可停止提醒";
+        String info3 = "手机与“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”重新连接时手机提醒";
+        tvInfo1.setText(info1);
+        tvInfo2.setText(info2);
+        tvInfo3.setText(info3);
     }
 
     @OnClick({R.id.rl_bell, R.id.rl_disconnect_reminder_time})
@@ -81,7 +109,8 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
         switch (view.getId()) {
             case R.id.rl_bell:
                 Intent intent = new Intent(DeviceDetailSettingActivity.this,DeviceSelectRingActivity.class);
-                startActivity(intent);
+                intent.putExtra(IntentExtras.DEVICE.DATA,this.deviceInfo);
+                startActivityForResult(intent,0);
                 break;
             case R.id.rl_disconnect_reminder_time:
                 SelectDialog selectDialog = DialogUtils.createSelectDialog(this);
@@ -90,7 +119,7 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                     @Override
                     public void onItemClick(String s) {
                         tvDisconnectReminderTime.setText(s);
-                        editAttr();
+                        setDeviceAlertinfo();
                     }
                 });
                 selectDialog.init();
@@ -103,23 +132,51 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         switch (buttonView.getId()){
             case R.id.check_disconnect_repeated_remind:
+                setDeviceAlertinfo();
                 break;
             case R.id.check_repeated_remind:
+                setDeviceAlertinfo();
                 break;
             case R.id.check_vibrate:
+                setDeviceAlertinfo();
                 break;
         }
     }
 
-    private void editAttr() {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data!=null){
+            this.deviceInfo.getAlertinfo().setId(data.getIntExtra(IntentExtras.SOURND.ID,1));
+            this.deviceInfo.getAlertinfo().setName(data.getStringExtra(IntentExtras.SOURND.NAME));
+            tvBell.setText(data.getStringExtra(IntentExtras.SOURND.NAME));
+        }
+    }
+
+    private void setDeviceAlertinfo() {
         Map alertinfo = new HashMap();
-        alertinfo.put("","");
+        alertinfo.put("vol",31);//音量
+        this.deviceInfo.getAlertinfo().setVol(31);
+        alertinfo.put("isShake",checkVibrate.isChecked()?1:0);//是否振东
+        this.deviceInfo.getAlertinfo().setIsShake(checkVibrate.isChecked()?1:0);
+        alertinfo.put("isRepeat",checkRepeatedRemind.isChecked()?1:0);//是否重复提醒，选填
+        this.deviceInfo.getAlertinfo().setIsRepeat(checkRepeatedRemind.isChecked()?1:0);
+        alertinfo.put("isReconnect",checkDisconnectRepeatedRemind.isChecked()?1:0);//是否重连提醒，选填
+        this.deviceInfo.getAlertinfo().setIsReconnect(checkDisconnectRepeatedRemind.isChecked()?1:0);
+        int duration = Integer.valueOf(tvDisconnectReminderTime.getText().toString().replaceAll("s",""));
+        alertinfo.put("duration",duration);//响铃时长
+        this.deviceInfo.getAlertinfo().setDuration(duration);
+        alertinfo.put("id",deviceInfo.getAlertinfo().getId());//铃声ID,缺省1，铃音编号
+        alertinfo.put("name",deviceInfo.getAlertinfo().getName());//铃声名称
+        Map devattr = new HashMap();
+        devattr.put("alertinfo",alertinfo);
         Map param = new HashMap();
-//        param.put("devid", device.getDevidX());
-        param.put("method", Params.METHOD.UNBIND);
+        param.put("devid", deviceInfo.getDevid());
+        param.put("method", "G");
+        param.put("devattr",devattr);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -132,7 +189,7 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            ToastUtils.showShort("设置成功");
+                            finish();
                         } else {
                             response.onError(DeviceDetailSettingActivity.this);
                         }

@@ -10,24 +10,29 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -44,6 +49,8 @@ import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
+import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
+
 /**
  * Created by Administrator on 2017/10/25.
  */
@@ -55,8 +62,10 @@ public class DeviceDetailActivity extends BaseActivity {
     CircleImageView imgDeviceIcon;
     @BindView(R.id.tv_device_name)
     TextView tvDeviceName;
-    @BindView(R.id.img_find_or_bell)
-    ImageView imgFindOrBell;
+    @BindView(R.id.img_find_background)
+    ImageView imgFindBackground;
+    @BindView(R.id.img_find_butten)
+    ImageView imgFindBtn;
     @BindView(R.id.typeSelector)
     TypeSelector typeSelector;
     @BindView(R.id.ll_tips)
@@ -68,6 +77,7 @@ public class DeviceDetailActivity extends BaseActivity {
     @BindView(R.id.tv_device_time)
     TextView tvDeviceTime;
     private DeviceResponse.DevlistBean device;
+    private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceDetailInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,8 +110,13 @@ public class DeviceDetailActivity extends BaseActivity {
         });
         typeSelector.setSelectItem(0);
         device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        initViewData(device);
         App.getInstance().addMac(Common.formatDevId2Mac(device.getDevidX()));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getDeviceInfo(device);
     }
 
     @Override
@@ -109,14 +124,16 @@ public class DeviceDetailActivity extends BaseActivity {
         super.onSaveInstanceState(outState, outPersistentState);
     }
 
-    private void initViewData(DeviceResponse.DevlistBean device) {
-        tvDeviceName.setText(device.getDevname());
+    private void initViewData(DeviceInfoResponse.UserinfoBean.DevinfoBean device) {
+        this.deviceDetailInfo = device;
+        tvDeviceName.setText(Common.decodeBase64(device.getDevname()));
         tvDeviceLocation.setText(device.getLocinfo().getAddr());
         tvDeviceTime.setText(device.getLasttime());
 
         Glide.with(this)
                 .load(device.getDevimg())
                 .into(imgDeviceIcon);
+        switchFindBtnStyle();
     }
 
     @Override
@@ -144,6 +161,7 @@ public class DeviceDetailActivity extends BaseActivity {
                 break;
             case R.id.btn_option_setting:
                 Intent intent = new Intent(this,DeviceDetailSettingActivity.class);
+                intent.putExtra(IntentExtras.DEVICE.DATA,this.deviceDetailInfo);
                 startActivity(intent);
                 break;
             case R.id.btn_option_delete:
@@ -153,16 +171,81 @@ public class DeviceDetailActivity extends BaseActivity {
     }
 
     private void doFindOrBell() {
-       App.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()));
-    }
+        byte[] options;
+        if(App.getInstance().getAlerStatus()== SPConst.ALET_STATUE.STATUS_UNBELL){
+            options = new byte[]{0x02};
+            App.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
+                @Override
+                public void onResponse(int code) {
+                    if (code == REQUEST_SUCCESS) {
+                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(SPConst.ALET_STATUE.KEY_STATUS,SPConst.ALET_STATUE.STATUS_BELLING);
+                        switchFindBtnStyle();
+                    }
+                }
+            });
+        }else{
+            options = new byte[]{0x00};
+            App.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
+                @Override
+                public void onResponse(int code) {
+                    if (code == REQUEST_SUCCESS) {
+                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(SPConst.ALET_STATUE.KEY_STATUS,SPConst.ALET_STATUE.STATUS_UNBELL);
+                        switchFindBtnStyle();
+                    }
+                }
+            });
+        }
 
+
+    }
+    private void switchFindBtnStyle() {
+        if(App.getInstance().getAlerStatus()== SPConst.ALET_STATUE.STATUS_UNBELL){
+            imgFindBackground.setImageResource(R.drawable.ic_device_find_background);
+            imgFindBtn.setImageResource(R.drawable.ic_device_find);
+        }else{
+            imgFindBackground.setImageResource(R.drawable.ic_device_find_stop_background);
+            imgFindBtn.setImageResource(R.drawable.ic_device_bell);
+        }
+    }
+    private void getDeviceInfo(DeviceResponse.DevlistBean device) {
+        Map param = new HashMap();
+        param.put("devid", device.getDevidX());
+        param.put("qrytype", Params.QRY_TYPE.ALL);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "deviceinfo/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postDeviceInfoOption(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceInfoResponse>() {
+                    @Override
+                    public void accept(DeviceInfoResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            initViewData(response.getUserinfo().getDevinfo());
+                        } else {
+                            response.onError(DeviceDetailActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
     private void unbindDevice() {
         Map param = new HashMap();
         param.put("devid", device.getDevidX());
         param.put("method", Params.METHOD.UNBIND);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

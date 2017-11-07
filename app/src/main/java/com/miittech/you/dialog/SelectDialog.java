@@ -11,8 +11,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.miittech.you.R;
-import com.miittech.you.adapter.DeviceListAdapter;
-import com.miittech.you.adapter.SelectAdapter;
+import com.miittech.you.adapter.SelectTimeAdapter;
 import com.miittech.you.impl.OnListItemClick;
 import com.ryon.mutils.ScreenUtils;
 
@@ -29,7 +28,7 @@ public class SelectDialog extends Dialog{
     @BindView(R.id.recyclerview)
     RecyclerView recyclerview;
 
-    private SelectAdapter selectAdapter;
+    private SelectTimeAdapter selectAdapter;
     private OnListItemClick<String> onListItemClick;
     private Context context;
 
@@ -66,7 +65,7 @@ public class SelectDialog extends Dialog{
     public void init(){
         String[] mData = context.getResources().getStringArray(R.array.repeat_time);
         //创建并设置Adapter
-        selectAdapter = new SelectAdapter(this.context,mData,this.onListItemClick);
+        selectAdapter = new SelectTimeAdapter(this.context,mData,this.onListItemClick);
         recyclerview.setAdapter(selectAdapter);
     }
 

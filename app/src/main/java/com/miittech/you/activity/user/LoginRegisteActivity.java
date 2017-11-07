@@ -22,7 +22,7 @@ public class LoginRegisteActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_registe);
         ButterKnife.bind(this);
-        if(!TextUtils.isEmpty(App.getTocken())){
+        if(!TextUtils.isEmpty(App.getInstance().getTocken())){
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {

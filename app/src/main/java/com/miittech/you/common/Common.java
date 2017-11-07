@@ -78,8 +78,8 @@ public class Common {
             param.put("detailinfo", detailinfo);
         }
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -110,8 +110,8 @@ public class Common {
         param.put("method", method);
         param.put("repdata", repData);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

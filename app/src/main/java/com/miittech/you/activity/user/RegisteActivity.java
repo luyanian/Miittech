@@ -16,6 +16,7 @@ import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.common.OnGetVerCodeComplete;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.net.ApiServiceManager;
@@ -164,8 +165,8 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
                     @Override
                     public void accept(BaseResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            SPUtils.getInstance(App.SESSION).put(App.TOCKEN,response.getToken());
-                            SPUtils.getInstance(App.SESSION).put(App.USERID,response.getUserid());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID,response.getUserid());
                             ToastUtils.showLong(getResources().getString(R.string.msg_regist_successful));
                             Intent intent = new Intent(RegisteActivity.this, MainActivity.class);
                             startActivity(intent);

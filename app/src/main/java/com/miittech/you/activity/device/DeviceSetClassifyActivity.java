@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.PubParam;
@@ -108,8 +109,48 @@ public class DeviceSetClassifyActivity extends BaseActivity {
                 break;
         }
         doDeviceEditAttr(intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY));
-        startActivity(intent);
+        setDeviceClassfy(intent);
     }
+
+    private void setDeviceClassfy(final Intent intent) {
+        String devId = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
+        String classfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
+        Map devattrMap = new LinkedHashMap();
+        devattrMap.put("groupid", "1");
+        devattrMap.put("groupname", Common.encodeBase64(classfy));
+        Map param = new LinkedHashMap();
+        param.put("devid", devId);
+        param.put("method", "D");
+        param.put("devattr", devattrMap);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "deviceattr/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceResponse>() {
+                    @Override
+                    public void accept(DeviceResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            startActivity(intent);
+                        }else {
+                            response.onError(DeviceSetClassifyActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+
     private void doDeviceEditAttr(final String devName) {
         String devId = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
         if(StringUtils.isEmpty(devName)){
@@ -117,14 +158,14 @@ public class DeviceSetClassifyActivity extends BaseActivity {
             return;
         }
         Map devattrMap = new LinkedHashMap();
-        devattrMap.put("devname", devName);
+        devattrMap.put("devname", Common.encodeBase64(devName));
         Map param = new LinkedHashMap();
         param.put("devid", devId);
         param.put("method", "A");
         param.put("devattr", devattrMap);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

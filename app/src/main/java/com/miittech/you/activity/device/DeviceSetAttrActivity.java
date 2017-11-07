@@ -13,6 +13,7 @@ import com.luck.picture.lib.entity.LocalMedia;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
@@ -57,6 +58,7 @@ public class DeviceSetAttrActivity extends BaseActivity {
 
     private String classify="";
     private String address="";
+    private String iconUrl;
 
 
     @Override
@@ -80,13 +82,15 @@ public class DeviceSetAttrActivity extends BaseActivity {
                 Intent intent = new Intent(DeviceSetAttrActivity.this,DeviceSelectRingActivity.class);
                 intent.putExtra(IntentExtras.DEVICE.ID,address);
                 intent.putExtra(IntentExtras.DEVICE.NAME,tvDeviceName.getText().toString());
+                intent.putExtra(IntentExtras.DEVICE.CLASSIFY,tvDeviceClassify.getText().toString());
+                intent.putExtra(IntentExtras.DEVICE.IMAGE,iconUrl);
                 startActivity(intent);
             }
         });
         address = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
         classify = getIntent().getStringExtra(IntentExtras.DEVICE.CLASSIFY);
-        tvDeviceClassify.setText(classify);
-        tvDeviceName.setText(classify);
+        tvDeviceClassify.setText(Common.decodeBase64(classify));
+        tvDeviceName.setText(Common.decodeBase64(classify));
 
     }
 
@@ -146,8 +150,8 @@ public class DeviceSetAttrActivity extends BaseActivity {
         }
         String json = new Gson().toJson(param);
         LogUtils.d("imgupload", json);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + App.getTocken()).toLowerCase();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + App.getInstance().getTocken()).toLowerCase();
         LogUtils.d("sign", sign);
         String urlPath = HttpUrl.Api + "imgupload/" + pubParam.toUrlParam(sign) + "&path=" + fileName + "&size=" + size + "&sha=" + sha;
 
@@ -175,6 +179,7 @@ public class DeviceSetAttrActivity extends BaseActivity {
     }
 
     private void doDeviceIconEditAttr(final String iconUrl) {
+        this.iconUrl = iconUrl;
         Map devattrMap = new HashMap();
         devattrMap.put("devimg",iconUrl);
         Map param = new HashMap();
@@ -182,8 +187,8 @@ public class DeviceSetAttrActivity extends BaseActivity {
         param.put("method", "C");
         param.put("devattr", devattrMap);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

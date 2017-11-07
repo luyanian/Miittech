@@ -20,6 +20,7 @@ import com.miittech.you.ble.ClientManager;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.Params;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.receiver.BluetoothReceiver;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
@@ -60,18 +61,18 @@ public class App extends MobApplication {
         return instance;
     }
 
-    public static final String SESSION="session";
-    public static final String TOCKEN="tocken";
-    public static final String USERID="userId";
-    public static final String UNAME="uname";
-    public static String getTocken(){
-        return SPUtils.getInstance(SESSION).getString(TOCKEN);
+
+    public String getTocken(){
+        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_TOCKEN);
     }
-    public static String getUserId(){
-        return SPUtils.getInstance(SESSION).getString(USERID);
+    public String getUserId(){
+        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_USERID);
     }
-    public static String getUserName(){
-        return SPUtils.getInstance(SESSION).getString(UNAME);
+    public String getUserName(){
+        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_UNAME);
+    }
+    public int getAlerStatus(){
+        return SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(SPConst.ALET_STATUE.KEY_STATUS,SPConst.ALET_STATUE.STATUS_UNBELL);
     }
 
 
@@ -153,9 +154,8 @@ public class App extends MobApplication {
     }
 
     public void delMac(String mac){
-        if(mMacList.contains(mac)){
-            ClientManager.getClient().getConnectStatus(mac);
-            byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, App.getUserId());
+        if(ClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+            byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, App.getInstance().getUserId());
             ClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
@@ -164,6 +164,8 @@ public class App extends MobApplication {
                     }
                 }
             });
+        }
+        if(mMacList.contains(mac)){
             mMacList.remove(mac);
         }
     }
@@ -201,7 +203,7 @@ public class App extends MobApplication {
         if(ClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
             return;
         }
-        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getUserId());
+        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getInstance().getUserId());
         ClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
             @Override
             public void onResponse(int code) {
@@ -212,21 +214,13 @@ public class App extends MobApplication {
         });
     }
     public void setBindMode(String mac,BleWriteResponse response){
-        byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getUserId());
+        byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getInstance().getUserId());
         ClientManager.getClient().write(mac, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, response);
     }
 
-    public void doFindOrBell(String mac) {
+    public void doFindOrBell(String mac,byte[] options,BleWriteResponse response) {
         if(ClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
-            byte[] dataWork = new byte[]{02};
-            ClientManager.getClient().write(mac, serviceUUID, characteristicUUID, dataWork, new BleWriteResponse() {
-                @Override
-                public void onResponse(int code) {
-                if (code == REQUEST_SUCCESS) {
-
-                }
-                }
-            });
+            ClientManager.getClient().write(mac, serviceUUID, characteristicUUID, options, response);
         }
     }
 
@@ -238,7 +232,6 @@ public class App extends MobApplication {
                 .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
                 .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
                 .build();
-
         ClientManager.getClient().connect(address, options,response);
     }
 }

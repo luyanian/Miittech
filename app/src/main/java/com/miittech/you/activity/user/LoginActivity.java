@@ -12,6 +12,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.net.ApiServiceManager;
@@ -130,9 +131,9 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            SPUtils.getInstance(App.SESSION).put(App.USERID,response.getUserid());
-                            SPUtils.getInstance(App.SESSION).put(App.TOCKEN,response.getToken());
-                            SPUtils.getInstance(App.SESSION).put(App.UNAME,response.getUsername());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID,response.getUserid());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME,response.getUsername());
 
                             ToastUtils.showShort(getResources().getString(R.string.msg_user_login_successful));
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);

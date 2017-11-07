@@ -8,6 +8,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.user.LoginRegisteActivity;
 import com.miittech.you.activity.user.UserCenterActivity;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.net.code.ResponseCode;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.SPUtils;
@@ -118,7 +119,7 @@ public class BaseResponse implements Serializable{
                 break;
             case ResponseCode.invalid_sign://签名错误，请重新登录
                 ToastUtils.showShort("登录信息已失效，请重新登录");
-                SPUtils.getInstance(App.SESSION).clear();
+                SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
                 Intent intent = new Intent(context,LoginRegisteActivity.class);
                 context.startActivity(intent);
                 ActivityPools.finishAllExcept(LoginRegisteActivity.class);

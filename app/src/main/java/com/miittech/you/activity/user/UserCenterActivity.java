@@ -19,6 +19,7 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -133,8 +134,8 @@ public class UserCenterActivity extends BaseActivity {
         }
         String json = new Gson().toJson(param);
         LogUtils.d("imgupload", json);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + App.getTocken()).toLowerCase();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + App.getInstance().getTocken()).toLowerCase();
         LogUtils.d("sign", sign);
         String urlPath = HttpUrl.Api + "imgupload/" + pubParam.toUrlParam(sign) + "&path=" + fileName + "&size=" + size + "&sha=" + sha;
 
@@ -171,8 +172,8 @@ public class UserCenterActivity extends BaseActivity {
         param.put("userattr", userattr);
 
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -200,8 +201,8 @@ public class UserCenterActivity extends BaseActivity {
 //        param.put("sdate", "20170101");
 //        param.put("edate", "20170920");
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -310,8 +311,8 @@ public class UserCenterActivity extends BaseActivity {
 
     private void doLogout() {
 
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -326,7 +327,7 @@ public class UserCenterActivity extends BaseActivity {
                         if (!response.isSuccessful()) {
                             ToastUtils.showShort(response.getErrmsg());
                         }else{
-                            SPUtils.getInstance(App.SESSION).clear();
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
                             Intent intent = new Intent(UserCenterActivity.this,LoginRegisteActivity.class);
                             startActivity(intent);
                             ActivityPools.finishAllExcept(LoginRegisteActivity.class);

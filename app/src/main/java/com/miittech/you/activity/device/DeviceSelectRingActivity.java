@@ -1,18 +1,18 @@
 package com.miittech.you.activity.device;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
-import com.miittech.you.adapter.SelectAdapter;
 import com.miittech.you.adapter.SelectRingAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
@@ -22,6 +22,7 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.weight.CircleImageView;
@@ -38,7 +39,6 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -65,13 +65,15 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
 
     private SelectRingAdapter selectRingAdapter;
     List<SoundListResponse.SourndlistBean> sourndlist = new ArrayList<>();
+    private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo;
+    private SoundListResponse.SourndlistBean sourndlistBean;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_select_ring);
         ButterKnife.bind(this);
-
         initTitleBar(titlebar, "设置分类");
         titlebar.showBackOption();
         titlebar.showCompleteOption("完成");
@@ -85,11 +87,28 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
             @Override
             public void onComplete() {
                 super.onComplete();
-                ActivityPools.finishAllExcept(MainActivity.class);
+                setDeviceAlertinfo();
             }
         });
+        initViews();
+    }
 
-        tvDeviceLocation.setText(getIntent().getStringExtra(IntentExtras.DEVICE.NAME));
+
+    private void initViews() {
+        Intent intent = getIntent();
+        if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
+            deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
+            tvDeviceName.setText(Common.decodeBase64(deviceInfo.getDevname()));
+            tvDeviceLocation.setText(Common.decodeBase64(deviceInfo.getGroupname()));
+            Glide.with(this).load(deviceInfo.getDevimg()).into(imgDeviceIcon);
+        }else{
+            String devName = intent.getStringExtra(IntentExtras.DEVICE.NAME);
+            String iconUrl = intent.getStringExtra(IntentExtras.DEVICE.IMAGE);
+            String devClassfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
+            tvDeviceName.setText(devName);
+            tvDeviceLocation.setText(devClassfy);
+            Glide.with(this).load(iconUrl).into(imgDeviceIcon);
+        }
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         recyclerview.setLayoutManager(mLayoutManager);
         //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
@@ -99,14 +118,22 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
         getSoundList();
     }
 
-    @Override
-    public void onItemClick(Object o) {
-
+    private void initSoundList(List<SoundListResponse.SourndlistBean> sourndlist) {
+        this.sourndlist.clear();
+        this.sourndlist.addAll(sourndlist);
+        selectRingAdapter.notifyDataSetChanged();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                selectRingAdapter.initSelectAlerName(deviceInfo.getAlertinfo().getId());
+            }
+        },1000);
     }
 
+
     public void getSoundList(){
-        PubParam pubParam = new PubParam(App.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + App.getTocken();
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -132,9 +159,56 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
                 });
     }
 
-    private void initSoundList(List<SoundListResponse.SourndlistBean> sourndlist) {
-        this.sourndlist.clear();
-        this.sourndlist.addAll(sourndlist);
-        selectRingAdapter.notifyDataSetChanged();
+    private void setDeviceAlertinfo() {
+        Map alertinfo = new HashMap();
+        alertinfo.put("vol",this.deviceInfo.getAlertinfo().getVol());//音量
+        alertinfo.put("isShake",this.deviceInfo.getAlertinfo().getIsShake());//是否振东
+        alertinfo.put("isRepeat",this.deviceInfo.getAlertinfo().getIsRepeat());//是否重复提醒，选填
+        alertinfo.put("isReconnect",this.deviceInfo.getAlertinfo().getIsReconnect());//是否重连提醒，选填
+        alertinfo.put("duration",this.deviceInfo.getAlertinfo().getDuration());//响铃时长
+        alertinfo.put("id",this.sourndlistBean.getId());//铃声ID,缺省1，铃音编号
+        alertinfo.put("name",this.sourndlistBean.getName());//铃声名称
+        Map devattr = new HashMap();
+        devattr.put("alertinfo",alertinfo);
+        Map param = new HashMap();
+        param.put("devid", deviceInfo.getDevid());
+        param.put("method", "G");
+        param.put("devattr",devattr);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "deviceattr/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceResponse>() {
+                    @Override
+                    public void accept(DeviceResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            Intent data = new Intent();
+                            data.putExtra(IntentExtras.SOURND.ID,sourndlistBean.getId());
+                            data.putExtra(IntentExtras.SOURND.NAME,sourndlistBean.getName());
+                            setResult(RESULT_OK,data);
+                            finish();
+                        } else {
+                            response.onError(DeviceSelectRingActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+        ActivityPools.finishAllExcept(MainActivity.class);
+    }
+
+    @Override
+    public void onItemClick(Object o) {
+        this.sourndlistBean = (SoundListResponse.SourndlistBean) o;
     }
 }

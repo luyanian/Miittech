@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
 
     <com.miittech.you.weight.Titlebar
         android:id="@+id/titlebar"
@@ -100,9 +101,9 @@
             android:layout_marginRight="-10dp"/>
     </RelativeLayout>
     <TextView
+        android:id="@+id/tv_info1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="手机与“钱包”断开连接时响铃时长"
         android:layout_marginLeft="16dp"
         android:textSize="18dp"
         android:layout_marginTop="2dp"/>
@@ -133,9 +134,9 @@
             android:checked="true" />
     </RelativeLayout>
     <TextView
+        android:id="@+id/tv_info2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="锁屏时手机和“钱包”断开连接后多次提醒，解锁手机或打开APP即可停止提醒"
         android:layout_marginLeft="16dp"
         android:textSize="18dp"
         android:layout_marginTop="2dp"/>
@@ -167,14 +168,15 @@
             android:checked="true" />
     </RelativeLayout>
     <TextView
+        android:id="@+id/tv_info3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="手机与“钱包”重新连接时手机提醒"
         android:layout_marginLeft="16dp"
         android:textSize="18dp"
         android:layout_marginTop="2dp"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@drawable/bg_setting_lines"/>
+        android:background="@drawable/bg_setting_lines"
+        android:layout_marginTop="10dp"/>
 </LinearLayout>

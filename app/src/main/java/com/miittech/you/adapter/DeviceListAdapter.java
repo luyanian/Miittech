@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.miittech.you.App;
@@ -37,26 +38,26 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, final int i) {
         View view = View.inflate(activity, R.layout.item_device_list, null);
         ViewHolder viewHolder = new ViewHolder(view);
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(onDeviceItemClick!=null){
-                    onDeviceItemClick.onItemClick(mData.get(i));
-                }
-            }
-        });
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int i) {
-        DeviceResponse.DevlistBean devlistBean = mData.get(i);
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, final int i) {
+        final DeviceResponse.DevlistBean devlistBean = mData.get(i);
         ViewHolder holder = (ViewHolder) viewHolder;
-        holder.itemTitle.setText(devlistBean.getDevname());
+        holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
         holder.itemLocation.setText(devlistBean.getLocinfo().getAddr());
         holder.itemLocation.setText(devlistBean.getLasttime());
         Glide.with(activity).load(devlistBean.getDevimg()).into(holder.itemIcon);
         addMacList(devlistBean);
+        holder.rlItem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(onDeviceItemClick!=null){
+                    onDeviceItemClick.onItemClick(devlistBean);
+                }
+            }
+        });
     }
 
     @Override
@@ -65,6 +66,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.rl_item)
+        RelativeLayout rlItem;
         @BindView(R.id.item_icon)
         ImageView itemIcon;
         @BindView(R.id.item_title)

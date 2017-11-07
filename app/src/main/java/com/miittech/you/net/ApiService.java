@@ -1,6 +1,7 @@
 package com.miittech.you.net;
 import com.google.gson.JsonObject;
 import com.miittech.you.net.response.BaseResponse;
+import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.RegisteCodeResponse;
@@ -30,6 +31,9 @@ public interface ApiService {
 
     @POST()
     Observable<DeviceResponse> postDeviceOption(@Url String url, @Body RequestBody body);
+
+    @POST()
+    Observable<DeviceInfoResponse> postDeviceInfoOption(@Url String url, @Body RequestBody body);
 
     @POST()
     Observable<JsonObject> postNetRequestObject(@Url String url, @Body RequestBody body);

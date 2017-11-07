@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.miittech.you.R;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.SoundListResponse;
+import com.ryon.mutils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +29,7 @@ public class SelectRingAdapter extends RecyclerView.Adapter {
 
     List<SoundListResponse.SourndlistBean> mData;
     private Context activity;
-    private OnListItemClick onListItemClick;
+    private OnListItemClick<SoundListResponse.SourndlistBean> onListItemClick;
     private Map<Integer,ViewHolder> viewHolders = new HashMap<>();
 
     public SelectRingAdapter(Context activity, List<SoundListResponse.SourndlistBean> mData, OnListItemClick onDeviceItemClick) {
@@ -41,24 +42,25 @@ public class SelectRingAdapter extends RecyclerView.Adapter {
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, final int i) {
         View view = View.inflate(activity, R.layout.item_device_select_rings, null);
         ViewHolder viewHolder = new ViewHolder(view);
-        viewHolders.put(i,viewHolder);
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showCurrentItem(i);
-                if (onListItemClick != null) {
-                    onListItemClick.onItemClick(mData.get(i));
-                }
-            }
-        });
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int i) {
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, final int i) {
         ViewHolder holder = (ViewHolder) viewHolder;
+        viewHolders.put(i,holder);
         final SoundListResponse.SourndlistBean sourndlistBean = mData.get(i);
         holder.tvItem.setText(sourndlistBean.getName());
+        holder.imgItem.setVisibility(View.GONE);
+        holder.rlItem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showCurrentItem(i);
+                if (onListItemClick != null) {
+                    onListItemClick.onItemClick(sourndlistBean);
+                }
+            }
+        });
     }
 
     @Override
@@ -67,9 +69,27 @@ public class SelectRingAdapter extends RecyclerView.Adapter {
     }
 
     public void showCurrentItem(int currentItem) {
-//        for (ViewHolder viewHolder:viewHolders){
-//
-//        }
+        for (Map.Entry<Integer, ViewHolder> entry: viewHolders.entrySet()) {
+            ViewHolder value = entry.getValue();
+            if(entry.getKey()==currentItem){
+                value.imgItem.setVisibility(View.VISIBLE);
+            }else{
+                value.imgItem.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    public void initSelectAlerName(int alerId) {
+        boolean isSelect=false;
+        for(int i=0;i<mData.size();i++){
+            if(mData.get(i).getId()==alerId){
+                showCurrentItem(i);
+                isSelect=true;
+            }
+        }
+        if(!isSelect){
+            showCurrentItem(0);
+        }
     }
 
 
