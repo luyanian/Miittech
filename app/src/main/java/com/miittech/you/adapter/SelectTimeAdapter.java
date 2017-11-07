@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.miittech.you.R;
 import com.miittech.you.impl.OnListItemClick;
@@ -56,7 +57,7 @@ public class SelectTimeAdapter extends RecyclerView.Adapter {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.ll_item)
-        LinearLayout llItem;
+        RelativeLayout llItem;
         @BindView(R.id.item_text)
         TextView itemText;
 

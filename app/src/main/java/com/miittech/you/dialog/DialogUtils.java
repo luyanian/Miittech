@@ -1,6 +1,5 @@
 package com.miittech.you.dialog;
 
-import android.app.Dialog;
 import android.content.Context;
 
 /**
@@ -51,10 +50,10 @@ public class DialogUtils {
         ignoreAddDialog.show();
         return ignoreAddDialog;
     }
-    static SelectDialog selectDialog;
-    public static SelectDialog createSelectDialog(Context context){
+    static SelectTimeDialog selectDialog;
+    public static SelectTimeDialog createSelectDialog(Context context){
         if(selectDialog==null){
-            selectDialog = new SelectDialog(context);
+            selectDialog = new SelectTimeDialog(context);
         }else{
             if(selectDialog.isShowing()){
                 selectDialog.dismiss();

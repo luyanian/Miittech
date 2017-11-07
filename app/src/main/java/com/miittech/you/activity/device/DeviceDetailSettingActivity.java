@@ -11,13 +11,11 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.activity.MainActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
-import com.miittech.you.dialog.SelectDialog;
+import com.miittech.you.dialog.SelectTimeDialog;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
-import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
@@ -25,10 +23,8 @@ import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.Titlebar;
-import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.ToastUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -113,7 +109,7 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                 startActivityForResult(intent,0);
                 break;
             case R.id.rl_disconnect_reminder_time:
-                SelectDialog selectDialog = DialogUtils.createSelectDialog(this);
+                SelectTimeDialog selectDialog = DialogUtils.createSelectDialog(this);
                 selectDialog.setTitle("请选择时间");
                 selectDialog.setOnListItemClick(new OnListItemClick<String>() {
                     @Override
@@ -122,7 +118,7 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                         setDeviceAlertinfo();
                     }
                 });
-                selectDialog.init();
+                selectDialog.initData();
                 selectDialog.show();
                 break;
         }

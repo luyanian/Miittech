@@ -22,7 +22,7 @@ import butterknife.ButterKnife;
  * Created by Administrator on 2017/11/6.
  */
 
-public class SelectDialog extends Dialog{
+public class SelectTimeDialog extends Dialog{
     @BindView(R.id.title)
     TextView tvTitle;
     @BindView(R.id.recyclerview)
@@ -32,20 +32,21 @@ public class SelectDialog extends Dialog{
     private OnListItemClick<String> onListItemClick;
     private Context context;
 
-    public SelectDialog(@NonNull Context context) {
+    public SelectTimeDialog(@NonNull Context context) {
         super(context, R.style.DialogStyle);
-        setContentView(R.layout.dialog_select);
+        setContentView(R.layout.dialog_select_time);
         ButterKnife.bind(this);
         this.context = context;
         Window window = this.getWindow();
         window.getDecorView().setPadding(20, 0, 20, 20);
         WindowManager.LayoutParams attr = window.getAttributes();
         if (attr != null) {
-            attr.height = ScreenUtils.getScreenHeight() / 8;
-            attr.width = ScreenUtils.getScreenWidth() / 4;
+            attr.height = ScreenUtils.getScreenHeight()*2/3;
+            attr.width = ScreenUtils.getScreenWidth()*6/7;
             attr.gravity = Gravity.CENTER;
             window.setAttributes(attr);
         }
+        init(context);
     }
 
     private void init(Context context) {
@@ -62,7 +63,7 @@ public class SelectDialog extends Dialog{
         this.onListItemClick = onListItemClick;
     }
 
-    public void init(){
+    public void initData(){
         String[] mData = context.getResources().getStringArray(R.array.repeat_time);
         //创建并设置Adapter
         selectAdapter = new SelectTimeAdapter(this.context,mData,this.onListItemClick);
