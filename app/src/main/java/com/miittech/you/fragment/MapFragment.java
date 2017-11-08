@@ -208,7 +208,7 @@ public class MapFragment extends Fragment {
         option.SetIgnoreCacheException(false);
         option.setWifiCacheTimeOut(5*60*1000);
         option.setEnableSimulateGps(false);
-        LocationClient.getInstance().startLocation(option,listener);
+        LocationClient.getInstance().initLocation().startLocation(option,listener);
     }
     private void initMapView(Object o) {
 

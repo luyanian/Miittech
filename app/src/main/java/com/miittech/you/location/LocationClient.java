@@ -24,10 +24,11 @@ public class LocationClient {
         return client;
     }
 
-    public void initLocation(){
+    public LocationClient initLocation(){
         mLocationClient = new com.baidu.location.LocationClient(App.getInstance().getApplicationContext());
+        return this;
     }
-    public void setLocOptions(){
+    public LocationClient setLocOptions(){
         //注册监听函数
         LocationClientOption option = new LocationClientOption();
 
@@ -71,18 +72,20 @@ public class LocationClient {
         //mLocationClient为第二步初始化过的LocationClient对象
         //需将配置好的LocationClientOption对象，通过setLocOption方法传递给LocationClient对象使用
         //更多LocationClientOption的配置，请参照类参考中LocationClientOption类的详细说明
+        return this;
     }
-    public void startLocation(){
+    public LocationClient startLocation(){
         this.setLocOptions();
         mLocationClient.registerLocationListener(listener);
         mLocationClient.start();
+        return this;
     }
 
-    public void startLocation(LocationClientOption option, BDAbstractLocationListener listener){
+    public LocationClient startLocation(LocationClientOption option, BDAbstractLocationListener listener){
         mLocationClient.setLocOption(option);
         mLocationClient.registerLocationListener(listener);
         mLocationClient.start();
-
+        return this;
     }
 
 
