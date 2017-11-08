@@ -67,6 +67,7 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
     List<SoundListResponse.SourndlistBean> sourndlist = new ArrayList<>();
     private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo;
     private SoundListResponse.SourndlistBean sourndlistBean;
+    private String devId ;
 
 
     @Override
@@ -98,10 +99,12 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
         Intent intent = getIntent();
         if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
             deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
+            this.devId = deviceInfo.getDevid();
             tvDeviceName.setText(Common.decodeBase64(deviceInfo.getDevname()));
             tvDeviceLocation.setText(Common.decodeBase64(deviceInfo.getGroupname()));
             Glide.with(this).load(deviceInfo.getDevimg()).into(imgDeviceIcon);
         }else{
+            devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
             String devName = intent.getStringExtra(IntentExtras.DEVICE.NAME);
             String iconUrl = intent.getStringExtra(IntentExtras.DEVICE.IMAGE);
             String devClassfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
@@ -125,7 +128,7 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                selectRingAdapter.initSelectAlerName(deviceInfo.getAlertinfo().getId());
+                selectRingAdapter.initSelectAlerName(deviceInfo);
             }
         },1000);
     }
@@ -161,17 +164,29 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
 
     private void setDeviceAlertinfo() {
         Map alertinfo = new HashMap();
-        alertinfo.put("vol",this.deviceInfo.getAlertinfo().getVol());//音量
-        alertinfo.put("isShake",this.deviceInfo.getAlertinfo().getIsShake());//是否振东
-        alertinfo.put("isRepeat",this.deviceInfo.getAlertinfo().getIsRepeat());//是否重复提醒，选填
-        alertinfo.put("isReconnect",this.deviceInfo.getAlertinfo().getIsReconnect());//是否重连提醒，选填
-        alertinfo.put("duration",this.deviceInfo.getAlertinfo().getDuration());//响铃时长
-        alertinfo.put("id",this.sourndlistBean.getId());//铃声ID,缺省1，铃音编号
-        alertinfo.put("name",this.sourndlistBean.getName());//铃声名称
+        if(this.deviceInfo==null){
+            alertinfo.put("vol",31);//音量
+            alertinfo.put("isShake",1);//是否振东
+            alertinfo.put("duration",30);//响铃时长
+            alertinfo.put("isRepeat",1);//是否重复提醒，选填
+            alertinfo.put("isReconnect",1);//是否重连提醒，选填
+            alertinfo.put("id",this.sourndlistBean.getId());//铃声ID,缺省1，铃音编号
+            alertinfo.put("name",this.sourndlistBean.getName());//铃声名称
+        }else{
+            alertinfo.put("vol",this.deviceInfo.getAlertinfo().getVol());//音量
+            alertinfo.put("isShake",this.deviceInfo.getAlertinfo().getIsShake());//是否振东
+            alertinfo.put("isRepeat",this.deviceInfo.getAlertinfo().getIsRepeat());//是否重复提醒，选填
+            alertinfo.put("isReconnect",this.deviceInfo.getAlertinfo().getIsReconnect());//是否重连提醒，选填
+            alertinfo.put("duration",this.deviceInfo.getAlertinfo().getDuration());//响铃时长
+            alertinfo.put("id",this.sourndlistBean.getId());//铃声ID,缺省1，铃音编号
+            alertinfo.put("name",this.sourndlistBean.getName());//铃声名称
+        }
+
+
         Map devattr = new HashMap();
         devattr.put("alertinfo",alertinfo);
         Map param = new HashMap();
-        param.put("devid", deviceInfo.getDevid());
+        param.put("devid", devId);
         param.put("method", "G");
         param.put("devattr",devattr);
         String json = new Gson().toJson(param);
@@ -204,7 +219,6 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
                         throwable.printStackTrace();
                     }
                 });
-        ActivityPools.finishAllExcept(MainActivity.class);
     }
 
     @Override

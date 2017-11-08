@@ -4,6 +4,7 @@ def libraries = rootProject.ext.dependencies;
 android {
     compileSdkVersion config.compileSdkVersion
     buildToolsVersion config.buildToolsVersion
+
     defaultConfig {
         applicationId "com.miittech.you"
         minSdkVersion config.minSdkVersion
@@ -31,6 +32,10 @@ android {
             }
         }
         debug {
+            storeFile rootProject.file(properties['keystore'])
+            storePassword properties['storePassword']
+            keyAlias properties['keyAlias']
+            keyPassword properties['keyPassword']
             android.applicationVariants.all {
                 variant ->
                     variant.outputs.all {

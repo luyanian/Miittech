@@ -61,4 +61,16 @@ public class DialogUtils {
         }
         return selectDialog;
     }
+
+    static MapDeviceUsersListDialog mapDialog;
+    public static MapDeviceUsersListDialog createDevicesUsersDialog(Context context){
+        if(mapDialog==null){
+            mapDialog = new MapDeviceUsersListDialog(context);
+        }else{
+            if(mapDialog.isShowing()){
+                mapDialog.dismiss();
+            }
+        }
+        return mapDialog;
+    }
 }

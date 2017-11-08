@@ -26,9 +26,12 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.StringUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -89,8 +92,8 @@ public class DeviceSetAttrActivity extends BaseActivity {
         });
         address = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
         classify = getIntent().getStringExtra(IntentExtras.DEVICE.CLASSIFY);
-        tvDeviceClassify.setText(Common.decodeBase64(classify));
-        tvDeviceName.setText(Common.decodeBase64(classify));
+        tvDeviceClassify.setText(classify);
+        tvDeviceName.setText(classify);
 
     }
 

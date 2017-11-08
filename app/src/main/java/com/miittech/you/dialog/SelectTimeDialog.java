@@ -37,6 +37,7 @@ public class SelectTimeDialog extends Dialog{
         setContentView(R.layout.dialog_select_time);
         ButterKnife.bind(this);
         this.context = context;
+        this.setCanceledOnTouchOutside(true);
         Window window = this.getWindow();
         window.getDecorView().setPadding(20, 0, 20, 20);
         WindowManager.LayoutParams attr = window.getAttributes();

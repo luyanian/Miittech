@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.miittech.you.R;
 import com.miittech.you.impl.OnListItemClick;
+import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.SoundListResponse;
 import com.ryon.mutils.StringUtils;
 
@@ -79,10 +80,17 @@ public class SelectRingAdapter extends RecyclerView.Adapter {
         }
     }
 
-    public void initSelectAlerName(int alerId) {
+    public void initSelectAlerName(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo) {
+        if(deviceInfo==null||deviceInfo.getAlertinfo()==null){
+            showCurrentItem(0);
+            if (onListItemClick != null) {
+                onListItemClick.onItemClick(mData.get(0));
+            }
+            return;
+        }
         boolean isSelect=false;
         for(int i=0;i<mData.size();i++){
-            if(mData.get(i).getId()==alerId){
+            if(mData.get(i).getId()==deviceInfo.getAlertinfo().getId()){
                 showCurrentItem(i);
                 isSelect=true;
             }

@@ -108,20 +108,21 @@ public class DeviceSetClassifyActivity extends BaseActivity {
                 intent.putExtra(IntentExtras.DEVICE.CLASSIFY,"其他");
                 break;
         }
-        doDeviceEditAttr(intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY));
         setDeviceClassfy(intent);
     }
 
     private void setDeviceClassfy(final Intent intent) {
-        String devId = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
+        String devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
         String classfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
         Map devattrMap = new LinkedHashMap();
         devattrMap.put("groupid", "1");
         devattrMap.put("groupname", Common.encodeBase64(classfy));
+        devattrMap.put("devname", Common.encodeBase64(classfy));
         Map param = new LinkedHashMap();
         param.put("devid", devId);
-        param.put("method", "D");
+        param.put("method", "AD");
         param.put("devattr", devattrMap);
+
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getInstance().getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
@@ -139,50 +140,6 @@ public class DeviceSetClassifyActivity extends BaseActivity {
                     public void accept(DeviceResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             startActivity(intent);
-                        }else {
-                            response.onError(DeviceSetClassifyActivity.this);
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
-
-    private void doDeviceEditAttr(final String devName) {
-        String devId = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
-        if(StringUtils.isEmpty(devName)){
-            ToastUtils.showShort("设备名称不能为空！");
-            return;
-        }
-        Map devattrMap = new LinkedHashMap();
-        devattrMap.put("devname", Common.encodeBase64(devName));
-        Map param = new LinkedHashMap();
-        param.put("devid", devId);
-        param.put("method", "A");
-        param.put("devattr", devattrMap);
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "deviceattr/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-
-        ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
-                    @Override
-                    public void accept(DeviceResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            Intent data = new Intent();
-                            data.putExtra(IntentExtras.DEVICE.NAME,devName);
-                            setResult(RESULT_OK,data);
-                            finish();
                         }else {
                             response.onError(DeviceSetClassifyActivity.this);
                         }

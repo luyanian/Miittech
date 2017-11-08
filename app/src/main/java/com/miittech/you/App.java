@@ -6,10 +6,12 @@ import android.bluetooth.BluetoothDevice;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 
+import com.baidu.location.BDAbstractLocationListener;
+import com.baidu.location.BDLocation;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
-import com.inuker.bluetooth.library.Code;
 import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
 import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
@@ -29,8 +31,6 @@ import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.Utils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
 import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
 import static com.inuker.bluetooth.library.Constants.STATUS_CONNECTED;
 import static com.inuker.bluetooth.library.Constants.STATUS_DISCONNECTED;

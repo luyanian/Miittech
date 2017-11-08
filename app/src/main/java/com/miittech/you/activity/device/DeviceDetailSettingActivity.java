@@ -184,9 +184,7 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                 .subscribe(new Consumer<DeviceResponse>() {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            finish();
-                        } else {
+                        if (!response.isSuccessful()) {
                             response.onError(DeviceDetailSettingActivity.this);
                         }
                     }

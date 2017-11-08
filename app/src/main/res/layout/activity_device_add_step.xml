@@ -48,7 +48,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="尽量是您的手机和设备靠近"
+            android:text="尽量使您的手机和设备靠近"
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/tv_progress"
             android:layout_marginTop="10dp"/>
