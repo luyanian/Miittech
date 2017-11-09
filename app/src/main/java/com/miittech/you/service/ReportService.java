@@ -1,8 +1,9 @@
 package com.miittech.you.service;
 import android.app.Service;  
 import android.content.Intent;  
-import android.media.MediaPlayer;  
-import android.os.IBinder;  
+import android.media.MediaPlayer;
+import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;  
 import android.widget.Toast;
 
@@ -36,6 +37,7 @@ import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,14 +101,15 @@ public class ReportService extends Service {
         user_loc.put("lng",location.getLongitude());
         user_loc.put("addr",location.getAddrStr());
         List<String> macs = ClientManager.getInstance().getMacList();
-        final Map devlist = new HashMap();
+        List<Map> devlist = new ArrayList<>();
         for(final String mac:macs){
-            devlist.put("devid", Common.formatMac2DevId(mac));
+            final Map devItem = new HashMap();
+            devItem.put("devid", Common.formatMac2DevId(mac));
             ClientManager.getInstance().getClient().read(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleReadResponse() {
                 @Override
                 public void onResponse(int code, byte[] data) {
                     if(code== Constants.REQUEST_SUCCESS){
-                        devlist.put("devbattery", ConvertUtils.bytes2HexString(data));
+                        devItem.put("devbattery", ConvertUtils.bytes2HexString(data));
                     }
                 }
             });
@@ -115,23 +118,27 @@ public class ReportService extends Service {
                 public void onResponse(int code, Integer data) {
                     if(code== Constants.REQUEST_SUCCESS){
                         if(data<-85) {
-                            devlist.put("devposstate",3);
+                            devItem.put("devposstate",3);
                         }
                         if(data>-85&&data<-70){
-                            devlist.put("devposstate",2);
+                            devItem.put("devposstate",2);
                         }
                         if(data>-70){
-                            devlist.put("devposstate",1);
+                            devItem.put("devposstate",1);
                         }
                     }
                 }
             });
-            devlist.put("devstate", 1);
-            devlist.put("usedstate", 1);
-            devlist.put("bindstate", 1);
-
+            devItem.put("devstate", 1);
+            devItem.put("usedstate", 1);
+            devItem.put("bindstate", 1);
+            devlist.add(devItem);
         }
-
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Map repdata = new HashMap();
         repdata.put("reptime",TimeUtils.millis2String(millis,new SimpleDateFormat("yyyymmddhhmmss")));
         repdata.put("user_loc",user_loc);
