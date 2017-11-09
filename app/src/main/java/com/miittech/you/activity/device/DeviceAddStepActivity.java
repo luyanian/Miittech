@@ -116,7 +116,7 @@ public class DeviceAddStepActivity extends BaseActivity{
                                     .searchBluetoothLeDevice(2000)      // 再扫BLE设备2s
                                     .build();
 
-                            ClientManager.getClient().search(request, new SearchResponse() {
+                            ClientManager.getInstance().getClient().search(request, new SearchResponse() {
                                 @Override
                                 public void onSearchStarted() {
 
@@ -137,17 +137,17 @@ public class DeviceAddStepActivity extends BaseActivity{
                                     progressbar.setProgress(0);
                                     tvProgress.setText("正在激活");
 
-                                    App.getInstance().connectMac(device.getAddress(),new BleConnectResponse(){
+                                    ClientManager.getInstance().connectMac(device.getAddress(),new BleConnectResponse(){
                                         @Override
                                         public void onResponse(int code, BleGattProfile data) {
                                             progressbar.setProgress(13);
                                             if(code== Constants.REQUEST_SUCCESS){
-                                                App.getInstance().setBindMode(device.getAddress(),new BleWriteResponse() {
+                                               ClientManager.getInstance().setBindMode(device.getAddress(),new BleWriteResponse() {
                                                     @Override
                                                     public void onResponse(int code) {
                                                         if (code == Code.REQUEST_SUCCESS) {
                                                             progressbar.setProgress(27);
-                                                            App.getInstance().addMacSetWork(device.getAddress());
+                                                            ClientManager.getInstance().addMacSetWork(device.getAddress());
                                                             vertifyDevice(device.getAddress());
                                                         }
                                                     }

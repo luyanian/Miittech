@@ -232,6 +232,8 @@
         <activity android:name=".activity.user.FriendAddActivity"/>
         <activity android:name=".activity.setting.ServiceSettingActivity"/>
         <activity android:name=".activity.setting.IgnoreSettingActivity"/>
+        <activity android:name=".activity.setting.IgnoreAddWifiActivity"/>
+        <activity android:name=".activity.setting.IgnoreAddPointActivity"/>
         <activity android:name=".activity.device.DeviceAddActivity"/>
         <activity android:name=".activity.device.DeviceAddStepActivity"/>
         <activity android:name=".activity.device.DeviceSetClassifyActivity"/>

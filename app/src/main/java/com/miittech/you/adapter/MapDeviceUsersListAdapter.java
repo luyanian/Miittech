@@ -25,9 +25,12 @@ public class MapDeviceUsersListAdapter<T> extends RecyclerView.Adapter {
     private List<T> mData;
     private OnListItemClick onListItemClick;
 
-    public MapDeviceUsersListAdapter(Context context, List<T> mData, OnListItemClick onListItemClick) {
+    public MapDeviceUsersListAdapter(Context context, List<T> mData) {
         this.context = context;
         this.mData = mData;
+    }
+
+    public void setOnListItemClick(OnListItemClick onListItemClick){
         this.onListItemClick = onListItemClick;
     }
 

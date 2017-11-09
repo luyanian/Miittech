@@ -91,7 +91,7 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         }
     }
 
-    @OnClick(R.id.btn_add)
+    @OnClick(R.id.btn_add_setting)
     public void onViewClicked() {
         DialogUtils.showIgnoreAddDialog(this).setIgnoreAddOptions(new OnIgnoreAddOptions() {
             @Override

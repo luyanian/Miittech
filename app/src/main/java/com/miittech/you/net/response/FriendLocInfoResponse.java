@@ -19,7 +19,7 @@ public class FriendLocInfoResponse extends BaseResponse {
 
     public static class FriendInfo{
         private String friendid;
-        private String locinfo;
+        private LocInfo locinfo;
         private double lat;
         private double lng;
         private String addr;
@@ -33,11 +33,11 @@ public class FriendLocInfoResponse extends BaseResponse {
             this.friendid = friendid;
         }
 
-        public String getLocinfo() {
+        public LocInfo getLocinfo() {
             return locinfo;
         }
 
-        public void setLocinfo(String locinfo) {
+        public void setLocinfo(LocInfo locinfo) {
             this.locinfo = locinfo;
         }
 
@@ -71,6 +71,36 @@ public class FriendLocInfoResponse extends BaseResponse {
 
         public void setUpdtime(String updtime) {
             this.updtime = updtime;
+        }
+    }
+
+    public static class LocInfo{
+        private double lat;
+        private double lng;
+        private String attr;
+
+        public double getLat() {
+            return lat;
+        }
+
+        public void setLat(long lat) {
+            this.lat = lat;
+        }
+
+        public double getLng() {
+            return lng;
+        }
+
+        public void setLng(long lng) {
+            this.lng = lng;
+        }
+
+        public String getAttr() {
+            return attr;
+        }
+
+        public void setAttr(String attr) {
+            this.attr = attr;
         }
     }
 }

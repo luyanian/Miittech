@@ -79,7 +79,7 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
                         @Override
                         public void onSure() {
                             super.onSure();
-                            ClientManager.getClient().closeBluetooth();
+                            ClientManager.getInstance().getClient().closeBluetooth();
                         }
 
                         @Override

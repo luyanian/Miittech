@@ -96,82 +96,80 @@ public class ReportService extends Service {
     }
 
     private void reportUserLocation(final long millis, final BDLocation location) {
-        Map user_loc = new HashMap();
-        user_loc.put("lat",location.getLatitude());
-        user_loc.put("lng",location.getLongitude());
-        user_loc.put("addr",location.getAddrStr());
+        final Map user_loc = new HashMap();
+        user_loc.put("lat", location.getLatitude());
+        user_loc.put("lng", location.getLongitude());
+        user_loc.put("addr", Common.encodeBase64(location.getAddrStr()));
         List<String> macs = ClientManager.getInstance().getMacList();
-        List<Map> devlist = new ArrayList<>();
-        for(final String mac:macs){
+        final List<Map> devlist = new ArrayList<>();
+        for (final String mac : macs) {
             final Map devItem = new HashMap();
             devItem.put("devid", Common.formatMac2DevId(mac));
             ClientManager.getInstance().getClient().read(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleReadResponse() {
                 @Override
                 public void onResponse(int code, byte[] data) {
-                    if(code== Constants.REQUEST_SUCCESS){
+                    if (code == Constants.REQUEST_SUCCESS) {
                         devItem.put("devbattery", ConvertUtils.bytes2HexString(data));
-                    }
-                }
-            });
-            ClientManager.getInstance().getClient().readRssi(mac, new BleReadRssiResponse() {
-                @Override
-                public void onResponse(int code, Integer data) {
-                    if(code== Constants.REQUEST_SUCCESS){
-                        if(data<-85) {
-                            devItem.put("devposstate",3);
-                        }
-                        if(data>-85&&data<-70){
-                            devItem.put("devposstate",2);
-                        }
-                        if(data>-70){
-                            devItem.put("devposstate",1);
-                        }
-                    }
-                }
-            });
-            devItem.put("devstate", 1);
-            devItem.put("usedstate", 1);
-            devItem.put("bindstate", 1);
-            devlist.add(devItem);
-        }
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Map repdata = new HashMap();
-        repdata.put("reptime",TimeUtils.millis2String(millis,new SimpleDateFormat("yyyymmddhhmmss")));
-        repdata.put("user_loc",user_loc);
-        repdata.put("devlist",devlist);
-        Map param = new HashMap();
-        param.put("method", 1);
-        param.put("repdata", repdata);
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "userreport/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+                        ClientManager.getInstance().getClient().readRssi(mac, new BleReadRssiResponse() {
+                            @Override
+                            public void onResponse(int code, Integer data) {
+                                if (code == Constants.REQUEST_SUCCESS) {
+                                    if (data < -85) {
+                                        devItem.put("devposstate", 3);
+                                    }
+                                    if (data > -85 && data < -70) {
+                                        devItem.put("devposstate", 2);
+                                    }
+                                    if (data > -70) {
+                                        devItem.put("devposstate", 1);
+                                    }
+                                    devItem.put("devstate", 1);
+                                    devItem.put("usedstate", 1);
+                                    devItem.put("bindstate", 1);
+                                    devlist.add(devItem);
 
-        ApiServiceManager.getInstance().buildApiService(App.getInstance().getApplicationContext()).postToGetFriendList(path,
-                requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<FriendsResponse>() {
-                    @Override
-                    public void accept(FriendsResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            lastLocation = location;
-                            lastMillins = millis;
-                        }
+                                    Map repdata = new HashMap();
+                                    repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyymmddhhmmss")));
+                                    repdata.put("user_loc", user_loc);
+                                    repdata.put("devlist", devlist);
+                                    Map param = new HashMap();
+                                    param.put("method", 1);
+                                    param.put("repdata", repdata);
+                                    String json = new Gson().toJson(param);
+                                    PubParam pubParam = new PubParam(App.getInstance().getUserId());
+                                    String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+                                    LogUtils.d("sign_unsha1", sign_unSha1);
+                                    String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+                                    LogUtils.d("sign_sha1", sign);
+                                    String path = HttpUrl.Api + "userreport/" + pubParam.toUrlParam(sign);
+                                    final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+                                    ApiServiceManager.getInstance().buildApiService(App.getInstance().getApplicationContext()).postToGetFriendList(path, requestBody)
+                                            .subscribeOn(Schedulers.io())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe(new Consumer<FriendsResponse>() {
+                                                @Override
+                                                public void accept(FriendsResponse response) throws Exception {
+                                                    if (response.isSuccessful()) {
+
+                                                    }
+                                                }
+                                            }, new Consumer<Throwable>() {
+                                                @Override
+                                                public void accept(Throwable throwable) throws Exception {
+                                                    throwable.printStackTrace();
+                                                }
+                                            });
+                                }
+
+                            }
+                        });
                     }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
+                }
+            });
+
+
+        }
     }
+
 }  

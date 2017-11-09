@@ -15,6 +15,7 @@ import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.ble.ClientManager;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
@@ -110,7 +111,7 @@ public class DeviceDetailActivity extends BaseActivity {
         });
         typeSelector.setSelectItem(0);
         device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        App.getInstance().addMac(Common.formatDevId2Mac(device.getDevidX()));
+        ClientManager.getInstance().addMac(Common.formatDevId2Mac(device.getDevidX()));
     }
 
     @Override
@@ -174,7 +175,7 @@ public class DeviceDetailActivity extends BaseActivity {
         byte[] options;
         if(App.getInstance().getAlerStatus()== SPConst.ALET_STATUE.STATUS_UNBELL){
             options = new byte[]{0x02};
-            App.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
+            ClientManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
                     if (code == REQUEST_SUCCESS) {
@@ -185,7 +186,7 @@ public class DeviceDetailActivity extends BaseActivity {
             });
         }else{
             options = new byte[]{0x00};
-            App.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
+            ClientManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
                     if (code == REQUEST_SUCCESS) {
@@ -258,7 +259,7 @@ public class DeviceDetailActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            App.getInstance().delMac(Common.formatDevId2Mac(device.getDevidX()));
+                            ClientManager.getInstance().delMac(Common.formatDevId2Mac(device.getDevidX()));
                             ToastUtils.showShort("删除成功！");
                             finish();
                         } else {

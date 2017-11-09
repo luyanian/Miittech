@@ -47,6 +47,7 @@ import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.ToastUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,7 +182,7 @@ public class MapFragment extends Fragment {
                     public void accept(FriendsResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             if(response.getFriendlist()!=null&&response.getFriendlist().size()>0) {
-                                MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance
+                                final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance
                                         ().createDevicesUsersDialog(getActivity());
                                 mapDialog.initData(response.getFriendlist());
                                 mapDialog.setOnListItemClick(new OnListItemClick() {
@@ -190,6 +191,9 @@ public class MapFragment extends Fragment {
                                         FriendsResponse.FriendlistBean friend =
                                                 (FriendsResponse.FriendlistBean) o;
                                         getFriendLocation(friend.getFriendid());
+                                        if(mapDialog!=null&&mapDialog.isShowing()){
+                                            mapDialog.dismiss();
+                                        }
                                     }
                                 });
                                 mapDialog.show();
@@ -269,8 +273,10 @@ public class MapFragment extends Fragment {
     }
 
     private void getFriendLocation(final String friendId) {
-        Map friendlist = new HashMap();
-        friendlist.put("friendid",friendId);
+        List<Map> friendlist = new ArrayList<>();
+        Map item = new HashMap();
+        item.put("friendid",friendId);
+        friendlist.add(item);
         Map param = new HashMap();
         param.put("qrytype", Params.QRY_TYPE.BASE);
         param.put("friendlist", friendlist);
@@ -282,6 +288,7 @@ public class MapFragment extends Fragment {
         LogUtils.d("sign_sha1", sign);
         String path = HttpUrl.Api + "friendslocation/" + pubParam.toUrlParam(sign);
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
 
         ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetFriendLocList(path,
                 requestBody)

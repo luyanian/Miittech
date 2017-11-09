@@ -32,7 +32,6 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
     RecyclerView recyclerview;
     private Context context;
     private MapDeviceUsersListAdapter mapAdapter;
-    private OnListItemClick onListItemClick;
     private List<T> mData = new ArrayList<>();
 
     public MapDeviceUsersListDialog(@NonNull Context context) {
@@ -61,12 +60,12 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
         recyclerview.setLayoutManager(mLayoutManager);
         //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
         recyclerview.setHasFixedSize(true);
-        mapAdapter = new MapDeviceUsersListAdapter(this.context,mData,this.onListItemClick);
+        mapAdapter = new MapDeviceUsersListAdapter(this.context,mData);
         recyclerview.setAdapter(mapAdapter);
     }
 
     public void setOnListItemClick(OnListItemClick onListItemClick){
-        this.onListItemClick = onListItemClick;
+        mapAdapter.setOnListItemClick(onListItemClick);
     }
     public void initData(List<T> list){
         mData.clear();
