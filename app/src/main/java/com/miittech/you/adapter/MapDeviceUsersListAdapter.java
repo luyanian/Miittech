@@ -58,7 +58,7 @@ public class MapDeviceUsersListAdapter<T> extends RecyclerView.Adapter {
 
     @Override
     public int getItemCount() {
-        return 0;
+        return mData.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder{

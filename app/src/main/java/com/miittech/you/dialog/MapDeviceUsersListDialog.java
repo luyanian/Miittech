@@ -40,14 +40,16 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
         setContentView(R.layout.dialog_map_device_users_list);
         ButterKnife.bind(this);
         this.context = context;
+        this.setCancelable(true);
         this.setCanceledOnTouchOutside(true);
         Window window = this.getWindow();
-        window.getDecorView().setPadding(20, 0, 20, 20);
+        window.getDecorView().setPadding(20, 20, 20, 20);
         WindowManager.LayoutParams attr = window.getAttributes();
         if (attr != null) {
-            attr.height = ScreenUtils.getScreenHeight() * 2 / 3;
-            attr.width = ScreenUtils.getScreenWidth() * 6 / 7;
-            attr.gravity = Gravity.CENTER;
+            attr.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            attr.width = WindowManager.LayoutParams.WRAP_CONTENT;
+            attr.gravity = Gravity.BOTTOM|Gravity.LEFT;
+            attr.y=400;
             window.setAttributes(attr);
         }
         init(context);

@@ -44,7 +44,7 @@ import okhttp3.RequestBody;
  * Created by Administrator on 2017/9/14.
  */
 
-public class ListFragment extends Fragment implements OnListItemClick<DeviceResponse.DevlistBean> {
+public class ListFragment extends Fragment {
     @BindView(R.id.rl_tip)
     RelativeLayout rlTip;
     @BindView(R.id.recyclerView)
@@ -72,7 +72,15 @@ public class ListFragment extends Fragment implements OnListItemClick<DeviceResp
         //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
         recyclerView.setHasFixedSize(true);
         //创建并设置Adapter
-        mDeviceListAdapter = new DeviceListAdapter(getActivity(),mData,this);
+        mDeviceListAdapter = new DeviceListAdapter(getActivity(),mData,new OnListItemClick<DeviceResponse.DevlistBean>(){
+            @Override
+            public void onItemClick(DeviceResponse.DevlistBean devlistBean) {
+                super.onItemClick(devlistBean);
+                Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
+                intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
+                startActivity(intent);
+            }
+        });
         recyclerView.setAdapter(mDeviceListAdapter);
         getDeviceList();
     }
@@ -151,12 +159,5 @@ public class ListFragment extends Fragment implements OnListItemClick<DeviceResp
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
-    }
-
-    @Override
-    public void onItemClick(DeviceResponse.DevlistBean devlistBean) {
-        Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
-        intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
-        startActivity(intent);
     }
 }

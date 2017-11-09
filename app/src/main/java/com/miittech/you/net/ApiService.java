@@ -3,6 +3,7 @@ import com.google.gson.JsonObject;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.FriendLocInfoResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.RegisteCodeResponse;
 import com.miittech.you.net.response.SoundListResponse;
@@ -28,6 +29,9 @@ public interface ApiService {
 
     @POST()
     Observable<FriendsResponse> postToGetFriendList(@Url String url, @Body RequestBody body);
+
+    @POST()
+    Observable<FriendLocInfoResponse> postToGetFriendLocList(@Url String url, @Body RequestBody body);
 
     @POST()
     Observable<DeviceResponse> postDeviceOption(@Url String url, @Body RequestBody body);

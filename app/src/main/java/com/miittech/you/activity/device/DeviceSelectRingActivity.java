@@ -49,7 +49,7 @@ import okhttp3.RequestBody;
  * Created by Administrator on 2017/10/30.
  */
 
-public class DeviceSelectRingActivity extends BaseActivity implements OnListItemClick {
+public class DeviceSelectRingActivity extends BaseActivity{
     @BindView(R.id.titlebar)
     Titlebar titlebar;
     @BindView(R.id.img_device_icon)
@@ -116,7 +116,13 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
         recyclerview.setLayoutManager(mLayoutManager);
         //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
         recyclerview.setHasFixedSize(true);
-        selectRingAdapter = new SelectRingAdapter(this,sourndlist,this);
+        selectRingAdapter = new SelectRingAdapter(this,sourndlist,new OnListItemClick(){
+            @Override
+            public void onItemClick(Object o) {
+                super.onItemClick(o);
+                sourndlistBean = (SoundListResponse.SourndlistBean) o;
+            }
+        });
         recyclerview.setAdapter(selectRingAdapter);
         getSoundList();
     }
@@ -219,10 +225,5 @@ public class DeviceSelectRingActivity extends BaseActivity implements OnListItem
                         throwable.printStackTrace();
                     }
                 });
-    }
-
-    @Override
-    public void onItemClick(Object o) {
-        this.sourndlistBean = (SoundListResponse.SourndlistBean) o;
     }
 }

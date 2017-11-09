@@ -10,7 +10,9 @@ public class DialogUtils {
     private static DialogUtils dialogUtils;
     public static DialogUtils getInstance(){
         if(dialogUtils==null){
-            dialogUtils=new DialogUtils();
+            synchronized (DialogUtils.class) {
+                dialogUtils = new DialogUtils();
+            }
         }
         return dialogUtils;
     }

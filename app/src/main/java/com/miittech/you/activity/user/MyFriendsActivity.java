@@ -9,6 +9,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.FriendListAdapter;
+import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -67,7 +68,14 @@ public class MyFriendsActivity extends BaseActivity {
                         startActivity(intent);
                     }
                 });
-        mAdapter = new FriendListAdapter(this,friendlist);
+        mAdapter = new FriendListAdapter(this,friendlist,new OnListItemClick(){
+            @Override
+            public void onItemFlagClick(Object o) {
+                super.onItemFlagClick(o);
+                FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean)o;
+                doPassApply(friend.getFriendid());
+            }
+        });
         listview.setAdapter(mAdapter);
     }
 
@@ -84,7 +92,6 @@ public class MyFriendsActivity extends BaseActivity {
                 +Params.FRIEND_STATUS.FRIEND_AREADY_ADD
                 +Params.FRIEND_STATUS.FRIEND_BE_INVITED);
 
-
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getInstance().getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
@@ -93,16 +100,6 @@ public class MyFriendsActivity extends BaseActivity {
         LogUtils.d("sign_sha1", sign);
         String path = HttpUrl.Api + "friendslist/" + pubParam.toUrlParam(sign);
         RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-
-//        ApiServiceManager.getInstance().buildApiService(this).postNetRequestObject(path, requestBody)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Consumer<JsonObject>() {
-//                    @Override
-//                    public void accept(JsonObject jsonObject) throws Exception {
-//                        String name = jsonObject.toString();
-//                    }
-//                });
 
         ApiServiceManager.getInstance().buildApiService(this).postToGetFriendList(path, requestBody)
                 .subscribeOn(Schedulers.io())
@@ -127,5 +124,36 @@ public class MyFriendsActivity extends BaseActivity {
         this.friendlist.clear();
         this.friendlist.addAll(friendlist);
         mAdapter.notifyDataSetChanged();
+    }
+
+    private void doPassApply(String friendId) {
+        Map param = new HashMap();
+        param.put("method", Params.METHOD.FRIEND_CONFIRM);
+        param.put("friended", friendId);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "friend/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postToGetFriendList(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<FriendsResponse>() {
+                    @Override
+                    public void accept(FriendsResponse response) throws Exception {
+                        if(response.isSuccessful()){
+                            getFrinds();
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
     }
 }
