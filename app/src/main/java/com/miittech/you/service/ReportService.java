@@ -99,8 +99,8 @@ public class ReportService extends Service {
         user_loc.put("lng",location.getLongitude());
         user_loc.put("addr",location.getAddrStr());
         List<String> macs = ClientManager.getInstance().getMacList();
+        final Map devlist = new HashMap();
         for(final String mac:macs){
-            final Map devlist = new HashMap();
             devlist.put("devid", Common.formatMac2DevId(mac));
             ClientManager.getInstance().getClient().read(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleReadResponse() {
                 @Override
