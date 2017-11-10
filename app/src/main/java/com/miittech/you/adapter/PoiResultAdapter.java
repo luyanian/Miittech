@@ -63,7 +63,7 @@ public class PoiResultAdapter extends RecyclerView.Adapter {
 
     public void setPoiResult(PoiResult result) {
         this.poiInfos.clear();
-        if(result!=null||result.getAllPoi()==null) {
+        if(result!=null&&result.getAllPoi()!=null) {
             this.poiInfos.addAll(result.getAllPoi());
         }
         this.notifyDataSetChanged();
