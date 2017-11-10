@@ -8,7 +8,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
@@ -66,7 +65,7 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
-        initTitleBar(titlebar, getResources().getString(R.string.text_login));
+        initMyTitleBar(titlebar, getResources().getString(R.string.text_login));
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override
             public void onBack() {

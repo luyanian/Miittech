@@ -56,7 +56,7 @@ public class EditNikeOrPWDActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_nike_or_pwd);
         ButterKnife.bind(this);
-        initTitleBar(titlebar, getResources().getString(R.string.text_setting));
+        initMyTitleBar(titlebar, getResources().getString(R.string.text_setting));
         titlebar.showCancleOption();
         titlebar.showCompleteOption();
         edit = getIntent().getStringExtra("edit");

@@ -47,7 +47,7 @@ public class DeviceEditNameActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_edit_name);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,"设置分类");
+        initMyTitleBar(titlebar,"设置分类");
         titlebar.showBackOption();
         titlebar.showCompleteOption("保存");
         titlebar.setTitleBarOptions(new TitleBarOptions(){

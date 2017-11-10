@@ -54,7 +54,7 @@ public class BindPhoneActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bind_phone);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,getResources().getString(R.string.text_bind_phone));
+        initMyTitleBar(titlebar,getResources().getString(R.string.text_bind_phone));
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
             @Override

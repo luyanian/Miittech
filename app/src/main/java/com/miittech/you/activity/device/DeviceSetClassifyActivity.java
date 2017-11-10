@@ -18,8 +18,6 @@ import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.StringUtils;
-import com.ryon.mutils.ToastUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -46,7 +44,7 @@ public class DeviceSetClassifyActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_set_classify);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,"设置分类");
+        initMyTitleBar(titlebar,"设置分类");
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
             @Override

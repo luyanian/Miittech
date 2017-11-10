@@ -10,7 +10,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
@@ -78,7 +77,7 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registe);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,getResources().getString(R.string.text_register));
+        initMyTitleBar(titlebar,getResources().getString(R.string.text_register));
         typeSelector.setTypeSelectorChangeLisener(this);
         typeSelector.setSelectItem(0);
         titlebar.showBackOption();

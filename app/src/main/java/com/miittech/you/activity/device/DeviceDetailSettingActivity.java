@@ -70,7 +70,7 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_detail_setting);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,"手机提醒设置");
+        initMyTitleBar(titlebar,"手机提醒设置");
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
             @Override

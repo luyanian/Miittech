@@ -10,13 +10,11 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.ble.ClientManager;
-import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
@@ -39,7 +37,6 @@ import com.ryon.mutils.ToastUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -85,7 +82,7 @@ public class DeviceDetailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_detail);
         ButterKnife.bind(this);
-        initTitleBar(titlebar, "设备");
+        initMyTitleBar(titlebar, "设备");
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override

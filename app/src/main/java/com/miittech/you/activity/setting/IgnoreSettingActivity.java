@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.miittech.you.R;
@@ -54,7 +53,7 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting_ignore);
         ButterKnife.bind(this);
-        initTitleBar(titlebar, R.string.text_setting_ignore);
+        initMyTitleBar(titlebar, R.string.text_setting_ignore);
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override

@@ -50,7 +50,7 @@ public class MyFriendsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_friends);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,getResources().getString(R.string.text_setting_myfriends));
+        initMyTitleBar(titlebar,getResources().getString(R.string.text_setting_myfriends));
         titlebar.showBackOption()
                 .showSettingOption()
                 .setSettingIcon(R.drawable.ic_friends_add)

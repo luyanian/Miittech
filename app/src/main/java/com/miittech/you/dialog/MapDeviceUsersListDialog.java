@@ -1,5 +1,4 @@
 package com.miittech.you.dialog;
-
 import android.app.Dialog;
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -8,17 +7,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowManager;
-
 import com.miittech.you.R;
 import com.miittech.you.adapter.MapDeviceUsersListAdapter;
-import com.miittech.you.adapter.SelectTimeAdapter;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.FriendsResponse;
-import com.ryon.mutils.ScreenUtils;
-
-import java.util.ArrayList;
 import java.util.List;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -32,7 +24,6 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
     RecyclerView recyclerview;
     private Context context;
     private MapDeviceUsersListAdapter mapAdapter;
-    private List<T> mData = new ArrayList<>();
 
     public MapDeviceUsersListDialog(@NonNull Context context) {
         super(context, R.style.DialogStyle);
@@ -60,16 +51,12 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
         recyclerview.setLayoutManager(mLayoutManager);
         //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
         recyclerview.setHasFixedSize(true);
-        mapAdapter = new MapDeviceUsersListAdapter(this.context,mData);
+        mapAdapter = new MapDeviceUsersListAdapter(this.context);
         recyclerview.setAdapter(mapAdapter);
     }
 
-    public void setOnListItemClick(OnListItemClick onListItemClick){
+    public void initData(List<Object> list,OnListItemClick onListItemClick){
         mapAdapter.setOnListItemClick(onListItemClick);
-    }
-    public void initData(List<T> list){
-        mData.clear();
-        mData.addAll(list);
-        mapAdapter.notifyDataSetChanged();
+        mapAdapter.setData(list);
     }
 }

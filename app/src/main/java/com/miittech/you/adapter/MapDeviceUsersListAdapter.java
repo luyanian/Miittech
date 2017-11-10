@@ -9,8 +9,10 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.miittech.you.R;
 import com.miittech.you.impl.OnListItemClick;
+import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendsResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -20,14 +22,13 @@ import butterknife.ButterKnife;
  * Created by Administrator on 2017/11/8.
  */
 
-public class MapDeviceUsersListAdapter<T> extends RecyclerView.Adapter {
+public class MapDeviceUsersListAdapter extends RecyclerView.Adapter {
     private Context context;
-    private List<T> mData;
+    private List<Object> mData = new ArrayList<>();
     private OnListItemClick onListItemClick;
 
-    public MapDeviceUsersListAdapter(Context context, List<T> mData) {
+    public MapDeviceUsersListAdapter(Context context) {
         this.context = context;
-        this.mData = mData;
     }
 
     public void setOnListItemClick(OnListItemClick onListItemClick){
@@ -44,16 +45,20 @@ public class MapDeviceUsersListAdapter<T> extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ViewHolder viewHolder = (ViewHolder) holder;
-        final T t = mData.get(position);
-        if(t instanceof FriendsResponse.FriendlistBean) {
-            FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) t;
+        final Object object = mData.get(position);
+        if(object instanceof FriendsResponse.FriendlistBean) {
+            FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) object;
             Glide.with(context).load(friend.getHeadimg()).into(viewHolder.itemIcon);
+        }
+        if(object instanceof DeviceResponse.DevlistBean){
+            DeviceResponse.DevlistBean device = (DeviceResponse.DevlistBean) object;
+            Glide.with(context).load(device.getDevimg()).into(viewHolder.itemIcon);
         }
         viewHolder.itemIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(onListItemClick!=null){
-                    onListItemClick.onItemClick(t);
+                    onListItemClick.onItemClick(object);
                 }
             }
         });
@@ -62,6 +67,12 @@ public class MapDeviceUsersListAdapter<T> extends RecyclerView.Adapter {
     @Override
     public int getItemCount() {
         return mData.size();
+    }
+
+    public void setData(List<Object> list) {
+        mData.clear();
+        mData.addAll(list);
+        this.notifyDataSetChanged();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder{

@@ -28,11 +28,11 @@ public class BaseActivity extends AppCompatActivity{
 
 
 
-    public void initTitleBar(Titlebar titlebar,int strId){
-        initTitleBar(titlebar,getResources().getString(strId)) ;
+    public void initMyTitleBar(Titlebar titlebar, int strId){
+        initMyTitleBar(titlebar,getResources().getString(strId)) ;
     }
 
-    public void initTitleBar(Titlebar titlebar,String title){
+    public void initMyTitleBar(Titlebar titlebar, String title){
         titlebar.setTitle(title);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
              int statusBarHeight1 = -1;

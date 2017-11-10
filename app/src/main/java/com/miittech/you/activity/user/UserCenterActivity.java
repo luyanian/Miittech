@@ -80,7 +80,7 @@ public class UserCenterActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_center);
         ButterKnife.bind(this);
-        initTitleBar(titlebar, getResources().getString(R.string.text_setting));
+        initMyTitleBar(titlebar, getResources().getString(R.string.text_setting));
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
             @Override

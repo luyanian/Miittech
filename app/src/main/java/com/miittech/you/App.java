@@ -7,22 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-
-import com.baidu.location.BDAbstractLocationListener;
-import com.baidu.location.BDLocation;
-import com.baidu.location.LocationClient;
-import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
-import com.inuker.bluetooth.library.Constants;
-import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
-import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
-import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
-import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
-import com.inuker.bluetooth.library.model.BleGattProfile;
-import com.miittech.you.ble.ClientManager;
-import com.miittech.you.common.BleCommon;
-import com.miittech.you.common.Common;
-import com.miittech.you.global.Params;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.receiver.BluetoothReceiver;
 import com.miittech.you.service.BleOptionstService;
@@ -30,18 +15,7 @@ import com.miittech.you.service.ReportService;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.SPUtils;
-import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.Utils;
-import java.util.ArrayList;
-import java.util.List;
-import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
-import static com.inuker.bluetooth.library.Constants.STATUS_CONNECTED;
-import static com.inuker.bluetooth.library.Constants.STATUS_DISCONNECTED;
-import static com.miittech.you.common.BleCommon.characteristicUUID;
-import static com.miittech.you.common.BleCommon.serviceUUID;
-import static com.miittech.you.common.BleCommon.userCharacteristicLogUUID;
-import static com.miittech.you.common.BleCommon.userServiceUUID;
-
 /**
  * Created by Administrator on 2017/9/7.
  */

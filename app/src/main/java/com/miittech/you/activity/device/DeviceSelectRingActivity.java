@@ -12,12 +12,10 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.activity.MainActivity;
 import com.miittech.you.adapter.SelectRingAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
-import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
@@ -27,10 +25,8 @@ import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
-import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +71,7 @@ public class DeviceSelectRingActivity extends BaseActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_select_ring);
         ButterKnife.bind(this);
-        initTitleBar(titlebar, "设置分类");
+        initMyTitleBar(titlebar, "设置分类");
         titlebar.showBackOption();
         titlebar.showCompleteOption("完成");
         titlebar.setTitleBarOptions(new TitleBarOptions() {

@@ -6,7 +6,6 @@ import android.support.annotation.Nullable;
 
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ToastUtils;
@@ -29,7 +28,7 @@ public class DeviceAddActivity extends BaseActivity {
         setContentView(R.layout.activity_device_add);
         ButterKnife.bind(this);
 
-        initTitleBar(titlebar, R.string.text_logo);
+        initMyTitleBar(titlebar, R.string.text_logo);
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override

@@ -43,7 +43,7 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
         setContentView(R.layout.activity_setting_service);
         ButterKnife.bind(this);
 
-        initTitleBar(titlebar,R.string.text_setting_service);
+        initMyTitleBar(titlebar,R.string.text_setting_service);
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
             @Override

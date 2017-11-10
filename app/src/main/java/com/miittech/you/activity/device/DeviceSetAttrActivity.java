@@ -13,7 +13,6 @@ import com.luck.picture.lib.entity.LocalMedia;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
@@ -26,12 +25,9 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.StringUtils;
-import com.ryon.mutils.ToastUtils;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +65,7 @@ public class DeviceSetAttrActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_set_attr);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,"设置分类");
+        initMyTitleBar(titlebar,"设置分类");
         titlebar.showBackOption();
         titlebar.showCompleteOption("下一步");
         titlebar.setTitleBarOptions(new TitleBarOptions(){

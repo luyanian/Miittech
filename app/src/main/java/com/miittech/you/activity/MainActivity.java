@@ -15,7 +15,6 @@ import com.miittech.you.fragment.ListFragment;
 import com.miittech.you.fragment.MapFragment;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.weight.Titlebar;
-import com.ryon.mutils.ToastUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,7 +43,7 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         fragmentManager = getSupportFragmentManager();
         ButterKnife.bind(this);
-        initTitleBar(titlebar,"LOGO");
+        initMyTitleBar(titlebar,"LOGO");
         titlebar.showAddOption();
         titlebar.showSettingOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){

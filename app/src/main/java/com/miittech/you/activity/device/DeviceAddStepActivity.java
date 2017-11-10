@@ -1,7 +1,6 @@
 package com.miittech.you.activity.device;
 
 import android.Manifest;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
@@ -14,7 +13,6 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.inuker.bluetooth.library.Code;
 import com.inuker.bluetooth.library.Constants;
-import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
 import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.inuker.bluetooth.library.model.BleGattProfile;
@@ -26,7 +24,6 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.ble.ClientManager;
-import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
@@ -44,7 +41,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -53,8 +49,6 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-
-import static com.inuker.bluetooth.library.Code.REQUEST_SUCCESS;
 
 /**
  * Created by Administrator on 2017/10/17.
@@ -86,7 +80,7 @@ public class DeviceAddStepActivity extends BaseActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_add_step);
         ButterKnife.bind(this);
-        initTitleBar(titlebar, R.string.text_logo);
+        initMyTitleBar(titlebar, R.string.text_logo);
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override

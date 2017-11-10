@@ -53,7 +53,7 @@ public class BindEmailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bind_email);
         ButterKnife.bind(this);
-        initTitleBar(titlebar, getResources().getString(R.string.text_bind_email));
+        initMyTitleBar(titlebar, getResources().getString(R.string.text_bind_email));
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override

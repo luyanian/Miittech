@@ -53,7 +53,7 @@ public class SettingActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,getResources().getString(R.string.text_setting));
+        initMyTitleBar(titlebar,getResources().getString(R.string.text_setting));
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override

@@ -60,7 +60,7 @@ public class FriendAddActivity extends BaseActivity implements TypeSelectorChang
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_friend_add);
         ButterKnife.bind(this);
-        initTitleBar(titlebar,R.string.text_setting_myfriends_add);
+        initMyTitleBar(titlebar,R.string.text_setting_myfriends_add);
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
             @Override
