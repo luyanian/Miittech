@@ -1,7 +1,10 @@
 package com.miittech.you.activity.setting;
 
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
@@ -33,6 +36,7 @@ import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.location.LocationClient;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.KeyboardUtils;
 import com.ryon.mutils.StringUtils;
 
 import butterknife.BindView;
@@ -78,8 +82,15 @@ public class IgnoreAddPointActivity extends BaseActivity {
                 super.onComplete();
             }
         });
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(mLayoutManager);
+        //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
+        recyclerView.setHasFixedSize(true);
+
         mPoiSearch = PoiSearch.newInstance();
         mBaiduMap = mMapView.getMap();
+        mBaiduMap.setMyLocationEnabled(true);
+        MapView.setMapCustomEnable(true);
         poiResultAdapter = new PoiResultAdapter(this);
         recyclerView.setAdapter(poiResultAdapter);
         //普通地图
@@ -96,12 +107,12 @@ public class IgnoreAddPointActivity extends BaseActivity {
                 mBaiduMap.addOverlay(ooCircle);
             }
         });
-        final String searchText = etSerchText.getText().toString();
         LocationClientOption option = new LocationClientOption();
         option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
         option.setCoorType("bd09ll");
         option.setScanSpan(0);//只定位一次
         option.setOpenGps(true);
+        option.setIsNeedAddress(true);
         option.setLocationNotify(true);
         option.setIgnoreKillProcess(false);
         option.SetIgnoreCacheException(false);
@@ -115,7 +126,6 @@ public class IgnoreAddPointActivity extends BaseActivity {
                         // 此处设置开发者获取到的方向信息，顺时针0-360
                         .direction(0).latitude(bdLocation.getLatitude())
                         .longitude(bdLocation.getLongitude()).build();
-
                 // 设置定位数据
                 mBaiduMap.setMyLocationData(locData);
 
@@ -124,14 +134,27 @@ public class IgnoreAddPointActivity extends BaseActivity {
                 builder.target(ll).zoom(18.0f);
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
 
-                etSerchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                etSerchText.addTextChangedListener(new TextWatcher() {
                     @Override
-                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        if(bdLocation.getCity()==null||s==null||StringUtils.isEmpty(s.toString())){
+                            poiResultAdapter.setPoiResult(null);
+                            return;
+                        }
                         mPoiSearch.searchInCity((new PoiCitySearchOption())
                                 .city(bdLocation.getCity())
-                                .keyword(searchText)
-                                .pageNum(10));
-                        return false;
+                                .keyword(s.toString())
+                                .pageNum(6));
                     }
                 });
             }
@@ -166,12 +189,12 @@ public class IgnoreAddPointActivity extends BaseActivity {
         }
 
         public void onGetPoiDetailResult(PoiDetailResult result){
-            //获取Place详情页检索结果
+            PoiDetailResult resu=result;
         }
 
         @Override
         public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
-
+            PoiIndoorResult poiIn = poiIndoorResult;
         }
     };
 }

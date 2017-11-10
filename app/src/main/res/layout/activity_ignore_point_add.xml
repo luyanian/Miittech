@@ -56,6 +56,11 @@
                 android:layout_toRightOf="@+id/img_ignore_serch"
                 android:layout_toLeftOf="@+id/img_ignore_serch_delete"
                 android:layout_marginLeft="5dp"
+                android:textColorHint="#8e8e93"
+                android:focusedByDefault="false"
+                android:defaultFocusHighlightEnabled="false"
+                android:hint="请输入位置"
+                android:textColor="@color/colorPrimary"
                 android:background="@drawable/shap_trans"/>
         </RelativeLayout>
     </RelativeLayout>

@@ -41,7 +41,7 @@ public class PoiResultAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ViewHolder viewHolder = (ViewHolder) holder;
         final PoiInfo poiInfo = poiInfos.get(position);
-        viewHolder.itemText.setText(poiInfo.name);
+        viewHolder.itemText.setText(poiInfo.address);
         viewHolder.llItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,7 +63,9 @@ public class PoiResultAdapter extends RecyclerView.Adapter {
 
     public void setPoiResult(PoiResult result) {
         this.poiInfos.clear();
-        this.poiInfos.addAll(result.getAllPoi());
+        if(result!=null||result.getAllPoi()==null) {
+            this.poiInfos.addAll(result.getAllPoi());
+        }
         this.notifyDataSetChanged();
     }
 
