@@ -7,36 +7,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-
 import com.bumptech.glide.Glide;
-import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
-import com.miittech.you.dialog.DialogUtils;
-import com.miittech.you.dialog.MapDeviceUsersListDialog;
-import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
-import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.BtnTextView;
 import com.miittech.you.weight.CircleImageView;
-import com.ryon.mutils.EncryptUtils;
-import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.ToastUtils;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 
 /**
  * Created by Administrator on 2017/9/27.

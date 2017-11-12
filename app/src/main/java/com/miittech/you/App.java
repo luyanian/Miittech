@@ -16,6 +16,9 @@ import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.Utils;
+
+import cn.jpush.android.api.JPushInterface;
+
 /**
  * Created by Administrator on 2017/9/7.
  */
@@ -27,6 +30,8 @@ public class App extends MobApplication {
         super.onCreate();
         instance = this;
         SDKInitializer.initialize(getApplicationContext());
+        JPushInterface.setDebugMode(true);
+        JPushInterface.init(getApplicationContext());
         Utils.init(getApplicationContext());
         registerActivityListener();
         registReciver();

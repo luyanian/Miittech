@@ -156,6 +156,9 @@ public class DeviceDetailActivity extends BaseActivity {
             case R.id.btn_option_map:
                 break;
             case R.id.btn_option_share:
+                Intent toshareIntent = new Intent(this,DeviceSharedListActivity.class);
+                toshareIntent.putExtra(IntentExtras.DEVICE.ID,device.getDevidX());
+                startActivity(toshareIntent);
                 break;
             case R.id.btn_option_setting:
                 Intent intent = new Intent(this,DeviceDetailSettingActivity.class);

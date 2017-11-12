@@ -69,7 +69,6 @@ public class ListFragment extends Fragment {
         //创建默认的线性LayoutManager
         mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(mLayoutManager);
-        //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
         recyclerView.setHasFixedSize(true);
         //创建并设置Adapter
         mDeviceListAdapter = new DeviceListAdapter(getActivity(),mData,new OnListItemClick<DeviceResponse.DevlistBean>(){

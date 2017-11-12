@@ -68,6 +68,13 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@drawable/bg_lines"/>
+    <TextView
+        android:id="@+id/tv_radius"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:gravity="center"
+        android:textColor="@color/colorPrimary"
+        android:text="当前半径200米"/>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -76,8 +83,23 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_alignParentBottom="true">
+            <TextView
+                android:id="@+id/tv_left"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="200"
+                android:layout_margin="8dp"/>
+            <TextView
+                android:id="@+id/tv_right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:text="1000"
+                android:layout_margin="8dp"/>
             <SeekBar
-                android:id="@+id/timeline"
+                android:id="@+id/seekbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="true"
@@ -86,8 +108,10 @@
                 android:paddingLeft="16.0dip"
                 android:paddingRight="16.0dip"
                 android:layout_centerVertical="true"
-                android:progressDrawable="@drawable/po_seekbar"
-                android:thumb="@drawable/seekbar_thumb" />
+                android:layout_toRightOf="@+id/tv_left"
+                android:layout_toLeftOf="@+id/tv_right"
+                android:progressDrawable="@drawable/shap_seekbar"
+                android:thumb="@drawable/shao_seekbar_thumb" />
         </RelativeLayout>
         <com.baidu.mapapi.map.MapView
             android:id="@+id/map_view"
@@ -98,7 +122,6 @@
             android:id="@+id/recyclerview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="rl_seekbar"
             android:layout_margin="5dp"/>
     </RelativeLayout>
 </LinearLayout>

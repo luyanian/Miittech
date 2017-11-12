@@ -241,6 +241,9 @@
         <activity android:name=".activity.device.DeviceEditNameActivity"/>
         <activity android:name=".activity.device.DeviceDetailActivity"/>
         <activity android:name=".activity.device.DeviceSelectRingActivity"/>
+        <activity android:name=".activity.device.DeviceSharedListActivity"/>
+        <activity android:name=".activity.device.DeviceSharedAddActivity"/>
+        <activity android:name=".activity.device.DeviceMapDetailActivity"/>
         <service android:name=".service.BluetoothService"/>
         <activity android:name=".activity.device.DeviceDetailSettingActivity"/>
         <receiver android:name=".receiver.BluetoothReceiver">

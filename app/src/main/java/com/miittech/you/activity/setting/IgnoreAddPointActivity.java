@@ -5,22 +5,18 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
-
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
-import com.baidu.mapapi.map.CircleOptions;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
-import com.baidu.mapapi.map.OverlayOptions;
-import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
@@ -36,7 +32,6 @@ import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.location.LocationClient;
 import com.miittech.you.weight.Titlebar;
-import com.ryon.mutils.KeyboardUtils;
 import com.ryon.mutils.StringUtils;
 
 import butterknife.BindView;
@@ -57,10 +52,15 @@ public class IgnoreAddPointActivity extends BaseActivity {
     Titlebar titlebar;
     @BindView(R.id.recyclerview)
     RecyclerView recyclerView;
+    @BindView(R.id.seekbar)
+    SeekBar seekbar;
+    @BindView(R.id.tv_radius)
+    TextView tvRadius;
 
     private BaiduMap mBaiduMap;
     private PoiSearch mPoiSearch;
     private PoiResultAdapter poiResultAdapter;
+    private int progress=200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +80,7 @@ public class IgnoreAddPointActivity extends BaseActivity {
             @Override
             public void onComplete() {
                 super.onComplete();
+
             }
         });
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -100,13 +101,35 @@ public class IgnoreAddPointActivity extends BaseActivity {
             @Override
             public void onItemClick(Object o) {
                 super.onItemClick(o);
+                poiResultAdapter.clearData();
                 PoiInfo poiInfo = (PoiInfo) o;
-                OverlayOptions ooCircle = new CircleOptions().fillColor(0x000000FF)
-                        .center(poiInfo.location).stroke(new Stroke(5, 0xAA000000))
-                        .radius(1400);
-                mBaiduMap.addOverlay(ooCircle);
+                updateMapLocalView(poiInfo.location);
             }
         });
+        seekbar.setMax(800);
+        seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                IgnoreAddPointActivity.this.progress = progress+200;
+                tvRadius.setText("当前半径"+IgnoreAddPointActivity.this.progress+"米");
+                MyLocationData locationData = mBaiduMap.getLocationData();
+                if(locationData!=null) {
+                    LatLng latLng = new LatLng(locationData.latitude,locationData.longitude);
+                    updateMapLocalView(latLng);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        seekbar.setProgress(0);
         LocationClientOption option = new LocationClientOption();
         option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
         option.setCoorType("bd09ll");
@@ -121,18 +144,7 @@ public class IgnoreAddPointActivity extends BaseActivity {
         LocationClient.getInstance().initLocation().startLocation(option, new BDAbstractLocationListener() {
             @Override
             public void onReceiveLocation(final BDLocation bdLocation) {
-                MyLocationData locData = new MyLocationData.Builder()
-                        .accuracy(bdLocation.getRadius())
-                        // 此处设置开发者获取到的方向信息，顺时针0-360
-                        .direction(0).latitude(bdLocation.getLatitude())
-                        .longitude(bdLocation.getLongitude()).build();
-                // 设置定位数据
-                mBaiduMap.setMyLocationData(locData);
-
-                LatLng ll = new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude());
-                MapStatus.Builder builder = new MapStatus.Builder();
-                builder.target(ll).zoom(18.0f);
-                mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+                updateMapLocalView(new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude()));
 
                 etSerchText.addTextChangedListener(new TextWatcher() {
                     @Override
@@ -197,4 +209,17 @@ public class IgnoreAddPointActivity extends BaseActivity {
             PoiIndoorResult poiIn = poiIndoorResult;
         }
     };
+
+    public void updateMapLocalView(LatLng latLng){
+        MyLocationData locData = new MyLocationData.Builder()
+                .accuracy(IgnoreAddPointActivity.this.progress)
+                .latitude(latLng.latitude)
+                .longitude(latLng.longitude)
+                .build();
+        mBaiduMap.setMyLocationData(locData);
+
+        MapStatus.Builder builder = new MapStatus.Builder();
+        builder.target(latLng).zoom(16.0f);
+        mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+    }
 }

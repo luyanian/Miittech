@@ -34,13 +34,18 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import cn.sharesdk.framework.Platform;
+import cn.sharesdk.framework.PlatformActionListener;
+import cn.sharesdk.framework.ShareSDK;
+import cn.sharesdk.tencent.qq.QQ;
+import cn.sharesdk.wechat.friends.Wechat;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
-public class LoginActivity extends BaseActivity implements TypeSelectorChangeLisener {
+public class LoginActivity extends BaseActivity implements TypeSelectorChangeLisener, PlatformActionListener {
 
     @BindView(R.id.titlebar)
     Titlebar titlebar;
@@ -159,9 +164,34 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
             case R.id.btn_forget_password:
                 break;
             case R.id.btn_login_with_wechat:
+                Platform weibo = ShareSDK.getPlatform(Wechat.NAME);
+                weibo.SSOSetting(false);  //设置false表示使用SSO授权方式
+                weibo.setPlatformActionListener(this); // 设置分享事件回调
+                weibo.authorize();//单独授权
+                weibo.showUser(null);//授权并获取用户信息
                 break;
             case R.id.btn_login_with_qq:
+                Platform qq = ShareSDK.getPlatform(QQ.NAME);
+                qq.SSOSetting(false);  //设置false表示使用SSO授权方式
+                qq.setPlatformActionListener(this); // 设置分享事件回调
+                qq.authorize();//单独授权
+                qq.showUser(null);//授权并获取用户信息
                 break;
         }
+    }
+
+    @Override
+    public void onComplete(Platform platform, int i, HashMap<String, Object> hashMap) {
+
+    }
+
+    @Override
+    public void onError(Platform platform, int i, Throwable throwable) {
+
+    }
+
+    @Override
+    public void onCancel(Platform platform, int i) {
+
     }
 }

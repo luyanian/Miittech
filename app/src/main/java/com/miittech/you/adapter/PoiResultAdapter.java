@@ -69,6 +69,11 @@ public class PoiResultAdapter extends RecyclerView.Adapter {
         this.notifyDataSetChanged();
     }
 
+    public void clearData() {
+        this.poiInfos.clear();
+        this.notifyDataSetChanged();
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.item_text)
         TextView itemText;
