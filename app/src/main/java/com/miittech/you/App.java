@@ -11,6 +11,7 @@ import com.baidu.mapapi.SDKInitializer;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.receiver.BluetoothReceiver;
 import com.miittech.you.service.BleOptionstService;
+import com.miittech.you.service.BluetoothService;
 import com.miittech.you.service.ReportService;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
@@ -35,6 +36,8 @@ public class App extends MobApplication {
         Utils.init(getApplicationContext());
         registerActivityListener();
         registReciver();
+//        startService(new Intent(this, BluetoothService.class));
+//        startService(new Intent(this, com.inuker.bluetooth.library.BluetoothService.class));
         startService(new Intent(this, BleOptionstService.class));
         startService(new Intent(this, ReportService.class));
     }

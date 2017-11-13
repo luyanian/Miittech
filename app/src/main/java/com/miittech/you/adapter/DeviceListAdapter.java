@@ -85,6 +85,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     }
     private void addMacList(DeviceResponse.DevlistBean devlistBean) {
         String macAddress = Common.formatDevId2Mac(devlistBean.getDevidX());
-        ClientManager.getInstance().addMac(macAddress);
+        ClientManager.getInstance().connectDevice(macAddress);
     }
 }

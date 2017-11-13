@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.activity.MainActivity;
 import com.miittech.you.adapter.SelectRingAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
@@ -25,6 +26,7 @@ import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 
@@ -64,6 +66,7 @@ public class DeviceSelectRingActivity extends BaseActivity{
     private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo;
     private SoundListResponse.SourndlistBean sourndlistBean;
     private String devId ;
+    private Intent intent;
 
 
     @Override
@@ -92,7 +95,7 @@ public class DeviceSelectRingActivity extends BaseActivity{
 
 
     private void initViews() {
-        Intent intent = getIntent();
+        intent = getIntent();
         if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
             deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
             this.devId = deviceInfo.getDevid();
@@ -210,7 +213,11 @@ public class DeviceSelectRingActivity extends BaseActivity{
                             data.putExtra(IntentExtras.SOURND.ID,sourndlistBean.getId());
                             data.putExtra(IntentExtras.SOURND.NAME,sourndlistBean.getName());
                             setResult(RESULT_OK,data);
-                            finish();
+                            if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
+                                finish();
+                            }else{
+                                ActivityPools.finishAllExcept(MainActivity.class);
+                            }
                         } else {
                             response.onError(DeviceSelectRingActivity.this);
                         }

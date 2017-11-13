@@ -5,8 +5,12 @@ import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
 import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
 import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
+import com.inuker.bluetooth.library.connect.response.BleReadResponse;
+import com.inuker.bluetooth.library.connect.response.BleReadRssiResponse;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.inuker.bluetooth.library.model.BleGattProfile;
+import com.inuker.bluetooth.library.search.SearchRequest;
+import com.inuker.bluetooth.library.search.response.SearchResponse;
 import com.miittech.you.App;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
@@ -15,6 +19,7 @@ import com.ryon.mutils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
 import static com.inuker.bluetooth.library.Constants.STATUS_CONNECTED;
@@ -38,9 +43,9 @@ public class ClientManager {
         return clientManager;
     }
 
-    public BluetoothClient getClient() {
+    private BluetoothClient getClient() {
         if (mClient == null) {
-            synchronized (BluetoothClient.class) {
+            synchronized (ClientManager.class) {
                 if (mClient == null) {
                     mClient = new BluetoothClient(App.getInstance());
                 }
@@ -53,26 +58,18 @@ public class ClientManager {
         return mMacList;
     }
 
-    public void addMac(String mac){
+    private boolean isConnect(String mac){
         if(StringUtils.isEmpty(mac)){
-            return;
+            return false;
         }
         if(!mMacList.contains(mac)) {
             mMacList.add(mac);
-            connectDevice(mac);
+            return true;
         }
-    }
-    public void addMacSetWork(String mac) {
-        if(StringUtils.isEmpty(mac)){
-            return;
-        }
-        if(!mMacList.contains(mac)) {
-            mMacList.add(mac);
-            setWorkMode(mac);
-        }
+        return false;
     }
 
-    public void delMac(String mac){
+    public void delDevice(String mac){
         if(getClient().getConnectStatus(mac)== Constants.STATUS_DEVICE_CONNECTED){
             byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, App.getInstance().getUserId());
             getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
@@ -88,8 +85,27 @@ public class ClientManager {
             mMacList.remove(mac);
         }
     }
-
-    private void connectDevice(final String mac) {
+    public void connectDevice(String address,BleConnectResponse response) {
+        int status = getClient().getConnectStatus(address);
+        if(status==Constants.STATUS_DEVICE_CONNECTED||status==Constants.STATUS_DEVICE_CONNECTING){
+            return;
+        }
+        BleConnectOptions options = new BleConnectOptions.Builder()
+                .setConnectRetry(3)   // 连接如果失败重试3次
+                .setConnectTimeout(30000)   // 连接超时30s
+                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
+                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                .build();
+        getClient().connect(address, options,response);
+    }
+    public void connectDevice(final String mac) {
+        if(!isConnect(mac)){
+            return;
+        }
+        int status = getClient().getConnectStatus(mac);
+        if(status==Constants.STATUS_DEVICE_CONNECTED||status==Constants.STATUS_DEVICE_CONNECTING){
+            return;
+        }
         BleConnectOptions options = new BleConnectOptions.Builder()
                 .setConnectRetry(3)   // 连接如果失败重试3次
                 .setConnectTimeout(30000)   // 连接超时30s
@@ -104,9 +120,7 @@ public class ClientManager {
                 }
             }
         });
-
-        BleConnectStatusListener mBleConnectStatusListener = new BleConnectStatusListener() {
-
+        getClient().registerConnectStatusListener(mac, new BleConnectStatusListener() {
             @Override
             public void onConnectStatusChanged(String mac, int status) {
                 if (status == STATUS_CONNECTED) {
@@ -115,8 +129,7 @@ public class ClientManager {
 
                 }
             }
-        };
-        getClient().registerConnectStatusListener(mac, mBleConnectStatusListener);
+        });
     }
     public void setWorkMode(String mac){
         if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
@@ -133,24 +146,44 @@ public class ClientManager {
         });
     }
     public void setBindMode(String mac,BleWriteResponse response){
+        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+            return;
+        }
         byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getInstance().getUserId());
         getClient().write(mac, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, response);
     }
 
     public void doFindOrBell(String mac,byte[] options,BleWriteResponse response) {
+        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+            connectDevice(mac);
+            return;
+        }
         if(getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
             getClient().write(mac, serviceUUID, characteristicUUID, options, response);
         }
     }
 
+    public void search(SearchRequest request, SearchResponse searchResponse) {
+        getClient().search(request,searchResponse);
+    }
 
-    public void connectMac(String address,BleConnectResponse response) {
-        BleConnectOptions options = new BleConnectOptions.Builder()
-                .setConnectRetry(3)   // 连接如果失败重试3次
-                .setConnectTimeout(30000)   // 连接超时30s
-                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
-                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
-                .build();
-        getClient().connect(address, options,response);
+    public void closeBluetooth() {
+        getClient().closeBluetooth();
+    }
+
+    public void readRssi(String mac, BleReadRssiResponse bleReadRssiResponse) {
+        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+            connectDevice(mac);
+            return;
+        }
+        getClient().readRssi(mac,bleReadRssiResponse);
+    }
+
+    public void read(String mac, UUID batServiceUUID, UUID batCharacteristicUUID, BleReadResponse bleReadResponse) {
+        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+            connectDevice(mac);
+            return;
+        }
+        getClient().read(mac,batServiceUUID,batCharacteristicUUID,bleReadResponse);
     }
 }

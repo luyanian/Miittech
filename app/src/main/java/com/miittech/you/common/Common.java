@@ -19,6 +19,7 @@ import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.RegexUtils;
+import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
 
 import java.text.SimpleDateFormat;
@@ -137,7 +138,7 @@ public class Common {
                 });
     }
     public static String formatMac2DevId(String address){
-        return address.replace(":","").toUpperCase();
+        return StringUtils.reverse(address.replace(":","").toUpperCase());
     }
     public static String formatDevId2Mac(String devId){
         String mac ="";
@@ -146,8 +147,9 @@ public class Common {
             if(i%2==1&&i!=devId.length()-1){
                 mac=mac+":";
             }
+
         }
-        return mac.toUpperCase();
+        return StringUtils.reverse(mac.toUpperCase());
     }
     public static String decodeBase64(String text){
         return new String(Base64.decode(text, Base64.DEFAULT));

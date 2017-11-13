@@ -108,7 +108,7 @@ public class DeviceDetailActivity extends BaseActivity {
         });
         typeSelector.setSelectItem(0);
         device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        ClientManager.getInstance().addMac(Common.formatDevId2Mac(device.getDevidX()));
+        ClientManager.getInstance().connectDevice(Common.formatDevId2Mac(device.getDevidX()));
     }
 
     @Override
@@ -259,7 +259,7 @@ public class DeviceDetailActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            ClientManager.getInstance().delMac(Common.formatDevId2Mac(device.getDevidX()));
+                            ClientManager.getInstance().delDevice(Common.formatDevId2Mac(device.getDevidX()));
                             ToastUtils.showShort("删除成功！");
                             finish();
                         } else {

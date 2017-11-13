@@ -14,6 +14,10 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
     }
+    lintOptions{
+        checkReleaseBuilds false
+        abortOnError false
+    }
     signingConfigs {
         File signPropertiesFile = rootProject.file('sign/keystore.properties')
         Properties properties = new Properties()

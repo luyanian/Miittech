@@ -143,7 +143,6 @@ public class BluetoothClient implements IBluetoothClient {
     @Override
     public void search(SearchRequest request, SearchResponse response) {
         BluetoothLog.v(String.format("search %s", request));
-
         response = ProxyUtils.getUIProxy(response);
         mClient.search(request, response);
     }

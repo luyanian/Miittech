@@ -105,12 +105,12 @@ public class ReportService extends Service {
         for (final String mac : macs) {
             final Map devItem = new HashMap();
             devItem.put("devid", Common.formatMac2DevId(mac));
-            ClientManager.getInstance().getClient().read(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleReadResponse() {
+            ClientManager.getInstance().read(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleReadResponse() {
                 @Override
                 public void onResponse(int code, byte[] data) {
                     if (code == Constants.REQUEST_SUCCESS) {
                         devItem.put("devbattery", ConvertUtils.bytes2HexString(data));
-                        ClientManager.getInstance().getClient().readRssi(mac, new BleReadRssiResponse() {
+                        ClientManager.getInstance().readRssi(mac, new BleReadRssiResponse() {
                             @Override
                             public void onResponse(int code, Integer data) {
                                 if (code == Constants.REQUEST_SUCCESS) {
