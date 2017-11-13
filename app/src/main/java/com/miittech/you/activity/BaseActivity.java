@@ -5,8 +5,6 @@ import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.inuker.bluetooth.library.connect.listener.BluetoothStateListener;
-import com.miittech.you.ble.ClientManager;
 import com.miittech.you.weight.Titlebar;
 
 public class BaseActivity extends AppCompatActivity{

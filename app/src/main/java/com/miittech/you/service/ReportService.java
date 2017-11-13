@@ -1,10 +1,7 @@
 package com.miittech.you.service;
 import android.app.Service;  
-import android.content.Intent;  
-import android.media.MediaPlayer;
-import android.os.Handler;
+import android.content.Intent;
 import android.os.IBinder;
-import android.util.Log;  
 import android.widget.Toast;
 
 import com.baidu.location.BDAbstractLocationListener;
@@ -18,15 +15,11 @@ import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.response.BleReadResponse;
 import com.inuker.bluetooth.library.connect.response.BleReadRssiResponse;
 import com.miittech.you.App;
-import com.miittech.you.ble.ClientManager;
+import com.miittech.you.ble.BLEManager;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
-import com.miittech.you.dialog.DialogUtils;
-import com.miittech.you.dialog.MapDeviceUsersListDialog;
 import com.miittech.you.global.HttpUrl;
-import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
-import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.FriendsResponse;
 import com.ryon.constant.TimeConstants;
@@ -34,7 +27,6 @@ import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.TimeUtils;
-import com.ryon.mutils.ToastUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -100,17 +92,17 @@ public class ReportService extends Service {
         user_loc.put("lat", location.getLatitude());
         user_loc.put("lng", location.getLongitude());
         user_loc.put("addr", Common.encodeBase64(location.getAddrStr()));
-        List<String> macs = ClientManager.getInstance().getMacList();
+        List<String> macs = BLEManager.getInstance().getMacList();
         final List<Map> devlist = new ArrayList<>();
         for (final String mac : macs) {
             final Map devItem = new HashMap();
             devItem.put("devid", Common.formatMac2DevId(mac));
-            ClientManager.getInstance().read(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleReadResponse() {
+            BLEManager.getInstance().read(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleReadResponse() {
                 @Override
                 public void onResponse(int code, byte[] data) {
                     if (code == Constants.REQUEST_SUCCESS) {
                         devItem.put("devbattery", ConvertUtils.bytes2HexString(data));
-                        ClientManager.getInstance().readRssi(mac, new BleReadRssiResponse() {
+                        BLEManager.getInstance().readRssi(mac, new BleReadRssiResponse() {
                             @Override
                             public void onResponse(int code, Integer data) {
                                 if (code == Constants.REQUEST_SUCCESS) {

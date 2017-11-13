@@ -8,9 +8,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
-import com.miittech.you.App;
 import com.miittech.you.R;
-import com.miittech.you.ble.ClientManager;
+import com.miittech.you.ble.BLEManager;
 import com.miittech.you.common.Common;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
@@ -85,6 +84,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     }
     private void addMacList(DeviceResponse.DevlistBean devlistBean) {
         String macAddress = Common.formatDevId2Mac(devlistBean.getDevidX());
-        ClientManager.getInstance().connectDevice(macAddress);
+        BLEManager.getInstance().connectDevice(macAddress);
     }
 }

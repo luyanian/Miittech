@@ -14,7 +14,7 @@ import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.ble.ClientManager;
+import com.miittech.you.ble.BLEManager;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
@@ -108,7 +108,7 @@ public class DeviceDetailActivity extends BaseActivity {
         });
         typeSelector.setSelectItem(0);
         device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        ClientManager.getInstance().connectDevice(Common.formatDevId2Mac(device.getDevidX()));
+        BLEManager.getInstance().connectDevice(Common.formatDevId2Mac(device.getDevidX()));
     }
 
     @Override
@@ -175,7 +175,7 @@ public class DeviceDetailActivity extends BaseActivity {
         byte[] options;
         if(App.getInstance().getAlerStatus()== SPConst.ALET_STATUE.STATUS_UNBELL){
             options = new byte[]{0x02};
-            ClientManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
+            BLEManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
                     if (code == REQUEST_SUCCESS) {
@@ -186,7 +186,7 @@ public class DeviceDetailActivity extends BaseActivity {
             });
         }else{
             options = new byte[]{0x00};
-            ClientManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
+            BLEManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
                     if (code == REQUEST_SUCCESS) {
@@ -259,7 +259,7 @@ public class DeviceDetailActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            ClientManager.getInstance().delDevice(Common.formatDevId2Mac(device.getDevidX()));
+                            BLEManager.getInstance().delDevice(Common.formatDevId2Mac(device.getDevidX()));
                             ToastUtils.showShort("删除成功！");
                             finish();
                         } else {

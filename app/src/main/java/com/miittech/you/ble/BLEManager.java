@@ -29,29 +29,17 @@ import static com.miittech.you.common.BleCommon.serviceUUID;
 import static com.miittech.you.common.BleCommon.userCharacteristicLogUUID;
 import static com.miittech.you.common.BleCommon.userServiceUUID;
 
-public class ClientManager {
-    private static ClientManager clientManager;
-    private static BluetoothClient mClient;
+public class BLEManager {
+    private static BLEManager clientManager;
     private List<String> mMacList = new ArrayList<>();
 
-    public static ClientManager getInstance(){
+    public static BLEManager getInstance(){
         if(clientManager==null){
-            synchronized (ClientManager.class){
-                clientManager = new ClientManager();
+            synchronized (BLEManager.class){
+                clientManager = new BLEManager();
             }
         }
         return clientManager;
-    }
-
-    private BluetoothClient getClient() {
-        if (mClient == null) {
-            synchronized (ClientManager.class) {
-                if (mClient == null) {
-                    mClient = new BluetoothClient(App.getInstance());
-                }
-            }
-        }
-        return mClient;
     }
 
     public List<String> getMacList(){
@@ -70,9 +58,9 @@ public class ClientManager {
     }
 
     public void delDevice(String mac){
-        if(getClient().getConnectStatus(mac)== Constants.STATUS_DEVICE_CONNECTED){
+        if(BLEClientManager.getClient().getConnectStatus(mac)== Constants.STATUS_DEVICE_CONNECTED){
             byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, App.getInstance().getUserId());
-            getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
+            BLEClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
                     if (code == REQUEST_SUCCESS) {
@@ -86,7 +74,8 @@ public class ClientManager {
         }
     }
     public void connectDevice(String address,BleConnectResponse response) {
-        int status = getClient().getConnectStatus(address);
+        BluetoothClient client = BLEClientManager.getClient();
+        int status = client.getConnectStatus(address);
         if(status==Constants.STATUS_DEVICE_CONNECTED||status==Constants.STATUS_DEVICE_CONNECTING){
             return;
         }
@@ -96,13 +85,13 @@ public class ClientManager {
                 .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
                 .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
                 .build();
-        getClient().connect(address, options,response);
+        client.connect(address, options,response);
     }
     public void connectDevice(final String mac) {
         if(!isConnect(mac)){
             return;
         }
-        int status = getClient().getConnectStatus(mac);
+        int status = BLEClientManager.getClient().getConnectStatus(mac);
         if(status==Constants.STATUS_DEVICE_CONNECTED||status==Constants.STATUS_DEVICE_CONNECTING){
             return;
         }
@@ -112,7 +101,7 @@ public class ClientManager {
                 .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
                 .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
                 .build();
-        getClient().connect(mac, options, new BleConnectResponse() {
+        BLEClientManager.getClient().connect(mac, options, new BleConnectResponse() {
             @Override
             public void onResponse(int code, BleGattProfile data) {
                 if(code== Constants.CODE_CONNECT){
@@ -120,7 +109,7 @@ public class ClientManager {
                 }
             }
         });
-        getClient().registerConnectStatusListener(mac, new BleConnectStatusListener() {
+        BLEClientManager.getClient().registerConnectStatusListener(mac, new BleConnectStatusListener() {
             @Override
             public void onConnectStatusChanged(String mac, int status) {
                 if (status == STATUS_CONNECTED) {
@@ -132,11 +121,11 @@ public class ClientManager {
         });
     }
     public void setWorkMode(String mac){
-        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+        if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
             return;
         }
         byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getInstance().getUserId());
-        getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
+        BLEClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
             @Override
             public void onResponse(int code) {
                 if (code == REQUEST_SUCCESS) {
@@ -146,44 +135,45 @@ public class ClientManager {
         });
     }
     public void setBindMode(String mac,BleWriteResponse response){
-        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+        if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
             return;
         }
         byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getInstance().getUserId());
-        getClient().write(mac, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, response);
+        BLEClientManager.getClient().write(mac, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, response);
     }
 
     public void doFindOrBell(String mac,byte[] options,BleWriteResponse response) {
-        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+        if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
             connectDevice(mac);
             return;
         }
-        if(getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
-            getClient().write(mac, serviceUUID, characteristicUUID, options, response);
+        if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+            BLEClientManager.getClient().write(mac, serviceUUID, characteristicUUID, options, response);
         }
     }
 
     public void search(SearchRequest request, SearchResponse searchResponse) {
-        getClient().search(request,searchResponse);
+        BluetoothClient client = BLEClientManager.getClient();
+        client.search(request,searchResponse);
     }
 
     public void closeBluetooth() {
-        getClient().closeBluetooth();
+        BLEClientManager.getClient().closeBluetooth();
     }
 
     public void readRssi(String mac, BleReadRssiResponse bleReadRssiResponse) {
-        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+        if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
             connectDevice(mac);
             return;
         }
-        getClient().readRssi(mac,bleReadRssiResponse);
+        BLEClientManager.getClient().readRssi(mac,bleReadRssiResponse);
     }
 
     public void read(String mac, UUID batServiceUUID, UUID batCharacteristicUUID, BleReadResponse bleReadResponse) {
-        if(getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+        if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
             connectDevice(mac);
             return;
         }
-        getClient().read(mac,batServiceUUID,batCharacteristicUUID,bleReadResponse);
+        BLEClientManager.getClient().read(mac,batServiceUUID,batCharacteristicUUID,bleReadResponse);
     }
 }

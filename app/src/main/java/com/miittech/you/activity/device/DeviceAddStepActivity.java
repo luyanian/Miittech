@@ -23,7 +23,7 @@ import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.ble.ClientManager;
+import com.miittech.you.ble.BLEManager;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
@@ -110,7 +110,7 @@ public class DeviceAddStepActivity extends BaseActivity{
                                     .searchBluetoothLeDevice(5000)      // 再扫BLE设备2s
                                     .build();
 
-                            ClientManager.getInstance().search(request, new SearchResponse() {
+                            BLEManager.getInstance().search(request, new SearchResponse() {
                                 @Override
                                 public void onSearchStarted() {
                                     LogUtils.d("onSearchStarted");
@@ -133,17 +133,17 @@ public class DeviceAddStepActivity extends BaseActivity{
                                     progressbar.setProgress(0);
                                     tvProgress.setText("正在激活");
 
-                                    ClientManager.getInstance().connectDevice(device.getAddress(),new BleConnectResponse(){
+                                    BLEManager.getInstance().connectDevice(device.getAddress(),new BleConnectResponse(){
                                         @Override
                                         public void onResponse(int code, BleGattProfile data) {
                                             progressbar.setProgress(13);
                                             if(code== Constants.REQUEST_SUCCESS){
-                                                ClientManager.getInstance().setBindMode(device.getAddress(),new BleWriteResponse() {
+                                                BLEManager.getInstance().setBindMode(device.getAddress(),new BleWriteResponse() {
                                                     @Override
                                                     public void onResponse(int code) {
                                                         if (code == Code.REQUEST_SUCCESS) {
                                                             progressbar.setProgress(27);
-                                                            ClientManager.getInstance().setWorkMode(device.getAddress());
+                                                            BLEManager.getInstance().setWorkMode(device.getAddress());
                                                             vertifyDevice(device.getAddress());
                                                         }
                                                     }
