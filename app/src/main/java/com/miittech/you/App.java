@@ -8,6 +8,8 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import com.baidu.mapapi.SDKInitializer;
+import com.inuker.bluetooth.library.BluetoothContext;
+import com.miittech.you.ble.BLEClientManager;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.receiver.BluetoothReceiver;
 import com.miittech.you.service.BleOptionstService;
@@ -30,14 +32,14 @@ public class App extends MobApplication {
     public void onCreate() {
         super.onCreate();
         instance = this;
+        BluetoothContext.set(this);
         SDKInitializer.initialize(getApplicationContext());
         JPushInterface.setDebugMode(true);
         JPushInterface.init(getApplicationContext());
         Utils.init(getApplicationContext());
         registerActivityListener();
         registReciver();
-//        startService(new Intent(this, BluetoothService.class));
-//        startService(new Intent(this, com.inuker.bluetooth.library.BluetoothService.class));
+        startService(new Intent(this, BluetoothService.class));
         startService(new Intent(this, BleOptionstService.class));
         startService(new Intent(this, ReportService.class));
     }
@@ -56,9 +58,6 @@ public class App extends MobApplication {
     }
     public String getUserName(){
         return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_UNAME);
-    }
-    public int getAlerStatus(){
-        return SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(SPConst.ALET_STATUE.KEY_STATUS,SPConst.ALET_STATUE.STATUS_UNBELL);
     }
 
 

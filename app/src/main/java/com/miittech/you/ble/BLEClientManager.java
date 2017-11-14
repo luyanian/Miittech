@@ -12,8 +12,8 @@ public class BLEClientManager {
     public static BluetoothClient getClient() {
         if (mClient == null) {
             synchronized (BLEClientManager.class) {
-                if (mClient == null) {
-                    mClient = new BluetoothClient(App.getInstance().getApplicationContext());
+                if (mClient== null) {
+                    mClient = new BluetoothClient(App.getInstance());
                 }
             }
         }

@@ -145,6 +145,14 @@ public class DeviceAddStepActivity extends BaseActivity{
                                                             progressbar.setProgress(27);
                                                             BLEManager.getInstance().setWorkMode(device.getAddress());
                                                             vertifyDevice(device.getAddress());
+                                                        }else{
+                                                            step1.setVisibility(View.GONE);
+                                                            step2.setVisibility(View.GONE);
+                                                            step3.setVisibility(View.VISIBLE);
+                                                            imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
+                                                            tvConnectStatus.setText("绑定失败");
+                                                            tvConnectMsg.setVisibility(View.VISIBLE);
+                                                            tvConnectMsg.setText("请重新绑定");
                                                         }
                                                     }
                                                 });

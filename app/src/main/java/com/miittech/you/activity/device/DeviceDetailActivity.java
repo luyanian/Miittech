@@ -173,13 +173,13 @@ public class DeviceDetailActivity extends BaseActivity {
 
     private void doFindOrBell() {
         byte[] options;
-        if(App.getInstance().getAlerStatus()== SPConst.ALET_STATUE.STATUS_UNBELL){
+        if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
             options = new byte[]{0x02};
             BLEManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
                     if (code == REQUEST_SUCCESS) {
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(SPConst.ALET_STATUE.KEY_STATUS,SPConst.ALET_STATUE.STATUS_BELLING);
+                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
                         switchFindBtnStyle();
                     }
                 }
@@ -190,7 +190,7 @@ public class DeviceDetailActivity extends BaseActivity {
                 @Override
                 public void onResponse(int code) {
                     if (code == REQUEST_SUCCESS) {
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(SPConst.ALET_STATUE.KEY_STATUS,SPConst.ALET_STATUE.STATUS_UNBELL);
+                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL);
                         switchFindBtnStyle();
                     }
                 }
@@ -200,7 +200,7 @@ public class DeviceDetailActivity extends BaseActivity {
 
     }
     private void switchFindBtnStyle() {
-        if(App.getInstance().getAlerStatus()== SPConst.ALET_STATUE.STATUS_UNBELL){
+        if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
             imgFindBackground.setImageResource(R.drawable.ic_device_find_background);
             imgFindBtn.setImageResource(R.drawable.ic_device_find);
         }else{

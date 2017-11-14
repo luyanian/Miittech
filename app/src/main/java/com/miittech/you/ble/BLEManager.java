@@ -23,6 +23,8 @@ import java.util.UUID;
 
 import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
 import static com.inuker.bluetooth.library.Constants.STATUS_CONNECTED;
+import static com.inuker.bluetooth.library.Constants.STATUS_DEVICE_CONNECTING;
+import static com.inuker.bluetooth.library.Constants.STATUS_DEVICE_DISCONNECTING;
 import static com.inuker.bluetooth.library.Constants.STATUS_DISCONNECTED;
 import static com.miittech.you.common.BleCommon.characteristicUUID;
 import static com.miittech.you.common.BleCommon.serviceUUID;
@@ -30,16 +32,16 @@ import static com.miittech.you.common.BleCommon.userCharacteristicLogUUID;
 import static com.miittech.you.common.BleCommon.userServiceUUID;
 
 public class BLEManager {
-    private static BLEManager clientManager;
+    private static BLEManager bleManager;
     private List<String> mMacList = new ArrayList<>();
 
     public static BLEManager getInstance(){
-        if(clientManager==null){
+        if(bleManager==null){
             synchronized (BLEManager.class){
-                clientManager = new BLEManager();
+                bleManager = new BLEManager();
             }
         }
-        return clientManager;
+        return bleManager;
     }
 
     public List<String> getMacList(){
@@ -53,8 +55,14 @@ public class BLEManager {
         if(!mMacList.contains(mac)) {
             mMacList.add(mac);
             return true;
+        }else{
+            int status = BLEClientManager.getClient().getConnectStatus(mac);
+            if(status== Constants.STATUS_DEVICE_CONNECTED||status==Constants.STATUS_DEVICE_CONNECTING){
+                return false;
+            }else {
+                return true;
+            }
         }
-        return false;
     }
 
     public void delDevice(String mac){
@@ -63,9 +71,9 @@ public class BLEManager {
             BLEClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
                 @Override
                 public void onResponse(int code) {
-                    if (code == REQUEST_SUCCESS) {
+                if (code == REQUEST_SUCCESS) {
 
-                    }
+                }
                 }
             });
         }
@@ -143,11 +151,12 @@ public class BLEManager {
     }
 
     public void doFindOrBell(String mac,byte[] options,BleWriteResponse response) {
-        if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_CONNECTED){
+        int status = BLEClientManager.getClient().getConnectStatus(mac);
+        if(status!=Constants.STATUS_DEVICE_CONNECTED&&status!=STATUS_DEVICE_CONNECTING){
             connectDevice(mac);
             return;
         }
-        if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+        if(status==Constants.STATUS_DEVICE_CONNECTED){
             BLEClientManager.getClient().write(mac, serviceUUID, characteristicUUID, options, response);
         }
     }
