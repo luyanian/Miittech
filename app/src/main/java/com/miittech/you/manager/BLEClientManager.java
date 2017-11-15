@@ -1,4 +1,4 @@
-package com.miittech.you.ble;
+package com.miittech.you.manager;
 
 import com.inuker.bluetooth.library.BluetoothClient;
 import com.miittech.you.App;

@@ -9,7 +9,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.ble.BLEManager;
+import com.miittech.you.manager.BLEManager;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
 import com.miittech.you.impl.OnMsgTipOptions;

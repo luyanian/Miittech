@@ -15,7 +15,7 @@ import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.response.BleReadResponse;
 import com.inuker.bluetooth.library.connect.response.BleReadRssiResponse;
 import com.miittech.you.App;
-import com.miittech.you.ble.BLEManager;
+import com.miittech.you.manager.BLEManager;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;

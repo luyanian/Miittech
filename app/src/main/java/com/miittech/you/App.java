@@ -9,7 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import com.baidu.mapapi.SDKInitializer;
 import com.inuker.bluetooth.library.BluetoothContext;
-import com.miittech.you.ble.BLEClientManager;
+import com.miittech.you.manager.BLEManager;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.receiver.BluetoothReceiver;
 import com.miittech.you.service.BleOptionstService;
@@ -31,8 +31,8 @@ public class App extends MobApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-        instance = this;
         BluetoothContext.set(this);
+        instance = this;
         SDKInitializer.initialize(getApplicationContext());
         JPushInterface.setDebugMode(true);
         JPushInterface.init(getApplicationContext());
@@ -107,10 +107,10 @@ public class App extends MobApplication {
         }
     }
 
-    public void registReciver(){
+    public void registReciver() {
         BluetoothReceiver bluetoothReceiver = new BluetoothReceiver();
         IntentFilter intent = new IntentFilter();
-        intent.addAction (BluetoothDevice.ACTION_PAIRING_REQUEST);
+        intent.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intent.addAction(BluetoothDevice.ACTION_FOUND);
         intent.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         intent.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);

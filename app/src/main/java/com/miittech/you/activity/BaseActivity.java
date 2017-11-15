@@ -9,8 +9,7 @@ import com.miittech.you.weight.Titlebar;
 
 public class BaseActivity extends AppCompatActivity{
 
-    public static final String DEVICE_NAME = "yoowoo";
-    public static final long TIME_OUT = 30000;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,5 +36,7 @@ public class BaseActivity extends AppCompatActivity{
             titlebar.setTopPadding(statusBarHeight1);
         }
     }
+
+
 
 }

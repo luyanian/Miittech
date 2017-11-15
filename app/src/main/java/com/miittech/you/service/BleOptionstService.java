@@ -7,7 +7,13 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class BleOptionstService extends Service {
+    private List<String> mMacList = new ArrayList<>();
+
     private static final String TAG = "BleOptionstService";
     MediaPlayer player;  
   
@@ -30,12 +36,5 @@ public class BleOptionstService extends Service {
         Toast.makeText(this, "BleOptionstService Service Stoped", Toast.LENGTH_LONG).show();
         Log.i(TAG, "onDestroy");  
         player.stop();  
-    }  
-  
-    @Override  
-    public void onStart(Intent intent, int startid) {  
-        Toast.makeText(this, "BleOptionstService Service Start", Toast.LENGTH_LONG).show();
-        Log.i(TAG, "onStart");  
-        player.start();  
-    }  
+    }
 }  

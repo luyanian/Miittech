@@ -23,6 +23,7 @@ import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -138,18 +139,24 @@ public class Common {
                 });
     }
     public static String formatMac2DevId(String address){
-        return StringUtils.reverse(address.replace(":","").toUpperCase());
+        String[] temp = address.toUpperCase().split(":");
+        StringBuilder builder = new StringBuilder();
+        for (int i=0;i<temp.length;i++){
+            builder.append(temp[temp.length-1-i]);
+        }
+        return builder.toString();
     }
     public static String formatDevId2Mac(String devId){
-        String mac ="";
+        StringBuilder builder = new StringBuilder();
         for(int i=0;i<devId.length();i++){
-            mac=mac+devId.charAt(i);
-            if(i%2==1&&i!=devId.length()-1){
-                mac=mac+":";
+            if(i%2==1){
+                builder.append(devId.length()-1-i);
+                builder.append(devId.length()-i);
+                builder.append(":");
             }
-
         }
-        return StringUtils.reverse(mac.toUpperCase());
+        String temp = builder.toString();
+        return temp.substring(0,temp.length()-2);
     }
     public static String decodeBase64(String text){
         return new String(Base64.decode(text, Base64.DEFAULT));

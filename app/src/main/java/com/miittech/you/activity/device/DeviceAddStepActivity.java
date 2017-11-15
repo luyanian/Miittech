@@ -1,8 +1,10 @@
 package com.miittech.you.activity.device;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,10 +25,11 @@ import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.ble.BLEManager;
+import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
+import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -93,6 +96,9 @@ public class DeviceAddStepActivity extends BaseActivity{
         step3.setVisibility(View.GONE);
         step1.setVisibility(View.VISIBLE);
         mScanList.clear();
+        IntentFilter filter=new IntentFilter();
+        filter.addAction("android.intent.action.lxx");
+        this.registerReceiver(new CmdResponseReceiver(),filter);
         sacnDevice();
     }
 
@@ -105,12 +111,12 @@ public class DeviceAddStepActivity extends BaseActivity{
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
+
                             SearchRequest request = new SearchRequest.Builder()
                                     .searchBluetoothLeDevice(10000, 3)   // 先扫BLE设备3次，每次3s
                                     .searchBluetoothLeDevice(5000)      // 再扫BLE设备2s
                                     .build();
-
-                            BLEManager.getInstance().search(request, new SearchResponse() {
+                            BLEClientManager.getClient().search(request, new SearchResponse() {
                                 @Override
                                 public void onSearchStarted() {
                                     LogUtils.d("onSearchStarted");
@@ -118,7 +124,7 @@ public class DeviceAddStepActivity extends BaseActivity{
 
                                 @Override
                                 public void onDeviceFounded(final SearchResult device) {
-                                    if(!device.getName().contains(DEVICE_NAME)){
+                                    if(!device.getName().contains("yoowoo")){
                                         return;
                                     }
 
@@ -133,40 +139,11 @@ public class DeviceAddStepActivity extends BaseActivity{
                                     progressbar.setProgress(0);
                                     tvProgress.setText("正在激活");
 
-                                    BLEManager.getInstance().connectDevice(device.getAddress(),new BleConnectResponse(){
-                                        @Override
-                                        public void onResponse(int code, BleGattProfile data) {
-                                            progressbar.setProgress(13);
-                                            if(code== Constants.REQUEST_SUCCESS){
-                                                BLEManager.getInstance().setBindMode(device.getAddress(),new BleWriteResponse() {
-                                                    @Override
-                                                    public void onResponse(int code) {
-                                                        if (code == Code.REQUEST_SUCCESS) {
-                                                            progressbar.setProgress(27);
-                                                            BLEManager.getInstance().setWorkMode(device.getAddress());
-                                                            vertifyDevice(device.getAddress());
-                                                        }else{
-                                                            step1.setVisibility(View.GONE);
-                                                            step2.setVisibility(View.GONE);
-                                                            step3.setVisibility(View.VISIBLE);
-                                                            imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-                                                            tvConnectStatus.setText("绑定失败");
-                                                            tvConnectMsg.setVisibility(View.VISIBLE);
-                                                            tvConnectMsg.setText("请重新绑定");
-                                                        }
-                                                    }
-                                                });
-                                            }else{
-                                                step1.setVisibility(View.GONE);
-                                                step2.setVisibility(View.GONE);
-                                                step3.setVisibility(View.VISIBLE);
-                                                imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-                                                tvConnectStatus.setText("绑定失败");
-                                                tvConnectMsg.setVisibility(View.VISIBLE);
-                                                tvConnectMsg.setText("请重新绑定");
-                                            }
-                                        }
-                                    });
+                                    Intent intent= new Intent();
+                                    intent.putExtra("action",IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                                    intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND);
+                                    intent.putExtra("data",device.getAddress());
+                                    sendBroadcast(intent);
                                     LogUtils.v(String.format("device for %s\n%s", device.getAddress(), device.toString()));
                                 }
 
@@ -313,4 +290,41 @@ public class DeviceAddStepActivity extends BaseActivity{
 //            }
 //        } else super.onActivityResult(requestCode, resultCode, data);
 //    }
+
+    private class CmdResponseReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals("android.intent.action.cmd")){
+                int ret = intent.getIntExtra("cmd", -1);//获取Extra信息
+                switch (ret){
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS:
+                        progressbar.setProgress(13);
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
+                        step1.setVisibility(View.GONE);
+                        step2.setVisibility(View.GONE);
+                        step3.setVisibility(View.VISIBLE);
+                        imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
+                        tvConnectStatus.setText("绑定失败");
+                        tvConnectMsg.setVisibility(View.VISIBLE);
+                        tvConnectMsg.setText("请重新绑定");
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_BIND_SUCCESS:
+                        progressbar.setProgress(27);
+                        vertifyDevice(device.getAddress());
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_BIND_FAIL:
+                        step1.setVisibility(View.GONE);
+                        step2.setVisibility(View.GONE);
+                        step3.setVisibility(View.VISIBLE);
+                        imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
+                        tvConnectStatus.setText("绑定失败");
+                        tvConnectMsg.setVisibility(View.VISIBLE);
+                        tvConnectMsg.setText("请重新绑定");
+                        break;
+                }
+
+            }
+        }
+    }
 }

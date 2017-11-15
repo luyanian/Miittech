@@ -14,7 +14,7 @@ import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.ble.BLEManager;
+import com.miittech.you.manager.BLEManager;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
@@ -196,8 +196,6 @@ public class DeviceDetailActivity extends BaseActivity {
                 }
             });
         }
-
-
     }
     private void switchFindBtnStyle() {
         if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
