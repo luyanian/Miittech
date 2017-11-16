@@ -9,10 +9,10 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.manager.BLEManager;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
 import com.miittech.you.impl.OnMsgTipOptions;
+import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.impl.TitleBarOptions;
 import com.ryon.mutils.AppUtils;
@@ -79,7 +79,7 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
                         @Override
                         public void onSure() {
                             super.onSure();
-                            BLEManager.getInstance().closeBluetooth();
+                            BLEClientManager.getClient().closeBluetooth();
                         }
 
                         @Override

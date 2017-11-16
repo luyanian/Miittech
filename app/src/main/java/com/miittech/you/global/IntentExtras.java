@@ -25,6 +25,9 @@ public class IntentExtras {
     public static class CMD{
         public final static int CMD_DEVICE_CONNECT_BIND = 0x010;
         public final static int CMD_DEVICE_CONNECT_WORK = 0x011;
+        public final static int CMD_DEVICE_ALERT_START=0x012;
+        public final static int CMD_DEVICE_ALERT_STOP=0x013;
+        public final static int CMD_DEVICE_UNBIND=0x014;
     }
     public static class RET{
         public final static int RET_DEVICE_CONNECT_SUCCESS=0x020;
@@ -33,5 +36,8 @@ public class IntentExtras {
         public final static int RET_DEVICE_CONNECT_BIND_FAIL=0x023;
         public final static int RET_DEVICE_CONNECT_WORK_SUCCESS=0x024;
         public final static int RET_DEVICE_CONNECT_WORK_FAILED=0x025;
+        public final static int RET_DEVICE_CONNECT_ALERT_START_SUCCESS=0x026;
+        public final static int RET_DEVICE_CONNECT_ALERT_STOP_SUCCESS=0x027;
+        public final static int RET_DEVICE_UNBIND_SUCCESS=0x028;
     }
 }

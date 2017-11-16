@@ -13,11 +13,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.google.gson.Gson;
-import com.inuker.bluetooth.library.Code;
-import com.inuker.bluetooth.library.Constants;
-import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
-import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
-import com.inuker.bluetooth.library.model.BleGattProfile;
 import com.inuker.bluetooth.library.search.SearchRequest;
 import com.inuker.bluetooth.library.search.SearchResult;
 import com.inuker.bluetooth.library.search.response.SearchResponse;
@@ -25,7 +20,6 @@ import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
@@ -35,16 +29,15 @@ import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.service.BleService;
 import com.miittech.you.weight.CircleProgressBar;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -78,6 +71,7 @@ public class DeviceAddStepActivity extends BaseActivity{
     RelativeLayout step3;
 
     private List<String> mScanList = new ArrayList<>();
+    private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,10 +90,18 @@ public class DeviceAddStepActivity extends BaseActivity{
         step3.setVisibility(View.GONE);
         step1.setVisibility(View.VISIBLE);
         mScanList.clear();
+        Intent intent = new Intent(this, BleService.class);
+        startService(intent);
         IntentFilter filter=new IntentFilter();
-        filter.addAction("android.intent.action.lxx");
-        this.registerReceiver(new CmdResponseReceiver(),filter);
+        filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+        this.registerReceiver(cmdResponseReceiver,filter);
         sacnDevice();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(cmdResponseReceiver);
     }
 
     private void sacnDevice() {
@@ -111,7 +113,6 @@ public class DeviceAddStepActivity extends BaseActivity{
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
-
                             SearchRequest request = new SearchRequest.Builder()
                                     .searchBluetoothLeDevice(10000, 3)   // 先扫BLE设备3次，每次3s
                                     .searchBluetoothLeDevice(5000)      // 再扫BLE设备2s
@@ -142,7 +143,7 @@ public class DeviceAddStepActivity extends BaseActivity{
                                     Intent intent= new Intent();
                                     intent.putExtra("action",IntentExtras.ACTION.ACTION_BLE_COMMAND);
                                     intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND);
-                                    intent.putExtra("data",device.getAddress());
+                                    intent.putExtra("address",device.getAddress());
                                     sendBroadcast(intent);
                                     LogUtils.v(String.format("device for %s\n%s", device.getAddress(), device.toString()));
                                 }
@@ -276,25 +277,11 @@ public class DeviceAddStepActivity extends BaseActivity{
         if (networkProvider || gpsProvider) return true;
         return false;
     }
-//    private void setLocationService() {
-//        Intent locationIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-//        this.startActivityForResult(locationIntent, REQUEST_CODE_LOCATION_SETTINGS);
-//    }
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        if (requestCode == REQUEST_CODE_LOCATION_SETTINGS) {
-//            if (isLocationEnable(this)) {
-//                //定位已打开的处理
-//            } else {
-//                //定位依然没有打开的处理
-//            }
-//        } else super.onActivityResult(requestCode, resultCode, data);
-//    }
 
     private class CmdResponseReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals("android.intent.action.cmd")){
+            if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
                 int ret = intent.getIntExtra("cmd", -1);//获取Extra信息
                 switch (ret){
                     case IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS:
@@ -311,7 +298,7 @@ public class DeviceAddStepActivity extends BaseActivity{
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_BIND_SUCCESS:
                         progressbar.setProgress(27);
-                        vertifyDevice(device.getAddress());
+                        vertifyDevice(intent.getStringExtra("address"));
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_BIND_FAIL:
                         step1.setVisibility(View.GONE);

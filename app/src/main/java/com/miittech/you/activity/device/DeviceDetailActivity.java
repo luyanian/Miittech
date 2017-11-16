@@ -1,6 +1,9 @@
 package com.miittech.you.activity.device;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.view.View;
@@ -14,7 +17,6 @@ import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.manager.BLEManager;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
@@ -34,10 +36,8 @@ import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -76,6 +76,7 @@ public class DeviceDetailActivity extends BaseActivity {
     TextView tvDeviceTime;
     private DeviceResponse.DevlistBean device;
     private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceDetailInfo;
+    private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +109,16 @@ public class DeviceDetailActivity extends BaseActivity {
         });
         typeSelector.setSelectItem(0);
         device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        BLEManager.getInstance().connectDevice(Common.formatDevId2Mac(device.getDevidX()));
+
+        IntentFilter filter=new IntentFilter();
+        filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+        this.registerReceiver(cmdResponseReceiver,filter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(cmdResponseReceiver);
     }
 
     @Override
@@ -127,7 +137,6 @@ public class DeviceDetailActivity extends BaseActivity {
         tvDeviceName.setText(Common.decodeBase64(device.getDevname()));
         tvDeviceLocation.setText(device.getLocinfo().getAddr());
         tvDeviceTime.setText(device.getLasttime());
-
         Glide.with(this)
                 .load(device.getDevimg())
                 .into(imgDeviceIcon);
@@ -166,36 +175,25 @@ public class DeviceDetailActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.btn_option_delete:
-                unbindDevice();
+                Intent unbind= new Intent();
+                unbind.putExtra("action",IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                unbind.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
+                unbind.putExtra("address",Common.formatDevId2Mac(device.getDevidX()));
+                sendBroadcast(unbind);
                 break;
         }
     }
 
     private void doFindOrBell() {
-        byte[] options;
+        Intent intent= new Intent();
+        intent.putExtra("action",IntentExtras.ACTION.ACTION_BLE_COMMAND);
         if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
-            options = new byte[]{0x02};
-            BLEManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
-                @Override
-                public void onResponse(int code) {
-                    if (code == REQUEST_SUCCESS) {
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
-                        switchFindBtnStyle();
-                    }
-                }
-            });
+            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_ALERT_START);
         }else{
-            options = new byte[]{0x00};
-            BLEManager.getInstance().doFindOrBell(Common.formatDevId2Mac(device.getDevidX()),options,new BleWriteResponse() {
-                @Override
-                public void onResponse(int code) {
-                    if (code == REQUEST_SUCCESS) {
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL);
-                        switchFindBtnStyle();
-                    }
-                }
-            });
+            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_ALERT_STOP);
         }
+        intent.putExtra("address",Common.formatDevId2Mac(device.getDevidX()));
+        sendBroadcast(intent);
     }
     private void switchFindBtnStyle() {
         if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
@@ -257,8 +255,7 @@ public class DeviceDetailActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            BLEManager.getInstance().delDevice(Common.formatDevId2Mac(device.getDevidX()));
-                            ToastUtils.showShort("删除成功！");
+                            ToastUtils.showShort("删除成功");
                             finish();
                         } else {
                             response.onError(DeviceDetailActivity.this);
@@ -270,5 +267,34 @@ public class DeviceDetailActivity extends BaseActivity {
                         throwable.printStackTrace();
                     }
                 });
+    }
+
+    private class CmdResponseReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
+                int ret = intent.getIntExtra("cmd", -1);//获取Extra信息
+                switch (ret){
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS:
+
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
+
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_START_SUCCESS:
+                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
+                        switchFindBtnStyle();
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_STOP_SUCCESS:
+                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL);
+                        switchFindBtnStyle();
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_UNBIND_SUCCESS:
+                        unbindDevice();
+                        break;
+                }
+
+            }
+        }
     }
 }

@@ -244,8 +244,8 @@
         <activity android:name=".activity.device.DeviceSharedListActivity"/>
         <activity android:name=".activity.device.DeviceSharedAddActivity"/>
         <activity android:name=".activity.device.DeviceMapDetailActivity"/>
-        <service android:name=".service.BluetoothService"/>
         <activity android:name=".activity.device.DeviceDetailSettingActivity"/>
+
         <receiver android:name=".receiver.BluetoothReceiver">
             <intent-filter android:priority="1000">
                 <action android:name="android.bluetooth.device.action.PAIRING_REQUEST"/>
@@ -254,7 +254,17 @@
         </receiver>
 
         <service
-            android:name="com.inuker.bluetooth.library.BluetoothService" />
+            android:name="com.inuker.bluetooth.library.BluetoothService"
+            android:exported="true"
+            android:externalService="true"
+            android:process="com.miittech.you.service.BleService"
+            android:label="有物服务进程"/>
+        <service
+            android:name="com.miittech.you.service.BleService"
+            android:exported="true"
+            android:externalService="true"
+            android:process="com.miittech.you.service.BleService"
+            android:label="有物服务进程"/>
     </application>
 
 </manifest>

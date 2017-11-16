@@ -1,6 +1,7 @@
 package com.miittech.you.adapter;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,8 +10,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.miittech.you.R;
-import com.miittech.you.manager.BLEManager;
 import com.miittech.you.common.Common;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
 import java.util.List;
@@ -83,7 +84,11 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         }
     }
     private void addMacList(DeviceResponse.DevlistBean devlistBean) {
-        String macAddress = Common.formatDevId2Mac(devlistBean.getDevidX());
-        BLEManager.getInstance().connectDevice(macAddress);
+        String address = Common.formatDevId2Mac(devlistBean.getDevidX());
+        Intent intent= new Intent();
+        intent.putExtra("action", IntentExtras.ACTION.ACTION_BLE_COMMAND);
+        intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
+        intent.putExtra("address",address);
+        activity.sendBroadcast(intent);
     }
 }
