@@ -256,15 +256,13 @@
         <service
             android:name="com.inuker.bluetooth.library.BluetoothService"
             android:exported="true"
-            android:externalService="true"
-            android:process="com.miittech.you.service.BleService"
-            android:label="有物服务进程"/>
+            android:label="有物蓝牙进程"/>
+
         <service
             android:name="com.miittech.you.service.BleService"
             android:exported="true"
-            android:externalService="true"
-            android:process="com.miittech.you.service.BleService"
-            android:label="有物服务进程"/>
+            android:label="有物服务进程">
+        </service>
     </application>
 
 </manifest>

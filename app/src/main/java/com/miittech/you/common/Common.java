@@ -142,7 +142,8 @@ public class Common {
         String[] temp = address.toUpperCase().split(":");
         StringBuilder builder = new StringBuilder();
         for (int i=0;i<temp.length;i++){
-            builder.append(temp[temp.length-1-i]);
+            builder.append(temp[temp.length - 1 - i]);
+
         }
         return builder.toString();
     }
@@ -150,13 +151,13 @@ public class Common {
         StringBuilder builder = new StringBuilder();
         for(int i=0;i<devId.length();i++){
             if(i%2==1){
-                builder.append(devId.length()-1-i);
-                builder.append(devId.length()-i);
+                builder.append(devId.charAt(devId.length()-1-i));
+                builder.append(devId.charAt(devId.length()-i));
                 builder.append(":");
             }
         }
         String temp = builder.toString();
-        return temp.substring(0,temp.length()-2);
+        return temp.substring(0,temp.length()-1);
     }
     public static String decodeBase64(String text){
         return new String(Base64.decode(text, Base64.DEFAULT));

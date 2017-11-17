@@ -175,8 +175,7 @@ public class DeviceDetailActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.btn_option_delete:
-                Intent unbind= new Intent();
-                unbind.putExtra("action",IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                Intent unbind= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                 unbind.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
                 unbind.putExtra("address",Common.formatDevId2Mac(device.getDevidX()));
                 sendBroadcast(unbind);
@@ -185,8 +184,7 @@ public class DeviceDetailActivity extends BaseActivity {
     }
 
     private void doFindOrBell() {
-        Intent intent= new Intent();
-        intent.putExtra("action",IntentExtras.ACTION.ACTION_BLE_COMMAND);
+        Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_ALERT_START);
         }else{
@@ -273,13 +271,13 @@ public class DeviceDetailActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
-                int ret = intent.getIntExtra("cmd", -1);//获取Extra信息
+                int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 switch (ret){
                     case IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS:
-
+                        LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
-
+                        LogUtils.d("RET_DEVICE_CONNECT_FAILED");
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_START_SUCCESS:
                         SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);

@@ -85,8 +85,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     }
     private void addMacList(DeviceResponse.DevlistBean devlistBean) {
         String address = Common.formatDevId2Mac(devlistBean.getDevidX());
-        Intent intent= new Intent();
-        intent.putExtra("action", IntentExtras.ACTION.ACTION_BLE_COMMAND);
+        Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
         intent.putExtra("address",address);
         activity.sendBroadcast(intent);

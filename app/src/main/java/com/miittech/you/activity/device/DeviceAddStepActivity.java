@@ -90,8 +90,7 @@ public class DeviceAddStepActivity extends BaseActivity{
         step3.setVisibility(View.GONE);
         step1.setVisibility(View.VISIBLE);
         mScanList.clear();
-        Intent intent = new Intent(this, BleService.class);
-        startService(intent);
+
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
         this.registerReceiver(cmdResponseReceiver,filter);
@@ -140,12 +139,12 @@ public class DeviceAddStepActivity extends BaseActivity{
                                     progressbar.setProgress(0);
                                     tvProgress.setText("正在激活");
 
-                                    Intent intent= new Intent();
-                                    intent.putExtra("action",IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                                    Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                                     intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND);
                                     intent.putExtra("address",device.getAddress());
                                     sendBroadcast(intent);
                                     LogUtils.v(String.format("device for %s\n%s", device.getAddress(), device.toString()));
+                                    BLEClientManager.getClient().stopSearch();
                                 }
 
                                 @Override
@@ -282,7 +281,7 @@ public class DeviceAddStepActivity extends BaseActivity{
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
-                int ret = intent.getIntExtra("cmd", -1);//获取Extra信息
+                int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 switch (ret){
                     case IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS:
                         progressbar.setProgress(13);

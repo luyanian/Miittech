@@ -19,8 +19,8 @@ public class IntentExtras {
     }
 
     public static class ACTION{
-        public final static String ACTION_BLE_COMMAND="android.intent.action.cmd";
-        public final static String ACTION_CMD_RESPONSE="android.intent.action.response";
+        public final static String ACTION_BLE_COMMAND="com.mittech.you.device.service.cmd";
+        public final static String ACTION_CMD_RESPONSE="com.mittech.you.device.service.response";
     }
     public static class CMD{
         public final static int CMD_DEVICE_CONNECT_BIND = 0x010;
