@@ -46,7 +46,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, final int i) {
         final DeviceResponse.DevlistBean devlistBean = mData.get(i);
         ViewHolder holder = (ViewHolder) viewHolder;
-        holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
+        holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname())+"--->"+devlistBean.getDevidX());
         holder.itemLocation.setText(devlistBean.getLocinfo().getAddr());
         holder.itemLocation.setText(devlistBean.getLasttime());
         Glide.with(activity).load(devlistBean.getDevimg()).into(holder.itemIcon);

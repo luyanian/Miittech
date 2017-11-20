@@ -15,6 +15,8 @@ import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
 import com.inuker.bluetooth.library.BluetoothContext;
 import com.inuker.bluetooth.library.Constants;
+import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
+import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
 import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
 import com.inuker.bluetooth.library.connect.response.BleReadResponse;
 import com.inuker.bluetooth.library.connect.response.BleReadRssiResponse;
@@ -115,7 +117,13 @@ public class BleService extends Service {
             if(status== Constants.STATUS_DEVICE_CONNECTED||status== STATUS_DEVICE_CONNECTING){
                 return;
             }else{
-                BLEClientManager.getClient().connect(mac, new BleConnectResponse() {
+                BleConnectOptions options = new BleConnectOptions.Builder()
+                        .setConnectRetry(3)   // 连接如果失败重试3次
+                        .setConnectTimeout(30000)   // 连接超时30s
+                        .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
+                        .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                        .build();
+                BLEClientManager.getClient().connect(mac,options, new BleConnectResponse() {
                     @Override
                     public void onResponse(int code, BleGattProfile data) {
                         if(code==Constants.REQUEST_SUCCESS) {
@@ -163,7 +171,14 @@ public class BleService extends Service {
            return;
         }
         mMacList.add(mac);
-        BLEClientManager.getClient().connect(mac, new BleConnectResponse() {
+        BleConnectOptions options = new BleConnectOptions.Builder()
+                .setConnectRetry(3)   // 连接如果失败重试3次
+                .setConnectTimeout(30000)   // 连接超时30s
+                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
+                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                .build();
+        BLEClientManager.getClient().refreshCache(mac);
+        BLEClientManager.getClient().connect(mac,options, new BleConnectResponse() {
             @Override
             public void onResponse(int code, BleGattProfile data) {
                 Intent intent = new Intent();
@@ -180,6 +195,21 @@ public class BleService extends Service {
                     LogUtils.d("bleResponse","贴片连接失败----->"+mac);
                     intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
                     sendBroadcast(intent);
+                }
+            }
+        });
+
+        BLEClientManager.getClient().registerConnectStatusListener(mac, new BleConnectStatusListener() {
+            @Override
+            public void onConnectStatusChanged(String mac, int status) {
+                if (status == Constants.STATUS_CONNECTED) {
+                    if(!mMacList.contains(mac)){
+                        mMacList.add(mac);
+                    }
+                } else if (status == Constants.STATUS_DISCONNECTED) {
+                    if(mMacList.contains(mac)){
+                        mMacList.remove(mac);
+                    }
                 }
             }
         });
