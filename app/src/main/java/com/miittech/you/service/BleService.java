@@ -18,6 +18,7 @@ import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
 import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
 import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
+import com.inuker.bluetooth.library.connect.response.BleNotifyResponse;
 import com.inuker.bluetooth.library.connect.response.BleReadResponse;
 import com.inuker.bluetooth.library.connect.response.BleReadRssiResponse;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
@@ -42,6 +43,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -211,6 +214,21 @@ public class BleService extends Service {
                         mMacList.remove(mac);
                     }
                 }
+            }
+        });
+        BLEClientManager.getClient().notify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyResponse() {
+            @Override
+            public void onNotify(UUID service, UUID character, byte[] value) {
+                String data = new String(value);
+                LogUtils.d("接收到蓝牙发送广播》》》"+data);
+                if("2".equals(data)){
+
+                }
+            }
+
+            @Override
+            public void onResponse(int code) {
+
             }
         });
 

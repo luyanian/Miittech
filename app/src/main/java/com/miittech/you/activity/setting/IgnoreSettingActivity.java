@@ -7,18 +7,35 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.Params;
+import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnIgnoreAddOptions;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
+import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
+import com.ryon.mutils.EncryptUtils;
+import com.ryon.mutils.LogUtils;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 /**
  * Created by Administrator on 2017/9/29.
@@ -65,6 +82,7 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         typeSelector.setItemText(R.string.text_setting_ignore, R.string.text_setting_ignore_time);
         typeSelector.setTypeSelectorChangeLisener(this);
         typeSelector.setSelectItem(0);
+        getIgnoreSetting();
     }
 
     @Override
@@ -105,5 +123,33 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
                 startActivity(intent);
             }
         });
+    }
+
+    private void getIgnoreSetting() {
+        Map param = new LinkedHashMap();
+        param.put("qrytype", Params.QRY_TYPE.USED);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userdevicelist/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceResponse>() {
+                    @Override
+                    public void accept(DeviceResponse response) throws Exception {
+
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
     }
 }
