@@ -1,15 +1,9 @@
 package com.miittech.you.activity.setting;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.miittech.you.App;
@@ -25,13 +19,12 @@ import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.ToastUtils;
 
-import java.util.ArrayList;
+import org.w3c.dom.Text;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -43,25 +36,21 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
 /**
- * Created by Administrator on 2017/9/30.
+ * Created by Administrator on 2017/11/23.
  */
 
-public class IgnoreAddWifiActivity extends BaseActivity {
+public class IgnoreNameEditActivity extends BaseActivity {
     @BindView(R.id.titlebar)
     Titlebar titlebar;
     @BindView(R.id.et_name)
     EditText etName;
-    @BindView(R.id.tv_ssid)
-    TextView tvSsid;
-
-    private String ssid="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_ignore_wifi_add);
+        setContentView(R.layout.activity_ignore_name_edit);
         ButterKnife.bind(this);
-        initMyTitleBar(titlebar,"WIFI勿扰区域");
+        initMyTitleBar(titlebar,"设置位置勿扰区域");
         titlebar.showBackOption();
         titlebar.showCompleteOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
@@ -74,55 +63,28 @@ public class IgnoreAddWifiActivity extends BaseActivity {
             @Override
             public void onComplete() {
                 super.onComplete();
-                doComplete();
+                updateIgnoreSetting();
             }
         });
-        updateSSID();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        registerReceiver(new WifiStateReciver(),filter);
     }
-
-    private class WifiStateReciver extends BroadcastReceiver{
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, -1);
-            if (wifiState == WifiManager.WIFI_STATE_DISABLING) {
-                //正在关闭
-            } else if (wifiState == WifiManager.WIFI_STATE_ENABLING) {
-                //正在打开
-            } else if (wifiState == WifiManager.WIFI_STATE_DISABLED) {
-                //已经关闭
-            } else if (wifiState == WifiManager.WIFI_STATE_ENABLED) {
-                //已经打开
-                updateSSID();
-            } else {
-                //未知状态
-            }
-        }
-    }
-
-    private void updateSSID() {
-        ssid = NetworkUtils.getSsidOfConnectWifi().replace("\"","");
-        tvSsid.setText("当前连接WIFI : "+ssid);
-    }
-
-    private void doComplete() {
+    public void updateIgnoreSetting(){
         String name = etName.getText().toString().trim();
         if(TextUtils.isEmpty(name)){
-            ToastUtils.showShort("请输入名称");
+            ToastUtils.showShort("请填写名称");
             return;
         }
-        if(TextUtils.isEmpty(ssid)){
-            ToastUtils.showShort("未获取到您的ssid,请wifi网络是否正常");
-            return;
-        }
+        double lat = getIntent().getDoubleExtra("lat",0);
+        double lng = getIntent().getDoubleExtra("lng",0);
+        int progress = getIntent().getIntExtra("progress",0);
+        Map area = new HashMap();
+        area.put("lat",lat);
+        area.put("lng",lng);
+        area.put("R",progress);
         Map areadef = new HashMap();
         areadef.put("id",0);
         areadef.put("title", Common.encodeBase64(name));
         areadef.put("inout",1);
-        areadef.put("ssid",ssid);
+        areadef.put("areadef",area);
         Map donotdisturb = new HashMap();
         donotdisturb.put("areadef",areadef);
         Map config = new HashMap();
@@ -149,7 +111,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
                             ToastUtils.showShort("添加勿扰设置成功");
                             finish();
                         }else{
-                            response.onError(IgnoreAddWifiActivity.this);
+                            response.onError(IgnoreNameEditActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {

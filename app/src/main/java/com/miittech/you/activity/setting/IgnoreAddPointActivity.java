@@ -1,5 +1,6 @@
 package com.miittech.you.activity.setting;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -102,7 +103,14 @@ public class IgnoreAddPointActivity extends BaseActivity {
             @Override
             public void onComplete() {
                 super.onComplete();
-                updateIgnoreSetting();
+                if(IgnoreAddPointActivity.this.poiInfo==null){
+                    return;
+                }
+                Intent intent = new Intent(IgnoreAddPointActivity.this,IgnoreNameEditActivity.class);
+                intent.putExtra("lat",poiInfo.location.latitude);
+                intent.putExtra("lng",poiInfo.location.longitude);
+                intent.putExtra("progress",progress);
+                startActivity(intent);
             }
         });
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -159,6 +167,7 @@ public class IgnoreAddPointActivity extends BaseActivity {
         option.setCoorType("bd09ll");
         option.setScanSpan(0);//只定位一次
         option.setOpenGps(true);
+        option.addrType="all";
         option.setIsNeedAddress(true);
         option.setLocationNotify(true);
         option.setIgnoreKillProcess(false);
@@ -169,7 +178,6 @@ public class IgnoreAddPointActivity extends BaseActivity {
             @Override
             public void onReceiveLocation(final BDLocation bdLocation) {
                 updateMapLocalView(new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude()));
-
                 etSerchText.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -245,51 +253,5 @@ public class IgnoreAddPointActivity extends BaseActivity {
         MapStatus.Builder builder = new MapStatus.Builder();
         builder.target(latLng).zoom(16.0f);
         mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
-    }
-
-    public void updateIgnoreSetting(){
-        if(this.poiInfo==null){
-            return;
-        }
-        Map area = new HashMap();
-        area.put("lat",this.poiInfo.location.latitude);
-        area.put("lng",this.poiInfo.location.longitude);
-        area.put("R",this.progress);
-        Map areadef = new HashMap();
-        areadef.put("id",0);
-        areadef.put("title", Common.encodeBase64(this.poiInfo.name));
-        areadef.put("inout",1);
-        areadef.put("areadef",area);
-        Map donotdisturb = new HashMap();
-        donotdisturb.put("donotdisturb",areadef);
-        Map param = new LinkedHashMap();
-        param.put("method", Params.METHOD.IGNORE_ADD);
-        param.put("config_type", "AREA");
-        param.put("config", donotdisturb);
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "userconf/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(this).postNetRequest(path, requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<BaseResponse>() {
-                    @Override
-                    public void accept(BaseResponse response) throws Exception {
-                        if(response.isSuccessful()){
-                        }else{
-                            response.onError(IgnoreAddPointActivity.this);
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
     }
 }

@@ -16,6 +16,7 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.ryon.mutils.ConvertUtils;
+import com.ryon.mutils.EncodeUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.RegexUtils;
@@ -160,10 +161,10 @@ public class Common {
         return temp.substring(0,temp.length()-1);
     }
     public static String decodeBase64(String text){
-        return new String(Base64.decode(text, Base64.DEFAULT));
+        return EncodeUtils.base64Encode2String(text.getBytes());
     }
     public static String encodeBase64(String text){
-        return  Base64.encodeToString(text.getBytes(),Base64.DEFAULT);
+        return  new String(EncodeUtils.base64Decode(text));
     }
     public static String getCurrentTime(){
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");

@@ -157,7 +157,7 @@ public final class NetworkUtils {
      */
     public static boolean getWifiEnabled() {
         @SuppressLint("WifiManagerLeak")
-        WifiManager wifiManager = (WifiManager) Utils.getContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) Utils.getContext().getSystemService(WIFI_SERVICE);
         return wifiManager.isWifiEnabled();
     }
 
@@ -169,7 +169,7 @@ public final class NetworkUtils {
      */
     public static void setWifiEnabled(final boolean enabled) {
         @SuppressLint("WifiManagerLeak")
-        WifiManager wifiManager = (WifiManager) Utils.getContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) Utils.getContext().getSystemService(WIFI_SERVICE);
         if (enabled) {
             if (!wifiManager.isWifiEnabled()) {
                 wifiManager.setWifiEnabled(true);
@@ -192,6 +192,19 @@ public final class NetworkUtils {
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         return cm != null && cm.getActiveNetworkInfo() != null
                 && cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI;
+    }
+
+    /**
+     * 获取当前链接的wifi网络ssid
+     * @return
+     */
+    public static String getSsidOfConnectWifi(){
+        WifiManager wifiManager = (WifiManager)Utils.getContext().getApplicationContext().getSystemService(WIFI_SERVICE);
+        if(wifiManager!=null&&wifiManager.getConnectionInfo()!=null){
+            return wifiManager.getConnectionInfo().getSSID();
+        }else{
+            return "";
+        }
     }
 
     /**

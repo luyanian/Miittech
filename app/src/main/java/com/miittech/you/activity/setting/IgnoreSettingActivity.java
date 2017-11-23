@@ -110,19 +110,25 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
 
     @OnClick(R.id.btn_add_setting)
     public void onViewClicked() {
-        DialogUtils.showIgnoreAddDialog(this).setIgnoreAddOptions(new OnIgnoreAddOptions() {
-            @Override
-            public void addPointIgnore() {
-                Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddPointActivity.class);
-                startActivity(intent);
-            }
+        if(typeSelector.getSelectItem()==0){
+            DialogUtils.showIgnoreAddDialog(this).setIgnoreAddOptions(new OnIgnoreAddOptions() {
+                @Override
+                public void addPointIgnore() {
+                    Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddPointActivity.class);
+                    startActivity(intent);
+                }
 
-            @Override
-            public void addWifiIgnore() {
-                Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddWifiActivity.class);
-                startActivity(intent);
-            }
-        });
+                @Override
+                public void addWifiIgnore() {
+                    Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddWifiActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
+        if(typeSelector.getSelectItem()==1){
+            Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreTimeSlotActivity.class);
+            startActivity(intent);
+        }
     }
 
     private void getIgnoreSetting() {

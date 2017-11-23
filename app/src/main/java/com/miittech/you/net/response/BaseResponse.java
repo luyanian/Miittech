@@ -33,6 +33,7 @@ public class BaseResponse implements Serializable{
     private String username;
     private String token;
     private String userid;
+    private int configid;
 
     public String getClientid() {
         return clientid;
@@ -90,6 +91,14 @@ public class BaseResponse implements Serializable{
         this.userid = userid;
     }
 
+    public int getConfigid() {
+        return configid;
+    }
+
+    public void setConfigid(int configid) {
+        this.configid = configid;
+    }
+
     @Override
     public String toString() {
         return "BaseResponse{" +
@@ -99,6 +108,7 @@ public class BaseResponse implements Serializable{
                 ", errmsg='" + errmsg + '\'' +
                 ", token='" + token + '\'' +
                 ", userid='" + userid + '\'' +
+                ", configid='" + configid + '\'' +
                 '}';
     }
 

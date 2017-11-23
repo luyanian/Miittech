@@ -56,6 +56,7 @@ public class IgnoreAddDialog extends Dialog {
         if (this.ignoreAddOptions != null) {
             this.ignoreAddOptions.addPointIgnore();
         }
+        dismiss();
     }
 
     @OnClick(R.id.btn_ignore_wifi_add)
@@ -63,5 +64,6 @@ public class IgnoreAddDialog extends Dialog {
         if (this.ignoreAddOptions != null) {
             this.ignoreAddOptions.addWifiIgnore();
         }
+        dismiss();
     }
 }
