@@ -16,6 +16,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
+import static android.content.Context.WIFI_SERVICE;
+
 /**
  * <pre>
  *     author: Blankj
