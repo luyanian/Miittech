@@ -2,15 +2,19 @@ package com.miittech.you.activity.setting;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -19,13 +23,21 @@ import com.miittech.you.impl.OnIgnoreAddOptions;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.ToastUtils;
 
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -65,6 +77,10 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
     @BindView(R.id.btn_add_text)
     TextView btnAddText;
 
+    private boolean isEdit = false;
+    private List<CheckBox> ignoreCheckList = new ArrayList<>();
+    private static Object delObject;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,11 +88,30 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         ButterKnife.bind(this);
         initMyTitleBar(titlebar, R.string.text_setting_ignore);
         titlebar.showBackOption();
+        titlebar.showSettingOption(R.drawable.ic_ignore_delete);
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override
             public void onBack() {
                 super.onBack();
                 finish();
+            }
+
+            @Override
+            public void onSetting() {
+                super.onSetting();
+                if(isEdit){
+                    isEdit = false;
+                    toggleAllCheck(false);
+                    if(typeSelector.getSelectItem()==0){
+                        btnAddText.setText(getResources().getString(R.string.text_setting_ignore_area_add));
+                    }else{
+                        btnAddText.setText(getResources().getString(R.string.text_setting_ignore_time_add));
+                    }
+                }else{
+                    toggleAllCheck(true);
+                    isEdit = true;
+                    btnAddText.setText("删除");
+                }
             }
         });
         typeSelector.setItemText(R.string.text_setting_ignore, R.string.text_setting_ignore_time);
@@ -95,7 +130,11 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             tvSettingIgnoreSsid.setVisibility(View.VISIBLE);
             llIgnoreSsids.setVisibility(View.VISIBLE);
             llIgnoreTimes.setVisibility(View.GONE);
-            btnAddText.setText(getResources().getString(R.string.text_setting_ignore_area_add));
+            if(isEdit){
+                btnAddText.setText("删除");
+            }else {
+                btnAddText.setText(getResources().getString(R.string.text_setting_ignore_area_add));
+            }
         } else if (item == 1) {
             tvSettingTitle.setText(getResources().getString(R.string.text_setting_ignore_time));
             tvSettingIgnoreDesc.setText(getResources().getString(R.string.tip_msg_ignore_time_desc));
@@ -104,12 +143,21 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             tvSettingIgnoreSsid.setVisibility(View.GONE);
             llIgnoreSsids.setVisibility(View.GONE);
             llIgnoreTimes.setVisibility(View.VISIBLE);
-            btnAddText.setText(getResources().getString(R.string.text_setting_ignore_time_add));
+            if(isEdit){
+                btnAddText.setText("删除");
+            }else {
+                btnAddText.setText(getResources().getString(R.string.text_setting_ignore_time_add));
+            }
         }
     }
 
     @OnClick(R.id.btn_add_setting)
     public void onViewClicked() {
+        if(isEdit){
+            //删除操作
+            doDelIgnoreSetting();
+            return;
+        }
         if(typeSelector.getSelectItem()==0){
             DialogUtils.showIgnoreAddDialog(this).setIgnoreAddOptions(new OnIgnoreAddOptions() {
                 @Override
@@ -133,23 +181,207 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
 
     private void getIgnoreSetting() {
         Map param = new LinkedHashMap();
-        param.put("qrytype", Params.QRY_TYPE.USED);
+        param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getInstance().getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "userdevicelist/" + pubParam.toUrlParam(sign);
+        String path = HttpUrl.Api + "userinfo/" + pubParam.toUrlParam(sign);
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
 
-        ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
+        ApiServiceManager.getInstance().buildApiService(this).postToGetUserInfo(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<UserInfoResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(UserInfoResponse response) throws Exception {
+                        initIgnoreConfig(response);
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
 
+    private void initIgnoreConfig(UserInfoResponse response) {
+//        addAreaIgnore(response.getConfig().getDonotdisturb().getArealist());
+        if(response.getConfig()==null){
+
+            return;
+        }else if(response.getConfig().getDonotdisturb()==null){
+
+            return;
+        }
+        List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist = response.getConfig().getDonotdisturb().getArealist();
+        if(arealist==null||arealist.size()<=0){
+
+        }else{
+            updateAreaList(arealist);
+        }
+        List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist = response.getConfig().getDonotdisturb().getTimelist();
+        if(timelist==null||timelist.size()<=0){
+
+        }else{
+            updateTimeList(timelist);
+        }
+    }
+
+    private void updateAreaList(List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist) {
+        llIgnoreAreas.removeAllViews();
+        llIgnoreSsids.removeAllViews();
+        for (final UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean:arealist){
+            View view = View.inflate(this,R.layout.item_ignore_setting,null);
+            RelativeLayout rlItem = view.findViewById(R.id.rl_item);
+            final CheckBox itemCheck = view.findViewById(R.id.item_check);
+            TextView itemName = view.findViewById(R.id.item_name);
+            TextView itemFlag = view.findViewById(R.id.item_flag);
+            ignoreCheckList.add(itemCheck);
+            itemName.setText(Common.decodeBase64(arealistBean.getTitle()));
+            itemFlag.setVisibility(View.GONE);
+            rlItem.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(isEdit){
+                        if(itemCheck.isChecked()){
+                            itemCheck.setChecked(false);
+                        }else{
+                            unSelectAllExcept();
+                            itemCheck.setChecked(true);
+                            delObject = arealistBean;
+                        }
+                    }else{
+                        if(TextUtils.isEmpty(arealistBean.getSsid())) {
+                            Intent intent = new Intent(IgnoreSettingActivity.this, IgnoreAddPointActivity.class);
+                            startActivity(intent);
+                        }else{
+                            Intent intent = new Intent(IgnoreSettingActivity.this, IgnoreAddWifiActivity.class);
+                            startActivity(intent);
+                        }
+                    }
+                }
+            });
+            if(TextUtils.isEmpty(arealistBean.getSsid())) {
+                llIgnoreAreas.addView(view);
+            }else{
+                llIgnoreSsids.addView(view);
+            }
+        }
+    }
+
+    private void updateTimeList(List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist) {
+        llIgnoreTimes.removeAllViews();
+        for (final UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean:timelist){
+            View view = View.inflate(this,R.layout.item_ignore_setting,null);
+            RelativeLayout rlItem = view.findViewById(R.id.rl_item);
+            final CheckBox itemCheck = view.findViewById(R.id.item_check);
+            TextView itemName = view.findViewById(R.id.item_name);
+            TextView itemFlag = view.findViewById(R.id.item_flag);
+            ignoreCheckList.add(itemCheck);
+            itemName.setText(Common.decodeBase64(timelistBean.getTitle()));
+            itemFlag.setVisibility(View.GONE);
+            rlItem.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(isEdit){
+                        if(itemCheck.isChecked()){
+                            itemCheck.setChecked(false);
+                        }else{
+                            unSelectAllExcept();
+                            itemCheck.setChecked(true);
+                            delObject = timelistBean;
+                        }
+                    }else{
+                        Intent intent = new Intent(IgnoreSettingActivity.this, IgnoreTimeSlotActivity.class);
+                        startActivity(intent);
+                    }
+                }
+            });
+            llIgnoreTimes.addView(view);
+        }
+    }
+
+    private void unSelectAllExcept() {
+        for(CheckBox item : ignoreCheckList){
+            if(item!=null) {
+                item.setChecked(false);
+            }
+        }
+    }
+    private void toggleAllCheck(boolean isShow){
+        for(CheckBox item : ignoreCheckList){
+            if(item!=null) {
+                item.setChecked(false);
+                item.setVisibility(isShow?View.VISIBLE:View.GONE);
+            }
+        }
+    }
+    private void doDelIgnoreSetting() {
+        if(delObject==null){
+            ToastUtils.showShort("请选择删除信息");
+            return;
+        }
+        Map param = new HashMap();
+        if(delObject instanceof UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean){
+            UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean = (UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean) delObject;
+            Map timedef = new HashMap();
+            timedef.put("id","0");
+            timedef.put("title", timelistBean.getTitle());
+            timedef.put("dayofweek",timelistBean.getDayofweek());
+            timedef.put("stime",timelistBean.getStime());
+            timedef.put("etime",timelistBean.getEtime());
+            Map donotdisturb = new HashMap();
+            donotdisturb.put("timedef",timedef);
+            Map config = new HashMap();
+            config.put("donotdisturb",donotdisturb);
+
+            param.put("method", Params.METHOD.IGNORE_DEL);
+            param.put("config_type", "TIME");
+            param.put("config", config);
+        }else{
+            UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean = (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean) delObject;
+            Map area = new HashMap();
+            area.put("lat",arealistBean.getArea().getLat());
+            area.put("lng",arealistBean.getArea().getLng());
+            area.put("R",arealistBean.getArea().getR());
+            Map areadef = new HashMap();
+            areadef.put("id",0);
+            areadef.put("title", arealistBean.getTitle());
+            areadef.put("inout",1);
+            areadef.put("areadef",area);
+            areadef.put("ssid",arealistBean.getSsid());
+            Map donotdisturb = new HashMap();
+            donotdisturb.put("areadef",areadef);
+            Map config = new HashMap();
+            config.put("donotdisturb",donotdisturb);
+
+            param.put("method", Params.METHOD.IGNORE_DEL);
+            param.put("config_type", "AREA");
+            param.put("config", config);
+        }
+
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userconf/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(this).postNetRequest(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BaseResponse>() {
+                    @Override
+                    public void accept(BaseResponse response) throws Exception {
+                        if(response.isSuccessful()){
+                            getIgnoreSetting();
+                        }else{
+                            response.onError(IgnoreSettingActivity.this);
+                        }
                     }
                 }, new Consumer<Throwable>() {
                     @Override

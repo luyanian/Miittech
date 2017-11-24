@@ -87,6 +87,11 @@ public class Titlebar extends RelativeLayout implements View.OnClickListener {
         mSettingBtn.setVisibility(VISIBLE);
         return this;
     }
+    public Titlebar showSettingOption(int src) {
+        mSettingBtn.setImageResource(src);
+        showSettingOption();
+        return this;
+    }
 
     public Titlebar showCancleOption() {
         mCancel.setVisibility(VISIBLE);

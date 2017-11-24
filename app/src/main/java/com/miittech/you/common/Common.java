@@ -23,6 +23,7 @@ import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -161,10 +162,20 @@ public class Common {
         return temp.substring(0,temp.length()-1);
     }
     public static String decodeBase64(String text){
-        return EncodeUtils.base64Encode2String(text.getBytes());
+        try {
+            return new String(Base64.decode(text.getBytes("utf-8"), Base64.NO_WRAP));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
     public static String encodeBase64(String text){
-        return  new String(EncodeUtils.base64Decode(text));
+        try {
+            return new String(Base64.encode(text.getBytes("utf-8"), Base64.NO_WRAP));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
     public static String getCurrentTime(){
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");

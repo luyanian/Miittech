@@ -1,5 +1,6 @@
 package com.miittech.you.activity.setting;
 
+import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,6 +28,7 @@ import com.baidu.mapapi.search.poi.PoiIndoorResult;
 import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
 import com.google.gson.Gson;
+import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
@@ -162,18 +164,32 @@ public class IgnoreAddPointActivity extends BaseActivity {
             }
         });
         seekbar.setProgress(0);
+        RxPermissions rxPermissions = new RxPermissions(this);
+        rxPermissions.request(Manifest.permission.READ_PHONE_STATE
+                ,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION
+                ,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe(new Consumer<Boolean>() {
+                    @Override
+                    public void accept(Boolean aBoolean) throws Exception {
+                        if(aBoolean) {
+                            startLocation();
+                        }
+                    }
+                });
+    }
+
+    private void startLocation() {
         LocationClientOption option = new LocationClientOption();
         option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
         option.setCoorType("bd09ll");
         option.setScanSpan(0);//只定位一次
         option.setOpenGps(true);
-        option.addrType="all";
+        option.setIsNeedLocationDescribe(true);
         option.setIsNeedAddress(true);
         option.setLocationNotify(true);
         option.setIgnoreKillProcess(false);
         option.SetIgnoreCacheException(false);
         option.setWifiCacheTimeOut(5*60*1000);
-        option.setEnableSimulateGps(false);
         LocationClient.getInstance().initLocation().startLocation(option, new BDAbstractLocationListener() {
             @Override
             public void onReceiveLocation(final BDLocation bdLocation) {
