@@ -1,6 +1,8 @@
 package com.miittech.you.common;
 
 import android.content.Context;
+import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Base64;
 
 import com.google.gson.Gson;
@@ -15,6 +17,7 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.service.BleService;
 import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncodeUtils;
 import com.ryon.mutils.EncryptUtils;
@@ -201,5 +204,37 @@ public class Common {
             data[i+1]=temp[i];
         }
         return  data;
+    }
+
+    /**
+     * 检测辅助功能是否开启<br>
+     * 方 法 名：isAccessibilitySettingsOn <br>
+     * @param mContext
+     * @return boolean
+     */
+    public static boolean isAccessibilitySettingsOn(Context mContext) {
+        int accessibilityEnabled = 0;
+        final String service = mContext.getPackageName() + "/" + BleService.class.getCanonicalName();
+
+        try {
+            accessibilityEnabled = Settings.Secure.getInt(mContext.getApplicationContext().getContentResolver(),
+                    android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+        TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
+        if (accessibilityEnabled == 1) {
+            String settingValue = Settings.Secure.getString(mContext.getApplicationContext().getContentResolver(),Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            if (settingValue != null) {
+                mStringColonSplitter.setString(settingValue);
+                while (mStringColonSplitter.hasNext()) {
+                    String accessibilityService = mStringColonSplitter.next();
+                    if (accessibilityService.equalsIgnoreCase(service)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

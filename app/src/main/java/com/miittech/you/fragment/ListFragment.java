@@ -1,27 +1,37 @@
 package com.miittech.you.fragment;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.PermissionChecker;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
+import com.inuker.bluetooth.library.connect.listener.BluetoothStateListener;
+import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
-import com.miittech.you.global.IntentExtras;
-import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.impl.OnListItemClick;
+import com.miittech.you.manager.BLEClientManager;
+import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
@@ -34,6 +44,7 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import cn.jpush.android.api.JPushInterface;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -50,6 +61,14 @@ public class ListFragment extends Fragment {
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     Unbinder unbinder;
+    @BindView(R.id.ll_bluetooth_disabled)
+    LinearLayout llBluetoothDisabled;
+    @BindView(R.id.ll_notify_service_disabled)
+    LinearLayout llNotifyServiceDisabled;
+    @BindView(R.id.ll_location_service_disabled)
+    LinearLayout llLocationServiceDisabled;
+    @BindView(R.id.ll_background_service_disabled)
+    LinearLayout llBackgroundServiceDisabled;
 
     private LinearLayoutManager mLayoutManager;
     private DeviceListAdapter mDeviceListAdapter;
@@ -71,18 +90,70 @@ public class ListFragment extends Fragment {
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setHasFixedSize(true);
         //创建并设置Adapter
-        mDeviceListAdapter = new DeviceListAdapter(getActivity(),mData,new OnListItemClick<DeviceResponse.DevlistBean>(){
+        mDeviceListAdapter = new DeviceListAdapter(getActivity(), mData, new OnListItemClick<DeviceResponse.DevlistBean>() {
             @Override
             public void onItemClick(DeviceResponse.DevlistBean devlistBean) {
                 super.onItemClick(devlistBean);
                 Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
-                intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
+                intent.putExtra(IntentExtras.DEVICE.DATA, devlistBean);
                 startActivity(intent);
             }
         });
         recyclerView.setAdapter(mDeviceListAdapter);
         getDeviceList();
+        initServiceState();
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if(!BLEClientManager.getClient().isBluetoothOpened()){
+            llBluetoothDisabled.setVisibility(View.VISIBLE);
+        }else{
+            llBluetoothDisabled.setVisibility(View.GONE);
+        }
+        RxPermissions rxPermissions = new RxPermissions(getActivity());
+        if(rxPermissions.isGranted(Manifest.permission.ACCESS_FINE_LOCATION)||rxPermissions.isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)){
+            llLocationServiceDisabled.setVisibility(View.GONE);
+        }else{
+            llLocationServiceDisabled.setVisibility(View.VISIBLE);
+        }
+        NotificationManagerCompat manager = NotificationManagerCompat.from(App.getInstance().getApplicationContext());
+        if(manager.areNotificationsEnabled()){
+            llNotifyServiceDisabled.setVisibility(View.GONE);
+        }else{
+            llNotifyServiceDisabled.setVisibility(View.VISIBLE);
+        }
+//        if(Common.isAccessibilitySettingsOn(getActivity())){
+//            llBackgroundServiceDisabled.setVisibility(View.GONE);
+//        }else{
+//            llBackgroundServiceDisabled.setVisibility(View.VISIBLE);
+//        }
+//
+//        llBackgroundServiceDisabled.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (!Common.isAccessibilitySettingsOn(getActivity())) {
+//                    Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+//                    startActivity(intent);
+//                }
+//            }
+//        });
+    }
+
+    private void initServiceState() {
+        BLEClientManager.getClient().registerBluetoothStateListener(new BluetoothStateListener() {
+            @Override
+            public void onBluetoothStateChanged(boolean openOrClosed) {
+                if(openOrClosed){
+                    llBluetoothDisabled.setVisibility(View.GONE);
+                }else{
+                    llBluetoothDisabled.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+    }
+
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
@@ -97,9 +168,9 @@ public class ListFragment extends Fragment {
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-        if(hidden){
+        if (hidden) {
 
-        }else{
+        } else {
             getDeviceList();
         }
     }
@@ -129,7 +200,7 @@ public class ListFragment extends Fragment {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         initDeviceList(response.getDevlist());
-                        if(!response.isSuccessful()){
+                        if (!response.isSuccessful()) {
                             response.onError(getActivity());
                         }
                     }
@@ -143,7 +214,7 @@ public class ListFragment extends Fragment {
 
     private void initDeviceList(List<DeviceResponse.DevlistBean> devlist) {
         mData.clear();
-        if(devlist==null||devlist.size()==0){
+        if (devlist == null || devlist.size() == 0) {
             rlTip.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
             return;

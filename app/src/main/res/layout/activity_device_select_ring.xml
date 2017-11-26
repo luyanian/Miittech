@@ -34,7 +34,7 @@
             android:layout_centerHorizontal="true"
             android:text="不吃鱼的猫"
             android:layout_marginTop="5dp"
-            android:textSize="22dp"
+            android:textSize="18dp"
             android:textColor="#343434"/>
         <TextView
             android:id="@+id/tv_device_location"
@@ -43,7 +43,7 @@
             android:layout_centerHorizontal="true"
             android:text="第四大街67号，滨海新区"
             android:layout_below="@+id/tv_device_name"
-            android:textSize="20dp"
+            android:textSize="16dp"
             android:layout_marginTop="5dp"
             android:textColor="#343434"/>
         <TextView
@@ -53,7 +53,7 @@
             android:layout_centerHorizontal="true"
             android:text="5分钟以前"
             android:layout_below="@+id/tv_device_name"
-            android:textSize="18dp"
+            android:textSize="14dp"
             android:layout_marginTop="5dp"
             android:textColor="#939393"/>
     </LinearLayout>
@@ -62,7 +62,7 @@
         android:layout_height="wrap_content"
         android:text="选择铃声"
         android:layout_margin="10dp"
-        android:textSize="20dp"
+        android:textSize="18dp"
         android:textColor="#6d6d6d"/>
 
     <android.support.v7.widget.RecyclerView

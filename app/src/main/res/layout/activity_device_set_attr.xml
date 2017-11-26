@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:textColor="#323232"
-            android:textSize="20dp"
+            android:textSize="18dp"
             android:text="照片"/>
         <ImageView
             android:id="@+id/img_right1"
@@ -30,8 +30,8 @@
             android:layout_centerVertical="true"/>
         <com.miittech.you.weight.CircleImageView
             android:id="@+id/img_device_icon"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_toLeftOf="@+id/img_right1"
             android:layout_centerVertical="true"
             android:src="@drawable/ic_header_img"/>
@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:textColor="#323232"
-            android:textSize="20dp"
+            android:textSize="18dp"
             android:text="名称"/>
         <ImageView
             android:id="@+id/img_right2"
@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:textColor="#323232"
-            android:textSize="20dp"
+            android:textSize="18dp"
             android:text="分类"/>
         <TextView
             android:id="@+id/tv_device_classify"

@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="名称"
-            android:textSize="22dp"
+            android:textSize="18dp"
             android:textColor="#FF323232"/>
         <EditText
             android:id="@+id/et_name"
@@ -30,7 +30,7 @@
             android:layout_toRightOf="@+id/textView"
             android:background="@null"
             android:gravity="right"
-            android:textSize="20dp"
+            android:textSize="18dp"
             android:textColor="#646464"
             android:textColorHint="#646464"
             android:hint="请输入您要修改的名称"/>

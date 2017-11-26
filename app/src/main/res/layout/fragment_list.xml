@@ -4,10 +4,104 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white">
+    <LinearLayout
+        android:id="@+id/ll_tips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:id="@+id/ll_bluetooth_disabled"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:background="@color/red"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            android:paddingLeft="16dp">
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/ic_bluetooth_disabled"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="蓝牙已关闭"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                android:layout_marginLeft="16dp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/ll_notify_service_disabled"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:background="@color/red"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="1dp"
+            android:visibility="gone"
+            android:paddingLeft="16dp">
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/ic_notify_service_disabled"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="通知服务已关闭"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                android:layout_marginLeft="16dp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/ll_location_service_disabled"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:background="@color/red"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="1dp"
+            android:visibility="gone"
+            android:paddingLeft="16dp">
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/ic_location_service_disabled"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="定位已关闭"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                android:layout_marginLeft="16dp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/ll_background_service_disabled"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:background="@color/red"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="1dp"
+            android:visibility="gone"
+            android:paddingLeft="16dp">
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/ic_bacground_service_disabled"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="后台应用刷新已关闭"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                android:layout_marginLeft="16dp"/>
+        </LinearLayout>
+    </LinearLayout>
     <RelativeLayout
         android:id="@+id/rl_tip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/ll_tips"
         android:padding="40dp">
 
         <ImageView
@@ -30,5 +124,5 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        />
+        android:layout_below="@+id/ll_tips"/>
 </RelativeLayout>

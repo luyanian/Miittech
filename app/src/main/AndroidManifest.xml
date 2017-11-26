@@ -238,6 +238,10 @@
         <activity android:name=".activity.setting.IgnoreTimeSlotActivity"/>
         <activity android:name=".activity.setting.IgnoreRepeatActivity"/>
         <activity android:name=".activity.setting.IgnoreNameEditActivity"/>
+        <activity android:name=".activity.setting.FeedBackActivity"/>
+        <activity android:name=".activity.setting.AboutMeActivity"/>
+        <activity android:name=".activity.setting.PrivacyProtocolsActivity"/>
+        <activity android:name=".activity.setting.UseTermsActivity"/>
         <activity android:name=".activity.device.DeviceAddActivity"/>
         <activity android:name=".activity.device.DeviceAddStepActivity"/>
         <activity android:name=".activity.device.DeviceSetClassifyActivity"/>

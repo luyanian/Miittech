@@ -70,7 +70,7 @@ public class SettingActivity extends BaseActivity {
         getUserInfo();
     }
 
-    @OnClick({R.id.user_header_image, R.id.user_name, R.id.btn_setting_myfriends, R.id.btn_setting_ignore, R.id.btn_setting_service, R.id.btn_setting_star, R.id.btn_setting_shop, R.id.btn_setting_readme, R.id.btn_setting_help})
+    @OnClick({R.id.user_header_image, R.id.user_name, R.id.btn_setting_myfriends, R.id.btn_setting_ignore, R.id.btn_setting_service, R.id.btn_setting_star, R.id.btn_setting_shop, R.id.btn_setting_readme, R.id.btn_setting_feedbak,R.id.btn_setting_about_me})
     public void onViewClicked(View view) {
         Intent intent;
         switch (view.getId()) {
@@ -97,7 +97,13 @@ public class SettingActivity extends BaseActivity {
                 break;
             case R.id.btn_setting_readme:
                 break;
-            case R.id.btn_setting_help:
+            case R.id.btn_setting_feedbak:
+                intent = new Intent(SettingActivity.this,FeedBackActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.btn_setting_about_me:
+                intent = new Intent(SettingActivity.this,AboutMeActivity.class);
+                startActivity(intent);
                 break;
         }
     }

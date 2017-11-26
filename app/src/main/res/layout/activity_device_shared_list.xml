@@ -67,6 +67,6 @@
             android:focusable="false"
             android:text="立即分享"
             android:textColor="@color/white"
-            android:textSize="22dp" />
+            android:textSize="18dp" />
     </RelativeLayout>
 </LinearLayout>

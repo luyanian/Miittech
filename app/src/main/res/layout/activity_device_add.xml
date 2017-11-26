@@ -16,14 +16,22 @@
         android:layout_height="80dp"
         android:layout_margin="20dp"
         android:layout_below="@+id/titlebar"
-        android:background="@drawable/shap_fillet_device_background">
+        android:background="@drawable/ic_user_item">
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="16dp"
+            android:src="@drawable/ic_yoowoo"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:textColor="@color/white"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginRight="20dp"
             android:textSize="18dp"
-            android:text="xxx智能贴片"/>
+            android:text="Yoowoo"/>
     </RelativeLayout>
 
     <TextView

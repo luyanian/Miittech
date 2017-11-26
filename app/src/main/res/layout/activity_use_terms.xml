@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <com.miittech.you.weight.Titlebar
+        android:id="@+id/titlebar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="1.特别提示"
+                android:gravity="center_vertical"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="通过本应用提交个人信息，即表示您同意本隐私政策的条款并明确同意按照本隐私政策对您的个人信息进行处理。"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="2.服务内容"
+                android:gravity="center_vertical"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="从您那里收集的个人信息可帮助我们了解本应用访客、我们的客户和潜在客户。 通过使用这些信息，
+                我们能够更好地优化我们产品和服务的功能和性能并提供更好的支持，从而为您提供更多信息和机会，并通知您本隐
+                私政策 [以及本应用使用条款] 的变更情况。"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="3.服务变更"
+                android:gravity="center_vertical"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="我们收集的个人信息是您通过本应用自愿提供给我们的。"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <com.miittech.you.weight.Titlebar
+        android:id="@+id/titlebar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="隐私协议"
+                android:gravity="center"
+                android:textColor="@color/colorPrimary"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="买任何产品，即表示您已阅读并理解本隐私政策的全文，且您同意本隐私政策的所有条款。如果您不同意本隐私政
+                策的所有内容，您的唯一且独有的补救措施就是立即停止使用本应用。\n\n我们尊重本应用使用者的隐私。您与我们之间的隐私政策
+                （'隐私政策'）旨在告知您我们关于收集、使用和披露您通过本应用提交给我们的任何个人信息和匿名信息的政策行为规范。\n
+                '个人信息'是指您的个人识别信息，如您的姓名、地址、电子邮件地址，或手机号码、付款和账单信息，以及与上述内容相关的其他非公开信息。
+                '匿名信息'是指与您的个人信息无关或无联系的信息；匿名信息不允许透露个人身份。"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="用户同意"
+                android:gravity="center_vertical"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="通过本应用提交个人信息，即表示您同意本隐私政策的条款并明确同意按照本隐私政策对您的个人信息进行处理。"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="收集个人信息"
+                android:gravity="center_vertical"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="从您那里收集的个人信息可帮助我们了解本应用访客、我们的客户和潜在客户。 通过使用这些信息，
+                我们能够更好地优化我们产品和服务的功能和性能并提供更好的支持，从而为您提供更多信息和机会，并通知您本隐
+                私政策 [以及本应用使用条款] 的变更情况。"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="您向我们提供的个人信息"
+                android:gravity="center_vertical"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginTop="16dp"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="我们收集的个人信息是您通过本应用自愿提供给我们的。"/>
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
