@@ -165,6 +165,9 @@ public class Common {
         return temp.substring(0,temp.length()-1);
     }
     public static String decodeBase64(String text){
+        if(TextUtils.isEmpty(text)){
+            return "";
+        }
         try {
             return new String(Base64.decode(text.getBytes("utf-8"), Base64.NO_WRAP));
         } catch (Exception e) {
@@ -173,6 +176,9 @@ public class Common {
         }
     }
     public static String encodeBase64(String text){
+        if(TextUtils.isEmpty(text)){
+            return "";
+        }
         try {
             return new String(Base64.encode(text.getBytes("utf-8"), Base64.NO_WRAP));
         } catch (Exception e) {
@@ -185,20 +191,15 @@ public class Common {
         return format.format(new Date());
     }
 
-    public static String formatTimeStr(String time){
-        String temp = time;
-
-        return temp;
-    }
     public static byte[] formatBleMsg(int modeBind, String msg){
-        byte[] temp = ConvertUtils.hexString2Bytes(msg);
+        byte[] temp = ConvertUtils.str2HexStr1(msg);
         byte[] data = new byte[temp.length+1];
         if(modeBind==Params.BLEMODE.MODE_BIND){
-            data[0] = 02;
+            data[0] = 0x02;
         }else if(modeBind==Params.BLEMODE.MODE_WORK) {
-            data[0] = 01;
+            data[0] = 0x01;
         }else if(modeBind==Params.BLEMODE.MODE_UNBIND){
-            data[0] = 04;
+            data[0] = 0x04;
         }
         for (int i=0;i<temp.length;i++){
             data[i+1]=temp[i];

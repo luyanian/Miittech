@@ -57,6 +57,43 @@ public final class ConvertUtils {
     }
 
     /**
+     * 字符串转换成十六进制字符串
+     * @param String str 待转换的ASCII字符串
+     * @return String 每个Byte之间空格分隔，如: [61 6C 6B]
+     */
+    public static byte[] str2HexStr1(String str){
+        byte[] b = str.getBytes();
+        int[] in = new int[b.length];
+        for (int i = 0; i < in.length; i++) {
+            in[i] = b[i]&0xff;
+        }
+        byte[] re = new byte[b.length];
+        for (int j = 0; j < in.length; j++) {
+            re[j] = Integer.valueOf(Integer.toHexString(in[j])).byteValue();
+        }
+        return re;
+    }
+    public static byte[] str2HexStr2(String str)
+    {
+
+        char[] chars = "0123456789ABCDEF".toCharArray();
+        StringBuilder sb = new StringBuilder("");
+        byte[] bs = str.getBytes();
+        int bit;
+
+        for (int i = 0; i < bs.length; i++)
+        {
+            bit = (bs[i] & 0x0f0) >> 4;
+            sb.append(chars[bit]);
+            bit = bs[i] & 0x0f;
+            sb.append(chars[bit]);
+            sb.append(' ');
+        }
+        return sb.toString().trim().getBytes();
+    }
+
+
+    /**
      * hexString转byteArr
      * <p>例如：</p>
      * hexString2Bytes("00A8") returns { 0, (byte) 0xA8 }
@@ -78,6 +115,7 @@ public final class ConvertUtils {
         }
         return ret;
     }
+
 
     /**
      * hexChar转int

@@ -20,12 +20,12 @@ public class DialogUtils {
     public static LogoutDialog showLogoutDialog(Context context){
         if(logoutDialog==null){
             logoutDialog = new LogoutDialog(context);
+            logoutDialog.show();
         }else{
             if(logoutDialog.isShowing()){
                 logoutDialog.dismiss();
             }
         }
-        logoutDialog.show();
         return logoutDialog;
     }
     static MsgTipDialog msgTipDialog;
@@ -44,12 +44,12 @@ public class DialogUtils {
     public static IgnoreAddDialog showIgnoreAddDialog(Context context){
         if(ignoreAddDialog==null){
             ignoreAddDialog = new IgnoreAddDialog(context);
+            ignoreAddDialog.show();
         }else{
             if(ignoreAddDialog.isShowing()){
                 ignoreAddDialog.dismiss();
             }
         }
-        ignoreAddDialog.show();
         return ignoreAddDialog;
     }
     static SelectTimeDialog selectDialog;

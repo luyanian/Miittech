@@ -31,11 +31,14 @@ import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
+import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
+
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import butterknife.BindView;

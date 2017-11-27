@@ -72,7 +72,6 @@ public class ListFragment extends Fragment {
 
     private LinearLayoutManager mLayoutManager;
     private DeviceListAdapter mDeviceListAdapter;
-    private List<DeviceResponse.DevlistBean> mData = new ArrayList<>();
 
     @Nullable
     @Override
@@ -90,7 +89,7 @@ public class ListFragment extends Fragment {
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setHasFixedSize(true);
         //创建并设置Adapter
-        mDeviceListAdapter = new DeviceListAdapter(getActivity(), mData, new OnListItemClick<DeviceResponse.DevlistBean>() {
+        mDeviceListAdapter = new DeviceListAdapter(getActivity(), new OnListItemClick<DeviceResponse.DevlistBean>() {
             @Override
             public void onItemClick(DeviceResponse.DevlistBean devlistBean) {
                 super.onItemClick(devlistBean);
@@ -213,7 +212,6 @@ public class ListFragment extends Fragment {
     }
 
     private void initDeviceList(List<DeviceResponse.DevlistBean> devlist) {
-        mData.clear();
         if (devlist == null || devlist.size() == 0) {
             rlTip.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
@@ -221,8 +219,7 @@ public class ListFragment extends Fragment {
         }
         rlTip.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
-        mData.addAll(devlist);
-        mDeviceListAdapter.notifyDataSetChanged();
+        mDeviceListAdapter.updateData(devlist);
     }
 
     @Override

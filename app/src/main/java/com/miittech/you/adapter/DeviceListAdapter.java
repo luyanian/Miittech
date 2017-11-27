@@ -14,6 +14,8 @@ import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -25,13 +27,12 @@ import butterknife.ButterKnife;
 
 public class DeviceListAdapter extends RecyclerView.Adapter {
 
-    private List<DeviceResponse.DevlistBean> mData;
+    private List<DeviceResponse.DevlistBean> mData = new ArrayList<>();
     private Activity activity;
     private OnListItemClick onDeviceItemClick;
 
-    public DeviceListAdapter(Activity activity, List<DeviceResponse.DevlistBean> mData, OnListItemClick onDeviceItemClick) {
+    public DeviceListAdapter(Activity activity, OnListItemClick onDeviceItemClick) {
         this.activity = activity;
-        this.mData = mData;
         this.onDeviceItemClick = onDeviceItemClick;
     }
 
@@ -66,6 +67,12 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         return mData.size();
     }
 
+    public void updateData(List<DeviceResponse.DevlistBean> devlist) {
+        mData.clear();
+        mData.addAll(devlist);
+        notifyDataSetChanged();
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.rl_item)
         RelativeLayout rlItem;
@@ -86,7 +93,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     private void addMacList(DeviceResponse.DevlistBean devlistBean) {
         String address = Common.formatDevId2Mac(devlistBean.getDevidX());
         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-        intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
+        intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_CONNECT_WORK);
         intent.putExtra("address",address);
         activity.sendBroadcast(intent);
     }

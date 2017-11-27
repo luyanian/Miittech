@@ -35,7 +35,7 @@ public class App extends MobApplication {
         Utils.init(getApplicationContext());
         registerActivityListener();
         registReciver();
-        startService(new Intent(this, BleService.class));
+        startService(new Intent(this,BleService.class));
     }
 
 

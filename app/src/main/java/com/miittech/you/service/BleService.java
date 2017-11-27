@@ -58,7 +58,7 @@ import static com.miittech.you.common.BleCommon.serviceUUID;
 import static com.miittech.you.common.BleCommon.userCharacteristicLogUUID;
 import static com.miittech.you.common.BleCommon.userServiceUUID;
 
-public class BleService extends Service {
+public  class BleService extends Service {
     public LocationClient mLocationClient = null;
     private MyLocationListener myListener = new MyLocationListener();
     private long lastMillins=0;
@@ -75,7 +75,6 @@ public class BleService extends Service {
     @Override  
     public void onCreate() {
         super.onCreate();
-        android.os.Debug.waitForDebugger();
         BluetoothContext.set(getApplicationContext());
         mLocationClient = new LocationClient(getApplicationContext());
         mLocationClient.registerLocationListener(myListener);
@@ -114,7 +113,7 @@ public class BleService extends Service {
         }
     }
 
-    public  void connectDevice(){
+    public synchronized void connectDevice(){
         for(final String mac:mMacList){
             int status = BLEClientManager.getClient().getConnectStatus(mac);
             if(status== Constants.STATUS_DEVICE_CONNECTED||status== STATUS_DEVICE_CONNECTING){
@@ -144,7 +143,7 @@ public class BleService extends Service {
 
     class CmdReceiver extends BroadcastReceiver {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public synchronized void onReceive(Context context, Intent intent) {
             LogUtils.d("CommandReceiver","收到广播："+intent.getAction()+"----->"+intent.getIntExtra("cmd", -1));
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_BLE_COMMAND)){
                 int cmd = intent.getIntExtra("cmd", -1);//获取Extra信息
@@ -169,7 +168,7 @@ public class BleService extends Service {
         }
     }
 
-    public  void connectDevice(final String mac){
+    public synchronized void connectDevice(final String mac){
         if(mMacList.contains(mac)){
            return;
         }
@@ -216,25 +215,25 @@ public class BleService extends Service {
                 }
             }
         });
-        BLEClientManager.getClient().notify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyResponse() {
-            @Override
-            public void onNotify(UUID service, UUID character, byte[] value) {
-                String data = new String(value);
-                LogUtils.d("接收到蓝牙发送广播》》》"+data);
-                if("2".equals(data)){
-
-                }
-            }
-
-            @Override
-            public void onResponse(int code) {
-
-            }
-        });
+//        BLEClientManager.getClient().notify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyResponse() {
+//            @Override
+//            public void onNotify(UUID service, UUID character, byte[] value) {
+//                String data = new String(value);
+//                LogUtils.d("接收到蓝牙发送广播》》》"+data);
+//                if("2".equals(data)){
+//
+//                }
+//            }
+//
+//            @Override
+//            public void onResponse(int code) {
+//
+//            }
+//        });
 
     }
 
-    public  void bindDevice(final String mac){
+    public synchronized void bindDevice(final String mac){
         if(mMacList.contains(mac)){
             return;
         }
@@ -261,7 +260,7 @@ public class BleService extends Service {
         });
     }
 
-    private void unbindDevice(final String address) {
+    private synchronized void unbindDevice(final String address) {
         if(BLEClientManager.getClient().getConnectStatus(address)==Constants.STATUS_DEVICE_DISCONNECTED){
             connectDevice(address);
             return;
@@ -291,7 +290,7 @@ public class BleService extends Service {
 
     }
 
-    private void startAlert(final String address) {
+    private synchronized void startAlert(final String address) {
         byte[] options = new byte[]{0x02};
         int status = BLEClientManager.getClient().getConnectStatus(address);
         if(status==Constants.STATUS_DEVICE_DISCONNECTED){
@@ -313,7 +312,7 @@ public class BleService extends Service {
         }
 
     }
-    private void stopAlert(final String address) {
+    private synchronized void stopAlert(final String address) {
             byte[] options = new byte[]{0x00};
             int status = BLEClientManager.getClient().getConnectStatus(address);
             if(status==Constants.STATUS_DEVICE_DISCONNECTED){
@@ -336,7 +335,7 @@ public class BleService extends Service {
 
         }
 
-    public void setWorkMode(final String mac){
+    public synchronized void setWorkMode(final String mac){
         byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getInstance().getUserId());
         BLEClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
             @Override
@@ -357,7 +356,7 @@ public class BleService extends Service {
             }
         });
     }
-    public void setBindMode(final String mac){
+    public synchronized void setBindMode(final String mac){
         byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getInstance().getUserId());
         BLEClientManager.getClient().write(mac, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, new BleWriteResponse() {
             @Override
@@ -398,7 +397,7 @@ public class BleService extends Service {
         }
     }
 
-    private void reportUserLocation(final long millis, final BDLocation location) {
+    private synchronized void reportUserLocation(final long millis, final BDLocation location) {
         final Map user_loc = new HashMap();
         user_loc.put("lat", location.getLatitude());
         user_loc.put("lng", location.getLongitude());
@@ -438,6 +437,7 @@ public class BleService extends Service {
                                     param.put("method", 1);
                                     param.put("repdata", repdata);
                                     String json = new Gson().toJson(param);
+
                                     PubParam pubParam = new PubParam(App.getInstance().getUserId());
                                     String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
                                     LogUtils.d("sign_unsha1", sign_unSha1);
