@@ -186,6 +186,10 @@ public class DeviceAddStepActivity extends BaseActivity{
                             bindDevice(mac);
                         }else{
                             response.onError(DeviceAddStepActivity.this);
+                            Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
+                            intent.putExtra("address",mac);
+                            sendBroadcast(intent);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -198,6 +202,11 @@ public class DeviceAddStepActivity extends BaseActivity{
                         tvConnectStatus.setText("绑定失败");
                         tvConnectMsg.setVisibility(View.VISIBLE);
                         tvConnectMsg.setText("请重新绑定");
+
+                        Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                        intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
+                        intent.putExtra("address",mac);
+                        sendBroadcast(intent);
                     }
                 });
     }

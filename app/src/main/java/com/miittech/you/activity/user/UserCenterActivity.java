@@ -19,6 +19,7 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
@@ -327,6 +328,10 @@ public class UserCenterActivity extends BaseActivity {
                         if (!response.isSuccessful()) {
                             ToastUtils.showShort(response.getErrmsg());
                         }else{
+                            Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                            cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
+                            sendBroadcast(cmd);
+
                             SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
                             Intent intent = new Intent(UserCenterActivity.this,LoginRegisteActivity.class);
                             startActivity(intent);

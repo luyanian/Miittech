@@ -21,11 +21,13 @@ import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
 import com.inuker.bluetooth.library.connect.response.BleNotifyResponse;
 import com.inuker.bluetooth.library.connect.response.BleReadResponse;
 import com.inuker.bluetooth.library.connect.response.BleReadRssiResponse;
+import com.inuker.bluetooth.library.connect.response.BleUnnotifyResponse;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.inuker.bluetooth.library.model.BleGattProfile;
 import com.miittech.you.App;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
+import com.miittech.you.common.SoundPlayUtils;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
@@ -113,33 +115,6 @@ public  class BleService extends Service {
         }
     }
 
-    public synchronized void connectDevice(){
-        for(final String mac:mMacList){
-            int status = BLEClientManager.getClient().getConnectStatus(mac);
-            if(status== Constants.STATUS_DEVICE_CONNECTED||status== STATUS_DEVICE_CONNECTING){
-                return;
-            }else{
-                BleConnectOptions options = new BleConnectOptions.Builder()
-                        .setConnectRetry(3)   // 连接如果失败重试3次
-                        .setConnectTimeout(30000)   // 连接超时30s
-                        .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
-                        .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
-                        .build();
-                BLEClientManager.getClient().connect(mac,options, new BleConnectResponse() {
-                    @Override
-                    public void onResponse(int code, BleGattProfile data) {
-                        if(code==Constants.REQUEST_SUCCESS) {
-                            setWorkMode(mac);
-                        }else{
-                            if(mMacList.contains(mac)){
-                                mMacList.remove(mac);
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    }
 
     class CmdReceiver extends BroadcastReceiver {
         @Override
@@ -148,11 +123,11 @@ public  class BleService extends Service {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_BLE_COMMAND)){
                 int cmd = intent.getIntExtra("cmd", -1);//获取Extra信息
                 switch (cmd) {
+                    case IntentExtras.CMD.CMD_DEVICE_LIST_ADD:
+                        addDeviceList(intent.getStringArrayListExtra("macList"));
+                        break;
                     case IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND:
                         bindDevice(intent.getStringExtra("address"));
-                        break;
-                    case IntentExtras.CMD.CMD_DEVICE_CONNECT_WORK:
-                        connectDevice(intent.getStringExtra("address"));
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_ALERT_START:
                         startAlert(intent.getStringExtra("address"));
@@ -163,8 +138,16 @@ public  class BleService extends Service {
                     case IntentExtras.CMD.CMD_DEVICE_UNBIND:
                         unbindDevice(intent.getStringExtra("address"));
                         break;
+                    case IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR:
+                        clearAllConnect();
+                        break;
                 }
             }
+        }
+    }
+    public synchronized void addDeviceList(ArrayList<String> macList){
+        for(final String mac:mMacList){
+            connectDevice(mac);
         }
     }
 
@@ -200,37 +183,6 @@ public  class BleService extends Service {
                 }
             }
         });
-
-        BLEClientManager.getClient().registerConnectStatusListener(mac, new BleConnectStatusListener() {
-            @Override
-            public void onConnectStatusChanged(String mac, int status) {
-                if (status == Constants.STATUS_CONNECTED) {
-                    if(!mMacList.contains(mac)){
-                        mMacList.add(mac);
-                    }
-                } else if (status == Constants.STATUS_DISCONNECTED) {
-                    if(mMacList.contains(mac)){
-                        mMacList.remove(mac);
-                    }
-                }
-            }
-        });
-//        BLEClientManager.getClient().notify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyResponse() {
-//            @Override
-//            public void onNotify(UUID service, UUID character, byte[] value) {
-//                String data = new String(value);
-//                LogUtils.d("接收到蓝牙发送广播》》》"+data);
-//                if("2".equals(data)){
-//
-//                }
-//            }
-//
-//            @Override
-//            public void onResponse(int code) {
-//
-//            }
-//        });
-
     }
 
     public synchronized void bindDevice(final String mac){
@@ -290,6 +242,25 @@ public  class BleService extends Service {
 
     }
 
+    private synchronized void clearAllConnect(){
+        for(String mac : mMacList){
+            BLEClientManager.getClient().unregisterConnectStatusListener(mac, new BleConnectStatusListener() {
+                @Override
+                public void onConnectStatusChanged(String mac, int status) {
+
+                }
+            });
+            BLEClientManager.getClient().unnotify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleUnnotifyResponse() {
+                @Override
+                public void onResponse(int code) {
+
+                }
+            });
+            BLEClientManager.getClient().disconnect(mac);
+            mMacList.remove(mac);
+        }
+    }
+
     private synchronized void startAlert(final String address) {
         byte[] options = new byte[]{0x02};
         int status = BLEClientManager.getClient().getConnectStatus(address);
@@ -345,12 +316,76 @@ public  class BleService extends Service {
                     LogUtils.d("bleResponse","贴片设置工作模式成功----->"+mac);
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS);
                     sendBroadcast(intent);
+                    registAndNotify(mac);
                 }else{
                     if(mMacList.contains(mac)){
                         mMacList.remove(mac);
                     }
                     LogUtils.d("bleResponse","贴片设置工作模式失败----->"+mac);
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_WORK_FAILED);
+                    sendBroadcast(intent);
+                }
+            }
+        });
+    }
+    public synchronized void registAndNotify(final String mac){
+        BLEClientManager.getClient().registerConnectStatusListener(mac, new BleConnectStatusListener() {
+            @Override
+            public void onConnectStatusChanged(String mac, int status) {
+                if (status == Constants.STATUS_CONNECTED) {
+                    if(!mMacList.contains(mac)){
+                        mMacList.add(mac);
+                    }
+                } else if (status == Constants.STATUS_DISCONNECTED) {
+                    if(mMacList.contains(mac)){
+                        mMacList.remove(mac);
+                    }
+                }
+            }
+        });
+
+        BLEClientManager.getClient().notify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyResponse() {
+            @Override
+            public void onNotify(UUID service, UUID character, byte[] value) {
+                String data = new String(value);
+                LogUtils.d("接收到蓝牙发送广播》》》"+data);
+                if("2".equals(data)){
+
+                }
+                SoundPlayUtils.init(App.getInstance());
+                SoundPlayUtils.play(1);
+            }
+
+            @Override
+            public void onResponse(int code) {
+
+            }
+        });
+        BLEClientManager.getClient().notify(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleNotifyResponse() {
+            @Override
+            public void onNotify(UUID service, UUID character, byte[] value) {
+                String battery = new String(value);
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_BATTERY);
+                intent.putExtra("address", mac);
+                intent.putExtra("battery", battery);
+                sendBroadcast(intent);
+            }
+
+            @Override
+            public void onResponse(int code) {
+
+            }
+        });
+        BLEClientManager.getClient().readRssi(mac, new BleReadRssiResponse() {
+            @Override
+            public void onResponse(int code, Integer data) {
+                if(code==Constants.REQUEST_SUCCESS) {
+                    LogUtils.d("readRssi",mac+">>>"+data);
+                    Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_RSSI);
+                    intent.putExtra("address", mac);
+                    intent.putExtra("rssi", data);
                     sendBroadcast(intent);
                 }
             }
@@ -367,6 +402,7 @@ public  class BleService extends Service {
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_BIND_SUCCESS);
                     intent.putExtra("address", mac);
                     sendBroadcast(intent);
+                    setWorkMode(mac);
                 }else{
                     if(mMacList.contains(mac)){
                         mMacList.remove(mac);

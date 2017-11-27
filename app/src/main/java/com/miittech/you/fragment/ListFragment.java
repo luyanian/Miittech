@@ -225,6 +225,9 @@ public class ListFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if(mDeviceListAdapter!=null){
+            mDeviceListAdapter.unregist();
+        }
         unbinder.unbind();
     }
 }
