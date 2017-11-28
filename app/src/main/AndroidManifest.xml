@@ -254,10 +254,10 @@
         <activity android:name=".activity.device.DeviceMapDetailActivity"/>
         <activity android:name=".activity.device.DeviceDetailSettingActivity"/>
 
-        <receiver android:name=".receiver.BluetoothReceiver">
-            <intent-filter android:priority="1000">
-                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST"/>
-                <action android:name="android.bluetooth.device.action.FOUND" />
+        <receiver android:name=".receiver.LocalReceiver">
+            <intent-filter>
+                <action android:name="com.mittech.you.device.sound.onclick"/>
+                <action android:name="com.mittech.you.device.sound.dialog" />
             </intent-filter>
         </receiver>
 

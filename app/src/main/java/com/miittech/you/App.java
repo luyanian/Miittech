@@ -9,8 +9,8 @@ import android.os.Build;
 import android.os.Bundle;
 import com.baidu.mapapi.SDKInitializer;
 import com.inuker.bluetooth.library.BluetoothContext;
+import com.miittech.you.common.SoundPlayUtils;
 import com.miittech.you.global.SPConst;
-import com.miittech.you.receiver.BluetoothReceiver;
 import com.miittech.you.service.BleService;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
@@ -34,8 +34,8 @@ public class App extends MobApplication {
         JPushInterface.init(getApplicationContext());
         Utils.init(getApplicationContext());
         registerActivityListener();
-        registReciver();
         startService(new Intent(this,BleService.class));
+        SoundPlayUtils.init(getApplicationContext());
     }
 
 
@@ -99,17 +99,5 @@ public class App extends MobApplication {
                 }
             });
         }
-    }
-
-    public void registReciver() {
-        BluetoothReceiver bluetoothReceiver = new BluetoothReceiver();
-        IntentFilter intent = new IntentFilter();
-        intent.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
-        intent.addAction(BluetoothDevice.ACTION_FOUND);
-        intent.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        intent.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
-        intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        intent.setPriority(Integer.MAX_VALUE);
-        registerReceiver(bluetoothReceiver, intent);
     }
 }

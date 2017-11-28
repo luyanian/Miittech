@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.miittech.you.App;
 import com.miittech.you.R;
@@ -34,6 +35,7 @@ import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
@@ -205,7 +207,14 @@ public class DeviceDetailActivity extends BaseActivity {
             imgFindBtn.setImageResource(R.drawable.ic_device_bell);
         }
     }
-    private void getDeviceInfo(DeviceResponse.DevlistBean device) {
+    private void getDeviceInfo(final DeviceResponse.DevlistBean device) {
+        if(!NetworkUtils.isConnected()){
+            DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(device.getDevidX()));
+            if(response!=null){
+                initViewData(response.getUserinfo().getDevinfo());
+            }
+            return;
+        }
         Map param = new HashMap();
         param.put("devid", device.getDevidX());
         param.put("qrytype", Params.QRY_TYPE.ALL);
@@ -218,6 +227,21 @@ public class DeviceDetailActivity extends BaseActivity {
         String path = HttpUrl.Api + "deviceinfo/" + pubParam.toUrlParam(sign);
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
 
+//        ApiServiceManager.getInstance().buildApiService(this).postNetRequestObject(path, requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Consumer<JsonObject>() {
+//                    @Override
+//                    public void accept(JsonObject response) throws Exception {
+//                        JsonObject jsonObject = response;
+//                    }
+//                }, new Consumer<Throwable>() {
+//                    @Override
+//                    public void accept(Throwable throwable) throws Exception {
+//                        throwable.printStackTrace();
+//                    }
+//                });
+
         ApiServiceManager.getInstance().buildApiService(this).postDeviceInfoOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -225,6 +249,8 @@ public class DeviceDetailActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceInfoResponse response) throws Exception {
                         if (response.isSuccessful()) {
+                            SPUtils.getInstance().remove(Common.formatDevId2Mac(device.getDevidX()));
+                            SPUtils.getInstance().saveObject(Common.formatDevId2Mac(device.getDevidX()),response);
                             initViewData(response.getUserinfo().getDevinfo());
                         } else {
                             response.onError(DeviceDetailActivity.this);

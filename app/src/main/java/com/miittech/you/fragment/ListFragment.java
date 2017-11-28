@@ -29,12 +29,15 @@ import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.SPUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -181,6 +184,13 @@ public class ListFragment extends Fragment {
     }
 
     private void getDeviceList() {
+        if(!NetworkUtils.isConnected()){
+            DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+            if(response!=null){
+                initDeviceList(response.getDevlist());
+            }
+            return;
+        }
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.USED);
         String json = new Gson().toJson(param);
@@ -198,6 +208,8 @@ public class ListFragment extends Fragment {
                 .subscribe(new Consumer<DeviceResponse>() {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
+                        SPUtils.getInstance().remove(SPConst.DATA.DEVICELIST);
+                        SPUtils.getInstance().saveObject(SPConst.DATA.DEVICELIST,response);
                         initDeviceList(response.getDevlist());
                         if (!response.isSuccessful()) {
                             response.onError(getActivity());

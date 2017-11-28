@@ -192,6 +192,7 @@ public class Common {
     }
 
     public static byte[] formatBleMsg(int modeBind, String msg){
+//        byte[] temp = ConvertUtils.hexString2Bytes(msg);
         byte[] temp = ConvertUtils.str2HexStr1(msg);
         byte[] data = new byte[temp.length+1];
         if(modeBind==Params.BLEMODE.MODE_BIND){

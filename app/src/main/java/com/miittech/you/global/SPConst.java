@@ -19,4 +19,8 @@ public class SPConst{
         public static final int STATUS_BELLING=1;
         public static final int STATUS_UNBELL=2;
     }
+
+    public static class DATA{
+        public static final String DEVICELIST = "deviceList";
+    }
 }

@@ -21,6 +21,8 @@ public class IntentExtras {
     public static class ACTION{
         public final static String ACTION_BLE_COMMAND="com.mittech.you.device.service.cmd";
         public final static String ACTION_CMD_RESPONSE="com.mittech.you.device.service.response";
+        public final static String ACTION_SOUND_PLAY_ONCLICK="com.mittech.you.device.sound.onclick";
+        public final static String ACTION_SOUND_PLAY_DIALOG="com.mittech.you.device.sound.dialog";
     }
     public static class CMD{
         public final static int CMD_DEVICE_LIST_ADD = 0x010;

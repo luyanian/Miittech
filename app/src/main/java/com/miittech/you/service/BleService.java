@@ -34,11 +34,13 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.ryon.constant.TimeConstants;
 import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -153,9 +155,13 @@ public  class BleService extends Service {
 
     public synchronized void connectDevice(final String mac){
         if(mMacList.contains(mac)){
-           return;
+            return;
         }
         mMacList.add(mac);
+        if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTING||
+                BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+            return;
+        }
         BleConnectOptions options = new BleConnectOptions.Builder()
                 .setConnectRetry(3)   // 连接如果失败重试3次
                 .setConnectTimeout(30000)   // 连接超时30s
@@ -296,7 +302,7 @@ public  class BleService extends Service {
                     public void onResponse(int code) {
                         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                         if(code==Constants.REQUEST_SUCCESS) {
-                            LogUtils.d("bleResponse","贴片开始结束----->"+address);
+                            LogUtils.d("bleResponse","贴片结束报警----->"+address);
                             intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_STOP_SUCCESS);
                             sendBroadcast(intent);
                         }
@@ -347,13 +353,26 @@ public  class BleService extends Service {
         BLEClientManager.getClient().notify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyResponse() {
             @Override
             public void onNotify(UUID service, UUID character, byte[] value) {
-                String data = new String(value);
-                LogUtils.d("接收到蓝牙发送广播》》》"+data);
-                if("2".equals(data)){
+                LogUtils.d("接收到蓝牙发送广播》》》"+value);
+                if(value[0]==02){
+                    DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
+                    if(response!=null){
+                        String url = response.getUserinfo().getDevinfo().getAlertinfo().getUrlX();
+                        boolean isRepeat = (response.getUserinfo().getDevinfo().getAlertinfo().getIsRepeat()==1)?true:false;
+                        boolean isShake = (response.getUserinfo().getDevinfo().getAlertinfo().getIsShake()==1)?true:false;
+                        int duration = response.getUserinfo().getDevinfo().getAlertinfo().getDuration();
+                        if(url.contains("bluesforslim")){
+                            SoundPlayUtils.play(1,isRepeat,duration);
+                        }else if(url.contains("countryfair")){
+                            SoundPlayUtils.play(2,isRepeat,duration);
+                        }else if(url.contains("theclassiccall")){
+                            SoundPlayUtils.play(4,isRepeat,duration);
+                        }else{
+                            SoundPlayUtils.play(3,isRepeat,duration);
+                        }
+                    }
 
                 }
-                SoundPlayUtils.init(App.getInstance());
-                SoundPlayUtils.play(1);
             }
 
             @Override
@@ -374,9 +393,12 @@ public  class BleService extends Service {
 
             @Override
             public void onResponse(int code) {
+                if(code==REQUEST_SUCCESS){
 
+                }
             }
         });
+
         BLEClientManager.getClient().readRssi(mac, new BleReadRssiResponse() {
             @Override
             public void onResponse(int code, Integer data) {

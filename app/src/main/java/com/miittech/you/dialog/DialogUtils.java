@@ -75,4 +75,16 @@ public class DialogUtils {
         }
         return mapDialog;
     }
+    static SoundCloseDialog soundCloseDialog;
+    public static SoundCloseDialog showSoundCloseDialog(Context context) {
+        if(soundCloseDialog==null){
+            soundCloseDialog = new SoundCloseDialog(context);
+            soundCloseDialog.show();
+        }else{
+            if(!soundCloseDialog.isShowing()){
+                soundCloseDialog.show();
+            }
+        }
+        return soundCloseDialog;
+    }
 }

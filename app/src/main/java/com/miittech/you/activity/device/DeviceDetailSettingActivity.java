@@ -109,13 +109,16 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                 startActivityForResult(intent,0);
                 break;
             case R.id.rl_disconnect_reminder_time:
-                SelectTimeDialog selectDialog = DialogUtils.createSelectDialog(this);
+                final SelectTimeDialog selectDialog = DialogUtils.createSelectDialog(this);
                 selectDialog.setTitle("请选择时间");
                 selectDialog.setOnListItemClick(new OnListItemClick<String>() {
                     @Override
                     public void onItemClick(String s) {
                         tvDisconnectReminderTime.setText(s);
                         setDeviceAlertinfo();
+                        if(selectDialog!=null&&selectDialog.isShowing()) {
+                            selectDialog.dismiss();
+                        }
                     }
                 });
                 selectDialog.initData();
