@@ -23,6 +23,7 @@ public class IntentExtras {
         public final static String ACTION_CMD_RESPONSE="com.mittech.you.device.service.response";
         public final static String ACTION_SOUND_PLAY_ONCLICK="com.mittech.you.device.sound.onclick";
         public final static String ACTION_SOUND_PLAY_DIALOG="com.mittech.you.device.sound.dialog";
+        public final static String ACTION_TASK_SEND="com.mittech.you.task.send";
     }
     public static class CMD{
         public final static int CMD_DEVICE_LIST_ADD = 0x010;
@@ -31,6 +32,7 @@ public class IntentExtras {
         public final static int CMD_DEVICE_ALERT_STOP=0x013;
         public final static int CMD_DEVICE_UNBIND=0x014;
         public final static int CMD_DEVICE_LIST_CLEAR=0x015;
+        public final static int CMD_TASK_EXCE=0x016;
     }
     public static class RET{
         public final static int RET_DEVICE_CONNECT_SUCCESS=0x020;

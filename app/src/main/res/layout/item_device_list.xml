@@ -33,7 +33,6 @@
                 android:layout_height="wrap_content"
                 android:textColor="#323232"
                 android:textSize="18dp"
-                android:text="自行车"
                 android:lines="1"/>
             <TextView
                 android:id="@+id/item_location"
@@ -42,7 +41,6 @@
                 android:textColor="#656565"
                 android:textSize="16dp"
                 android:layout_marginTop="5dp"
-                android:text="天津天津市天津东站"
                 android:maxLines="2"/>
             <TextView
                 android:id="@+id/item_time"
@@ -51,7 +49,6 @@
                 android:textColor="#969696"
                 android:textSize="14dp"
                 android:layout_marginTop="10dp"
-                android:text="7分钟前"
                 android:lines="1"/>
         </LinearLayout>
         <TextView
@@ -59,8 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:textSize="14dp"
-            android:text="当前电量  50%"/>
+            android:textSize="14dp"/>
     </RelativeLayout>
     <TextView
         android:layout_width="match_parent"

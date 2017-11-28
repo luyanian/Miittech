@@ -258,6 +258,7 @@
             <intent-filter>
                 <action android:name="com.mittech.you.device.sound.onclick"/>
                 <action android:name="com.mittech.you.device.sound.dialog" />
+                <action android:name="com.mittech.you.task.send" />
             </intent-filter>
         </receiver>
 

@@ -19,11 +19,14 @@ import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
+import com.ryon.constant.TimeConstants;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.TimeUtils;
 
 import org.w3c.dom.Text;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +72,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         holders.put(Common.formatDevId2Mac(devlistBean.getDevidX()),holder);
         holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
         holder.itemLocation.setText(devlistBean.getLocinfo().getAddr());
-        holder.itemTime.setText(devlistBean.getLasttime()+"  "+devlistBean.getDevidX());
+        setTimeText(holder.itemTime,devlistBean.getLasttime());
         Glide.with(activity).load(devlistBean.getDevimg()).into(holder.itemIcon);
         holder.rlItem.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,14 +94,14 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         mData.addAll(devlist);
         notifyDataSetChanged();
 
-        ArrayList<String> devList = new ArrayList<>();
-        devlist.clear();
+        ArrayList<String> tempList = new ArrayList<>();
+        tempList.clear();
         for(DeviceResponse.DevlistBean devlistBean : devlist){
-            devList.add(Common.formatDevId2Mac(devlistBean.getDevidX()));
+            tempList.add(Common.formatDevId2Mac(devlistBean.getDevidX()));
         }
         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_ADD);
-        intent.putStringArrayListExtra("macList",devList);
+        intent.putStringArrayListExtra("macList",tempList);
         activity.sendBroadcast(intent);
     }
 
@@ -126,18 +129,20 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
+                String address = intent.getStringExtra("address");
                 switch (ret){
                     case IntentExtras.RET.RET_DEVICE_READ_RSSI:
                         LogUtils.d("RET_DEVICE_READ_RSSI");
-                        String mac = intent.getStringExtra("address");
                         int rssi = intent.getIntExtra("rssi",0);
-                        updateItemRssi(mac,rssi);
+                        updateItemRssi(address,rssi);
                         break;
                     case IntentExtras.RET.RET_DEVICE_READ_BATTERY:
                         LogUtils.d("RET_DEVICE_READ_BATTERY");
-                        String address = intent.getStringExtra("address");
                         String battery = intent.getStringExtra("battery");
                         updateItemBattery(address,battery);
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
+                        updateItemData(address);
                         break;
                 }
 
@@ -145,24 +150,57 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         }
     }
 
-    private void updateItemBattery(String address, String battery) {
+    private void updateItemData(String address) {
         ViewHolder viewHolder = holders.get(address);
         if(viewHolder!=null&&viewHolder.itemLocation!=null){
-            viewHolder.itemBattery.setText("剩余电量  "+battery+"%");
+            for(DeviceResponse.DevlistBean devlistBean : mData){
+                if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
+                    viewHolder.itemBattery.setText(devlistBean.getDevbattery()+"%");
+                    viewHolder.itemLocation.setText(devlistBean.getLocinfo().getAddr());
+                    setTimeText(viewHolder.itemTime,devlistBean.getLasttime());
+                }
+            }
+
+        }
+    }
+
+    private void setTimeText(TextView itemTime, String lasttime) {
+        if(itemTime==null){
+            return;
+        }
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddhhmmss");
+        String timeSpan = TimeUtils.getFriendlyTimeSpanByNow(lasttime,sdf);
+        itemTime.setText(timeSpan);
+    }
+
+    private void updateItemBattery(String address, String battery) {
+        ViewHolder viewHolder = holders.get(address);
+        if(viewHolder!=null){
+            if(viewHolder.itemBattery!=null) {
+                viewHolder.itemBattery.setText("剩余电量  " + battery + "%");
+            }
+            if(viewHolder.itemTime!=null) {
+                viewHolder.itemTime.setText("现在");
+            }
         }
     }
 
     private void updateItemRssi(String mac, int rssi) {
         ViewHolder viewHolder = holders.get(mac);
-        if(viewHolder!=null&&viewHolder.itemLocation!=null){
-            if (rssi < -85) {
-                viewHolder.itemLocation.setText("远离");
+        if(viewHolder!=null){
+            if(viewHolder.itemLocation!=null) {
+                if (rssi < -85) {
+                    viewHolder.itemLocation.setText("远离");
+                }
+                if (rssi > -85 && rssi < -70) {
+                    viewHolder.itemLocation.setText("较远");
+                }
+                if (rssi > -70) {
+                    viewHolder.itemLocation.setText("很近");
+                }
             }
-            if (rssi > -85 && rssi < -70) {
-                viewHolder.itemLocation.setText("较远");
-            }
-            if (rssi > -70) {
-                viewHolder.itemLocation.setText("很近");
+            if(viewHolder.itemTime!=null) {
+                viewHolder.itemTime.setText("现在");
             }
         }
     }

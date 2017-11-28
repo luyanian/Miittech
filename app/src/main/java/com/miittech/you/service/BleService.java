@@ -1,5 +1,7 @@
 package com.miittech.you.service;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -47,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 import java.util.UUID;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -96,7 +99,6 @@ public  class BleService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         getApplicationContext().registerReceiver(cmdReceiver, filter);
-
         LogUtils.d("BleService-OnCreate()");
     }
       
@@ -104,6 +106,10 @@ public  class BleService extends Service {
     @Override  
     public int onStartCommand(Intent intent, int flags, int startId) {
         LogUtils.d("BleService-onStartCommand()");
+        AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
+        Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
+        PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
+        aManager.setWindow(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+10000,5000, pi);
         return START_REDELIVER_INTENT;
     }
   
@@ -143,12 +149,43 @@ public  class BleService extends Service {
                     case IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR:
                         clearAllConnect();
                         break;
+                    case IntentExtras.CMD.CMD_TASK_EXCE:
+                        exceTask();
+                        break;
                 }
             }
         }
     }
-    public synchronized void addDeviceList(ArrayList<String> macList){
+
+    private synchronized void exceTask() {
+        if(mMacList.size()<=0){
+            return;
+        }
         for(final String mac:mMacList){
+            if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+                BLEClientManager.getClient().readRssi(mac, new BleReadRssiResponse() {
+                    @Override
+                    public void onResponse(int code, Integer data) {
+                        if(code==Constants.REQUEST_SUCCESS) {
+                            LogUtils.d("readRssi",mac+">>>"+data);
+                            Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                            intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_RSSI);
+                            intent.putExtra("address", mac);
+                            intent.putExtra("rssi", data);
+                            sendBroadcast(intent);
+                        }
+                    }
+                });
+            }else{
+                if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_DISCONNECTED){
+                    connectDevice(mac);
+                }
+            }
+        }
+    }
+
+    public synchronized void addDeviceList(ArrayList<String> macList){
+        for(final String mac:macList){
             connectDevice(mac);
         }
     }
@@ -158,12 +195,11 @@ public  class BleService extends Service {
             return;
         }
         mMacList.add(mac);
-        if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTING||
-                BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+        if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_DISCONNECTED){
             return;
         }
         BleConnectOptions options = new BleConnectOptions.Builder()
-                .setConnectRetry(3)   // 连接如果失败重试3次
+                .setConnectRetry(5)   // 连接如果失败重试3次
                 .setConnectTimeout(30000)   // 连接超时30s
                 .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
                 .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
@@ -172,8 +208,7 @@ public  class BleService extends Service {
         BLEClientManager.getClient().connect(mac,options, new BleConnectResponse() {
             @Override
             public void onResponse(int code, BleGattProfile data) {
-                Intent intent = new Intent();
-                intent.putExtra("action",IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 if(code==Constants.REQUEST_SUCCESS){
                     LogUtils.d("bleResponse","贴片连接成功----->"+mac);
                     intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS);
@@ -339,13 +374,19 @@ public  class BleService extends Service {
             @Override
             public void onConnectStatusChanged(String mac, int status) {
                 if (status == Constants.STATUS_CONNECTED) {
+                    LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已连接");
                     if(!mMacList.contains(mac)){
                         mMacList.add(mac);
                     }
                 } else if (status == Constants.STATUS_DISCONNECTED) {
+                    LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已断开");
                     if(mMacList.contains(mac)){
                         mMacList.remove(mac);
                     }
+                    Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
+                    intent.putExtra("address", mac);
+                    sendBroadcast(intent);
                 }
             }
         });
@@ -383,11 +424,10 @@ public  class BleService extends Service {
         BLEClientManager.getClient().notify(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleNotifyResponse() {
             @Override
             public void onNotify(UUID service, UUID character, byte[] value) {
-                String battery = new String(value);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_BATTERY);
                 intent.putExtra("address", mac);
-                intent.putExtra("battery", battery);
+                intent.putExtra("battery", value[0]+"");
                 sendBroadcast(intent);
             }
 
@@ -395,20 +435,6 @@ public  class BleService extends Service {
             public void onResponse(int code) {
                 if(code==REQUEST_SUCCESS){
 
-                }
-            }
-        });
-
-        BLEClientManager.getClient().readRssi(mac, new BleReadRssiResponse() {
-            @Override
-            public void onResponse(int code, Integer data) {
-                if(code==Constants.REQUEST_SUCCESS) {
-                    LogUtils.d("readRssi",mac+">>>"+data);
-                    Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_RSSI);
-                    intent.putExtra("address", mac);
-                    intent.putExtra("rssi", data);
-                    sendBroadcast(intent);
                 }
             }
         });
