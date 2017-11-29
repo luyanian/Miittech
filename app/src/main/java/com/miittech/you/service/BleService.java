@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
+import android.text.TextUtils;
+
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClient;
@@ -39,18 +41,21 @@ import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.ryon.constant.TimeConstants;
-import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
+import java.util.Set;
 import java.util.UUID;
+import java.util.Vector;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -59,7 +64,6 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
 import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
-import static com.inuker.bluetooth.library.Constants.STATUS_DEVICE_CONNECTING;
 import static com.miittech.you.common.BleCommon.characteristicUUID;
 import static com.miittech.you.common.BleCommon.serviceUUID;
 import static com.miittech.you.common.BleCommon.userCharacteristicLogUUID;
@@ -70,10 +74,12 @@ public  class BleService extends Service {
     private MyLocationListener myListener = new MyLocationListener();
     private long lastMillins=0;
     CmdReceiver cmdReceiver;
-    private List<String> mMacList = new ArrayList<>();
+    private List<String> mConnectedList = new ArrayList<>();
+    private Map<String, Integer> mapRssi = new HashMap<String, Integer>();
+    private Map<String,String> mapBattery = new HashMap<>();
     private BDLocation lastLocation;
+    private List<String> mMacList = new ArrayList<>();
 
-      
     @Override  
     public IBinder onBind(Intent intent) {
         return null;  
@@ -90,6 +96,7 @@ public  class BleService extends Service {
         option.setCoorType("bd09ll");
         option.setScanSpan(60000);
         option.setOpenGps(true);
+        option.setIsNeedAddress(true);
         option.setIgnoreKillProcess(false);
         option.setWifiCacheTimeOut(5*60*1000);
         mLocationClient.setLocOption(option);
@@ -158,10 +165,11 @@ public  class BleService extends Service {
     }
 
     private synchronized void exceTask() {
+        exceReportSubmit();
         if(mMacList.size()<=0){
             return;
         }
-        for(final String mac:mMacList){
+        for(final String mac : mMacList){
             if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
                 BLEClientManager.getClient().readRssi(mac, new BleReadRssiResponse() {
                     @Override
@@ -173,6 +181,7 @@ public  class BleService extends Service {
                             intent.putExtra("address", mac);
                             intent.putExtra("rssi", data);
                             sendBroadcast(intent);
+                            mapRssi.put(mac,data);
                         }
                     }
                 });
@@ -185,16 +194,19 @@ public  class BleService extends Service {
     }
 
     public synchronized void addDeviceList(ArrayList<String> macList){
+        this.mMacList.clear();
+        this.mMacList.addAll(macList);
+
         for(final String mac:macList){
             connectDevice(mac);
         }
     }
 
     public synchronized void connectDevice(final String mac){
-        if(mMacList.contains(mac)){
+        if(mConnectedList.contains(mac)){
             return;
         }
-        mMacList.add(mac);
+        mConnectedList.add(mac);
         if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_DISCONNECTED){
             return;
         }
@@ -215,8 +227,8 @@ public  class BleService extends Service {
                     sendBroadcast(intent);
                     setWorkMode(mac);
                 }else{
-                    if(mMacList.contains(mac)){
-                        mMacList.remove(mac);
+                    if(mConnectedList.contains(mac)){
+                        mConnectedList.remove(mac);
                     }
                     LogUtils.d("bleResponse","贴片连接失败----->"+mac);
                     intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
@@ -227,10 +239,10 @@ public  class BleService extends Service {
     }
 
     public synchronized void bindDevice(final String mac){
-        if(mMacList.contains(mac)){
+        if(mConnectedList.contains(mac)){
             return;
         }
-        mMacList.add(mac);
+        mConnectedList.add(mac);
 
         BLEClientManager.getClient().connect(mac, new BleConnectResponse() {
             @Override
@@ -242,8 +254,8 @@ public  class BleService extends Service {
                     sendBroadcast(intent);
                     setBindMode(mac);
                 }else{
-                    if(mMacList.contains(mac)){
-                        mMacList.remove(mac);
+                    if(mConnectedList.contains(mac)){
+                        mConnectedList.remove(mac);
                     }
                     LogUtils.d("bleResponse","贴片连接失败----->"+mac);
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
@@ -265,12 +277,12 @@ public  class BleService extends Service {
                 public void onResponse(int code) {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     if (code == REQUEST_SUCCESS) {
-                        if(mMacList.contains(address)){
-                            mMacList.remove(address);
+                        if(mConnectedList.contains(address)){
+                            mConnectedList.remove(address);
                         }
                         LogUtils.d("bleResponse","贴片绑定成功----->"+address);
-                        if(mMacList.contains(address)){
-                            mMacList.remove(address);
+                        if(mConnectedList.contains(address)){
+                            mConnectedList.remove(address);
                         }
                         intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_UNBIND_SUCCESS);
                         sendBroadcast(intent);
@@ -284,7 +296,7 @@ public  class BleService extends Service {
     }
 
     private synchronized void clearAllConnect(){
-        for(String mac : mMacList){
+        for(String mac : mConnectedList){
             BLEClientManager.getClient().unregisterConnectStatusListener(mac, new BleConnectStatusListener() {
                 @Override
                 public void onConnectStatusChanged(String mac, int status) {
@@ -298,7 +310,7 @@ public  class BleService extends Service {
                 }
             });
             BLEClientManager.getClient().disconnect(mac);
-            mMacList.remove(mac);
+            mConnectedList.remove(mac);
         }
     }
 
@@ -359,8 +371,8 @@ public  class BleService extends Service {
                     sendBroadcast(intent);
                     registAndNotify(mac);
                 }else{
-                    if(mMacList.contains(mac)){
-                        mMacList.remove(mac);
+                    if(mConnectedList.contains(mac)){
+                        mConnectedList.remove(mac);
                     }
                     LogUtils.d("bleResponse","贴片设置工作模式失败----->"+mac);
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_WORK_FAILED);
@@ -375,13 +387,13 @@ public  class BleService extends Service {
             public void onConnectStatusChanged(String mac, int status) {
                 if (status == Constants.STATUS_CONNECTED) {
                     LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已连接");
-                    if(!mMacList.contains(mac)){
-                        mMacList.add(mac);
+                    if(!mConnectedList.contains(mac)){
+                        mConnectedList.add(mac);
                     }
                 } else if (status == Constants.STATUS_DISCONNECTED) {
                     LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已断开");
-                    if(mMacList.contains(mac)){
-                        mMacList.remove(mac);
+                    if(mConnectedList.contains(mac)){
+                        mConnectedList.remove(mac);
                     }
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
@@ -429,6 +441,7 @@ public  class BleService extends Service {
                 intent.putExtra("address", mac);
                 intent.putExtra("battery", value[0]+"");
                 sendBroadcast(intent);
+                mapBattery.put(mac,value[0]+"");
             }
 
             @Override
@@ -452,8 +465,8 @@ public  class BleService extends Service {
                     sendBroadcast(intent);
                     setWorkMode(mac);
                 }else{
-                    if(mMacList.contains(mac)){
-                        mMacList.remove(mac);
+                    if(mConnectedList.contains(mac)){
+                        mConnectedList.remove(mac);
                     }
                     LogUtils.d("bleResponse","贴片设置绑定模式失败----->"+mac);
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_BIND_FAIL);
@@ -482,76 +495,98 @@ public  class BleService extends Service {
     }
 
     private synchronized void reportUserLocation(final long millis, final BDLocation location) {
+        if(mConnectedList.size()<=0){
+            return;
+        }
         final Map user_loc = new HashMap();
         user_loc.put("lat", location.getLatitude());
         user_loc.put("lng", location.getLongitude());
         user_loc.put("addr", Common.encodeBase64(location.getAddrStr()));
         final List<Map> devlist = new ArrayList<>();
-        for (final String mac : mMacList) {
-            final Map devItem = new HashMap();
-            devItem.put("devid", Common.formatMac2DevId(mac));
-            BLEClientManager.getClient().read(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleReadResponse() {
-                @Override
-                public void onResponse(int code, byte[] data) {
-                    if (code == Constants.REQUEST_SUCCESS) {
-                        devItem.put("devbattery", ConvertUtils.bytes2HexString(data));
-                        BLEClientManager.getClient().readRssi(mac, new BleReadRssiResponse() {
-                            @Override
-                            public void onResponse(int code, Integer data) {
-                                if (code == Constants.REQUEST_SUCCESS) {
-                                    if (data < -85) {
-                                        devItem.put("devposstate", 3);
-                                    }
-                                    if (data > -85 && data < -70) {
-                                        devItem.put("devposstate", 2);
-                                    }
-                                    if (data > -70) {
-                                        devItem.put("devposstate", 1);
-                                    }
-                                    devItem.put("devstate", 1);
-                                    devItem.put("usedstate", 1);
-                                    devItem.put("bindstate", 1);
-                                    devlist.add(devItem);
-
-                                    Map repdata = new HashMap();
-                                    repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyymmddhhmmss")));
-                                    repdata.put("user_loc", user_loc);
-                                    repdata.put("devlist", devlist);
-                                    Map param = new HashMap();
-                                    param.put("method", 1);
-                                    param.put("repdata", repdata);
-                                    String json = new Gson().toJson(param);
-
-                                    PubParam pubParam = new PubParam(App.getInstance().getUserId());
-                                    String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
-                                    LogUtils.d("sign_unsha1", sign_unSha1);
-                                    String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-                                    LogUtils.d("sign_sha1", sign);
-                                    String path = HttpUrl.Api + "userreport/" + pubParam.toUrlParam(sign);
-                                    final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-
-                                    ApiServiceManager.getInstance().buildApiService(App.getInstance().getApplicationContext()).postToGetFriendList(path, requestBody)
-                                            .subscribeOn(Schedulers.io())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .subscribe(new Consumer<FriendsResponse>() {
-                                                @Override
-                                                public void accept(FriendsResponse response) throws Exception {
-                                                    if (response.isSuccessful()) {
-
-                                                    }
-                                                }
-                                            }, new Consumer<Throwable>() {
-                                                @Override
-                                                public void accept(Throwable throwable) throws Exception {
-                                                    throwable.printStackTrace();
-                                                }
-                                            });
-                                }
-                            }
-                        });
-                    }
+        for (final String mac : mConnectedList) {
+            if (mapBattery.containsKey(mac) && mapRssi.containsKey(mac)) {
+                final Map devItem = new HashMap();
+                devItem.put("devid", Common.formatMac2DevId(mac));
+                devItem.put("devbattery", mapBattery.get(mac));
+                int rssi = mapRssi.get(mac);
+                if (rssi < -85) {
+                    devItem.put("devposstate", 3);
+                } else if (rssi > -85 && rssi < -70) {
+                    devItem.put("devposstate", 2);
+                } else if (rssi > -70) {
+                    devItem.put("devposstate", 1);
                 }
-            });
+                devItem.put("devstate", 1);
+                devItem.put("usedstate", 1);
+                devItem.put("bindstate", 1);
+                devlist.add(devItem);
+            }else{
+                return;
+            }
         }
+        Map repdata = new HashMap();
+        repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyyMMddhhmmss")));
+        repdata.put("user_loc", user_loc);
+        repdata.put("devlist", devlist);
+        Map param = new HashMap();
+        param.put("method", 1);
+        param.put("repdata", repdata);
+        String json = new Gson().toJson(param);
+        if(NetworkUtils.isConnected()){
+            doReport(json);
+        }else {
+            Set<String> reportList = SPUtils.getInstance().getStringSet("reportList");
+            if (reportList == null) {
+                reportList = new LinkedHashSet<>();
+            }
+            reportList.add(json);
+            SPUtils.getInstance().put("reportList", reportList);
+        }
+    }
+    public synchronized void exceReportSubmit(){
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
+        final Set<String> reportList = SPUtils.getInstance().getStringSet("reportList");
+        if(reportList==null||reportList.size()<=0){
+            return;
+        }
+
+        final Iterator iterator = reportList.iterator();//先迭代出来
+        while(iterator.hasNext()){//遍历
+            doReport((String) iterator.next());
+        }
+    }
+
+    private void doReport(final String json) {
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userreport/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(App.getInstance().getApplicationContext()).postToGetFriendList(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<FriendsResponse>() {
+                    @Override
+                    public synchronized void accept(FriendsResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            final Set<String> reportList = SPUtils.getInstance().getStringSet("reportList");
+                            if(reportList!=null||reportList.contains(json)){
+                                reportList.remove(json);
+                                SPUtils.getInstance().remove("reportList");
+                                SPUtils.getInstance().put("reportList",reportList);
+                            }
+
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
     }
 }
