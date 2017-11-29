@@ -5,6 +5,8 @@ package com.miittech.you.global;
  */
 
 public class SPConst{
+    public static final String LOCATION_ADDRE="addre";
+    public static final String IS_DEVICE_REDISCOVER="isfirst_after_login";
     public static class USER{
         public static final String SP_NAME="session";
         public static final String KEY_TOCKEN="tocken";

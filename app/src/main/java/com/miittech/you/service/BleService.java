@@ -36,6 +36,7 @@ import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
@@ -369,6 +370,12 @@ public  class BleService extends Service {
                     LogUtils.d("bleResponse","贴片设置工作模式成功----->"+mac);
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS);
                     sendBroadcast(intent);
+                    if(SPUtils.getInstance().getBoolean(SPConst.IS_DEVICE_REDISCOVER)){
+                        Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(mac),Params.EVENT_TYPE.DEVICE_REDISCOVER,null);
+                    }else{
+                        Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(mac),Params.EVENT_TYPE.DEVICE_CONNECT,null);
+                        SPUtils.getInstance().put(SPConst.IS_DEVICE_REDISCOVER,true);
+                    }
                     registAndNotify(mac);
                 }else{
                     if(mConnectedList.contains(mac)){
@@ -386,12 +393,14 @@ public  class BleService extends Service {
             @Override
             public void onConnectStatusChanged(String mac, int status) {
                 if (status == Constants.STATUS_CONNECTED) {
+
                     LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已连接");
                     if(!mConnectedList.contains(mac)){
                         mConnectedList.add(mac);
                     }
                 } else if (status == Constants.STATUS_DISCONNECTED) {
                     LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已断开");
+                    Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(mac),Params.EVENT_TYPE.DEVICE_LOSE,null);
                     if(mConnectedList.contains(mac)){
                         mConnectedList.remove(mac);
                     }
@@ -480,6 +489,9 @@ public  class BleService extends Service {
         @Override
         public void onReceiveLocation(BDLocation location){
             LogUtils.d("bleResponse","接收到定位信息----->"+location.getLatitude()+","+location.getLongitude());
+            if(!TextUtils.isEmpty(location.getAddrStr())){
+                SPUtils.getInstance().put(SPConst.LOCATION_ADDRE,location.getAddrStr());
+            }
             LatLng current = new LatLng(location.getLatitude(), location.getLongitude());
             long curMillis = TimeUtils.getNowDate().getTime();
             if(lastLocation!=null) {

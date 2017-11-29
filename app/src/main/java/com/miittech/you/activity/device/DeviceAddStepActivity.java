@@ -239,7 +239,7 @@ public class DeviceAddStepActivity extends BaseActivity{
                             imgConnectStatus.setImageResource(R.drawable.ic_device_connect_success);
                             tvConnectStatus.setText("绑定成功");
                             tvConnectMsg.setVisibility(View.GONE);
-                            Common.doCommitEvents(DeviceAddStepActivity.this,response.getDevid(),Common.getCurrentTime(),Params.EVENT_TYPE.DEVICE_ADD,null,null);
+                            Common.doCommitEvents(DeviceAddStepActivity.this,response.getDevid(),Params.EVENT_TYPE.DEVICE_ADD,null);
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {

@@ -11,6 +11,7 @@ import com.miittech.you.R;
 import com.miittech.you.entity.Detailinfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.entity.Repdata;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -23,6 +24,8 @@ import com.ryon.mutils.EncodeUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.RegexUtils;
+import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.SpanUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -73,14 +76,12 @@ public class Common {
                     }
                 });
     }
-    public static void doCommitEvents(Context context,String devId, String eventTime, int eventType, Locinfo locinfo, Detailinfo detailinfo){
+    public static void doCommitEvents(Context context,String devId, int eventType,Detailinfo detailinfo){
         Map param = new HashMap();
         param.put("devid", devId);
-        param.put("eventtime", eventTime);
+        param.put("eventtime", Common.getCurrentTime());
         param.put("eventype", eventType);
-        if(locinfo!=null) {
-            param.put("locinfo", locinfo);
-        }
+        param.put("locinfo", Common.decodeBase64(SPUtils.getInstance().getString(SPConst.LOCATION_ADDRE)));
         if(detailinfo!=null) {
             param.put("detailinfo", detailinfo);
         }
