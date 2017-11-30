@@ -3,6 +3,7 @@ package com.miittech.you.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +13,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.miittech.you.App;
 import com.miittech.you.R;
+import com.miittech.you.adapter.EventTraceAdapter;
+import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
@@ -50,6 +54,7 @@ public class TraceFragment extends Fragment {
     Unbinder unbinder;
 
     private String sid="0";
+    private EventTraceAdapter traceAdapter;
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -68,6 +73,16 @@ public class TraceFragment extends Fragment {
                 refreshlayout.finishLoadmore(2000);
             }
         });
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        recyclerview.setLayoutManager(layoutManager);
+        recyclerview.setHasFixedSize(true);
+        traceAdapter = new EventTraceAdapter(getActivity(),new OnListItemClick(){
+            @Override
+            public void onItemClick(Object o) {
+                super.onItemClick(o);
+            }
+        });
+        recyclerview.setAdapter(traceAdapter);
     }
 
     @Nullable
@@ -94,9 +109,9 @@ public class TraceFragment extends Fragment {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        param.put("sdate", simpleDateFormat.format(calendar.getTime()));
-        calendar.add(Calendar.MONTH, -1);
         param.put("edate", simpleDateFormat.format(calendar.getTime()));
+        calendar.add(Calendar.MONTH, -1);
+        param.put("sdate", simpleDateFormat.format(calendar.getTime()));
 
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getInstance().getUserId());
@@ -105,14 +120,16 @@ public class TraceFragment extends Fragment {
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
         String path = HttpUrl.Api + "userinfo/" + pubParam.toUrlParam(sign);
-        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(getActivity()).postNetRequestObject(path, requestBody)
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetUserInfo(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<JsonObject>() {
+                .subscribe(new Consumer<UserInfoResponse>() {
                     @Override
-                    public void accept(JsonObject jsonObject) throws Exception {
-                        String sfds = jsonObject.getAsString().toString();
+                    public void accept(UserInfoResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            traceAdapter.refreshData(response.getTracelist());
+                        }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -120,24 +137,6 @@ public class TraceFragment extends Fragment {
                         throwable.printStackTrace();
                     }
                 });
-//        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetUserInfo(path, requestBody)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Consumer<UserInfoResponse>() {
-//                    @Override
-//                    public void accept(UserInfoResponse response) throws Exception {
-//                        if (response.isSuccessful()) {
-//
-//                        } else {
-//                            response.getUserinfo();
-//                        }
-//                    }
-//                }, new Consumer<Throwable>() {
-//                    @Override
-//                    public void accept(Throwable throwable) throws Exception {
-//                        throwable.printStackTrace();
-//                    }
-//                });
 
     }
 

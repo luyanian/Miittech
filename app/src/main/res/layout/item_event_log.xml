@@ -3,8 +3,8 @@
     android:id="@+id/ll_item"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/white"
+    android:layout_height="wrap_content"
+    android:background="@drawable/ic_user_item"
     android:padding="16dp">
 
     <TextView
@@ -23,10 +23,10 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="140dp">
-        <com.baidu.mapapi.map.MapView
+        <com.baidu.mapapi.map.TextureMapView
             android:id="@+id/map_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="140dp"/>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="30dp"

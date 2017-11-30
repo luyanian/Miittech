@@ -17,6 +17,7 @@ public class UserInfoResponse extends BaseResponse{
     private UserinfoBean userinfo;
     private ConfigBean config;
     private List<EventlistBean> eventlist;
+    private List<TracelistBean> tracelist;
 
     public UserinfoBean getUserinfo() {
         return userinfo;
@@ -40,6 +41,14 @@ public class UserInfoResponse extends BaseResponse{
 
     public void setEventlist(List<EventlistBean> eventlist) {
         this.eventlist = eventlist;
+    }
+
+    public List<TracelistBean> getTracelist() {
+        return tracelist;
+    }
+
+    public void setTracelist(List<TracelistBean> tracelist) {
+        this.tracelist = tracelist;
     }
 
     public static class UserinfoBean {
@@ -654,6 +663,78 @@ public class UserInfoResponse extends BaseResponse{
              * lat : 39.100533
              * lng : 117.13704
              * addr :
+             */
+
+            private double lat;
+            private double lng;
+            private String addr;
+
+            public double getLat() {
+                return lat;
+            }
+
+            public void setLat(double lat) {
+                this.lat = lat;
+            }
+
+            public double getLng() {
+                return lng;
+            }
+
+            public void setLng(double lng) {
+                this.lng = lng;
+            }
+
+            public String getAddr() {
+                return addr;
+            }
+
+            public void setAddr(String addr) {
+                this.addr = addr;
+            }
+        }
+    }
+
+    public static class TracelistBean implements Serializable {
+        /**
+         * reptime : 20171130105600
+         * traceid : 660
+         * user_loc : {"lat":39.100517,"lng":117.136908,"addr":"5aSp5rSl5biC6KW/6Z2S5Yy65YWw6IuR6LevM+WPtw=="}
+         */
+
+        private String reptime;
+        private String traceid;
+        private UserLocBean user_loc;
+
+        public String getReptime() {
+            return reptime;
+        }
+
+        public void setReptime(String reptime) {
+            this.reptime = reptime;
+        }
+
+        public String getTraceid() {
+            return traceid;
+        }
+
+        public void setTraceid(String traceid) {
+            this.traceid = traceid;
+        }
+
+        public UserLocBean getUser_loc() {
+            return user_loc;
+        }
+
+        public void setUser_loc(UserLocBean user_loc) {
+            this.user_loc = user_loc;
+        }
+
+        public static class UserLocBean implements Serializable {
+            /**
+             * lat : 39.100517
+             * lng : 117.136908
+             * addr : 5aSp5rSl5biC6KW/6Z2S5Yy65YWw6IuR6LevM+WPtw==
              */
 
             private double lat;

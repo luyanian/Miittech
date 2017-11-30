@@ -210,7 +210,8 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".activity.MainActivity" />
+        <activity android:name=".activity.MainActivity"
+            android:hardwareAccelerated="true"/>
         <activity android:name=".activity.StartActivity" />
         <activity android:name=".activity.WelComeActivity" />
         <activity android:name=".activity.BaseActivity" />

@@ -17,6 +17,7 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.TextureMapView;
 import com.baidu.mapapi.model.LatLng;
 import com.miittech.you.R;
 import com.miittech.you.common.Common;
@@ -77,7 +78,6 @@ public class EventLogAdapter extends RecyclerView.Adapter {
         holder.itemTime.setText(TimeUtils.getFriendlyTimeSpanByNow(eventlistBean.getEtime(),new SimpleDateFormat("yyyyMMddhhmmss")));
         if(eventlistBean.getLocinfo()!=null) {
             holder.itemAddress.setText(eventlistBean.getLocinfo().getAddr());
-
             BaiduMap mBaiduMap = holder.mapView.getMap();
             mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
             mBaiduMap.setMyLocationEnabled(true);
@@ -118,7 +118,7 @@ public class EventLogAdapter extends RecyclerView.Adapter {
         @BindView(R.id.item_time)
         TextView itemTime;
         @BindView(R.id.map_view)
-        MapView mapView;
+        TextureMapView mapView;
         @BindView(R.id.item_address)
         TextView itemAddress;
 
