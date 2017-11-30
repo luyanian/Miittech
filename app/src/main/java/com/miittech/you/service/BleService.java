@@ -32,6 +32,7 @@ import com.miittech.you.App;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.common.SoundPlayUtils;
+import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
@@ -490,7 +491,12 @@ public  class BleService extends Service {
         public void onReceiveLocation(BDLocation location){
             LogUtils.d("bleResponse","接收到定位信息----->"+location.getLatitude()+","+location.getLongitude());
             if(!TextUtils.isEmpty(location.getAddrStr())){
-                SPUtils.getInstance().put(SPConst.LOCATION_ADDRE,location.getAddrStr());
+                Locinfo locinfo = new Locinfo();
+                locinfo.setAddr(location.getAddrStr());
+                locinfo.setLat(location.getLatitude());
+                locinfo.setLng(location.getLongitude());
+                SPUtils.getInstance().remove(SPConst.LOC_INFO);
+                SPUtils.getInstance().saveObject(SPConst.LOC_INFO,locinfo);
             }
             LatLng current = new LatLng(location.getLatitude(), location.getLongitude());
             long curMillis = TimeUtils.getNowDate().getTime();

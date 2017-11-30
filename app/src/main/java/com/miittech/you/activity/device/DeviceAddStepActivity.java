@@ -124,7 +124,7 @@ public class DeviceAddStepActivity extends BaseActivity{
 
                                 @Override
                                 public void onDeviceFounded(final SearchResult device) {
-                                    if(!device.getName().contains("yoowoo")){
+                                    if(!device.getName().contains("yoowoo")||device.rssi<-50){
                                         return;
                                     }
 

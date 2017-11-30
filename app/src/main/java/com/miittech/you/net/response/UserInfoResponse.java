@@ -2,6 +2,7 @@ package com.miittech.you.net.response;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -15,6 +16,7 @@ public class UserInfoResponse extends BaseResponse{
 
     private UserinfoBean userinfo;
     private ConfigBean config;
+    private List<EventlistBean> eventlist;
 
     public UserinfoBean getUserinfo() {
         return userinfo;
@@ -30,6 +32,14 @@ public class UserInfoResponse extends BaseResponse{
 
     public void setConfig(ConfigBean config) {
         this.config = config;
+    }
+
+    public List<EventlistBean> getEventlist() {
+        return eventlist;
+    }
+
+    public void setEventlist(List<EventlistBean> eventlist) {
+        this.eventlist = eventlist;
     }
 
     public static class UserinfoBean {
@@ -569,6 +579,109 @@ public class UserInfoResponse extends BaseResponse{
                 public void setEtime(int etime) {
                     this.etime = etime;
                 }
+            }
+        }
+    }
+
+
+    public static class EventlistBean implements Serializable {
+        /**
+         * eventid : 3390
+         * etime : 20171130103033
+         * devid : 06AB00CAEAB6
+         * devname : 5omL5o+Q5YyF
+         * etype : 5
+         * locinfo : {"lat":39.100533,"lng":117.13704,"addr":""}
+         */
+
+        private String eventid;
+        private String etime;
+        private String devid;
+        private String devname;
+        private int etype;
+        private LocinfoBean locinfo;
+
+        public String getEventid() {
+            return eventid;
+        }
+
+        public void setEventid(String eventid) {
+            this.eventid = eventid;
+        }
+
+        public String getEtime() {
+            return etime;
+        }
+
+        public void setEtime(String etime) {
+            this.etime = etime;
+        }
+
+        public String getDevid() {
+            return devid;
+        }
+
+        public void setDevid(String devid) {
+            this.devid = devid;
+        }
+
+        public String getDevname() {
+            return devname;
+        }
+
+        public void setDevname(String devname) {
+            this.devname = devname;
+        }
+
+        public int getEtype() {
+            return etype;
+        }
+
+        public void setEtype(int etype) {
+            this.etype = etype;
+        }
+
+        public LocinfoBean getLocinfo() {
+            return locinfo;
+        }
+
+        public void setLocinfo(LocinfoBean locinfo) {
+            this.locinfo = locinfo;
+        }
+
+        public static class LocinfoBean implements Serializable {
+            /**
+             * lat : 39.100533
+             * lng : 117.13704
+             * addr :
+             */
+
+            private double lat;
+            private double lng;
+            private String addr;
+
+            public double getLat() {
+                return lat;
+            }
+
+            public void setLat(double lat) {
+                this.lat = lat;
+            }
+
+            public double getLng() {
+                return lng;
+            }
+
+            public void setLng(double lng) {
+                this.lng = lng;
+            }
+
+            public String getAddr() {
+                return addr;
+            }
+
+            public void setAddr(String addr) {
+                this.addr = addr;
             }
         }
     }

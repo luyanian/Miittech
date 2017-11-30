@@ -5,6 +5,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import com.baidu.location.BDLocation;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
@@ -47,7 +48,7 @@ import okhttp3.RequestBody;
  */
 
 public class Common {
-    public static void getMsgCode(Context context, String phone, final OnGetVerCodeComplete onGetVerCodeComplete) {
+    public synchronized static void getMsgCode(Context context, String phone, final OnGetVerCodeComplete onGetVerCodeComplete) {
 
         if(!RegexUtils.isMobileSimple(phone)){
             ToastUtils.showShort(R.string.tip_ver_phone_faild);
@@ -76,12 +77,19 @@ public class Common {
                     }
                 });
     }
-    public static void doCommitEvents(Context context,String devId, int eventType,Detailinfo detailinfo){
+    public synchronized static void doCommitEvents(Context context,String devId, int eventType,Detailinfo detailinfo){
         Map param = new HashMap();
         param.put("devid", devId);
         param.put("eventtime", Common.getCurrentTime());
         param.put("eventype", eventType);
-        param.put("locinfo", Common.decodeBase64(SPUtils.getInstance().getString(SPConst.LOCATION_ADDRE)));
+        Map locinfo = new HashMap();
+        Locinfo location = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+        if(location!=null) {
+            locinfo.put("addr", Common.decodeBase64(location.getAddr()));
+            locinfo.put("lat", location.getLat());
+            locinfo.put("lng", location.getLng());
+            param.put("locinfo", locinfo);
+        }
         if(detailinfo!=null) {
             param.put("detailinfo", detailinfo);
         }
@@ -112,38 +120,7 @@ public class Common {
                     }
                 });
     }
-    public static void doCommitDeviceStatus(Context context,int method, Repdata repData){
 
-        Map param = new HashMap();
-        param.put("method", method);
-        param.put("repdata", repData);
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "userreport/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(context).postDeviceOption(path, requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
-                    @Override
-                    public void accept(DeviceResponse response) throws Exception {
-                        if(response.isSuccessful()) {
-
-                        }else{
-
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
     public static String formatMac2DevId(String address){
         String[] temp = address.toUpperCase().split(":");
         StringBuilder builder = new StringBuilder();

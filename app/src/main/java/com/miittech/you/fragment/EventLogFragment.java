@@ -3,32 +3,35 @@ package com.miittech.you.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.miittech.you.App;
 import com.miittech.you.R;
+import com.miittech.you.adapter.EventLogAdapter;
+import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -49,24 +52,48 @@ public class EventLogFragment extends Fragment {
     SmartRefreshLayout refreshLayout;
     Unbinder unbinder;
 
+    private EventLogAdapter eventLogAdapter;
     private String sid="0";
+    private String dir="0";
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         refreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(RefreshLayout refreshlayout) {
-                refreshlayout.finishRefresh(2000);
-                sid="0";
-                getEventList();
+                synchronized (this) {
+                    refreshlayout.finishRefresh(2000);
+                    sid = "0";
+                    dir = "1";
+                    getEventList();
+                }
             }
         });
         refreshLayout.setOnLoadmoreListener(new OnLoadmoreListener() {
             @Override
             public void onLoadmore(RefreshLayout refreshlayout) {
-                refreshlayout.finishLoadmore(2000);
+                synchronized (this) {
+                    refreshlayout.finishLoadmore(2000);
+                    dir = "2";
+                    getEventList();
+                }
             }
         });
+
+        //创建默认的线性LayoutManager
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
+        recyclerview.setLayoutManager(mLayoutManager);
+        recyclerview.setHasFixedSize(true);
+        //创建并设置Adapter
+        eventLogAdapter = new EventLogAdapter(getActivity(), new OnListItemClick<DeviceResponse.DevlistBean>() {
+            @Override
+            public void onItemClick(DeviceResponse.DevlistBean devlistBean) {
+                super.onItemClick(devlistBean);
+                ToastUtils.showShort("点我干嘛啊！");
+            }
+        });
+        recyclerview.setAdapter(eventLogAdapter);
+        getEventList();
     }
 
     @Override
@@ -102,19 +129,19 @@ public class EventLogFragment extends Fragment {
         super.onDestroyView();
         unbinder.unbind();
     }
-    private void getEventList() {
+    private synchronized void getEventList() {
         Map param = new HashMap();
         param.put("qrytype", Params.QRY_TYPE.EVENTLOG);
-        param.put("dir", 0);
+        param.put("dir", dir);
         param.put("len", 10);
         param.put("sid", sid);
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        param.put("sdate", simpleDateFormat.format(calendar.getTime()));
-        calendar.add(Calendar.MONTH, -1);
         param.put("edate", simpleDateFormat.format(calendar.getTime()));
+        calendar.add(Calendar.MONTH, -1);
+        param.put("sdate", simpleDateFormat.format(calendar.getTime()));
 
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getInstance().getUserId());
@@ -123,14 +150,27 @@ public class EventLogFragment extends Fragment {
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
         String path = HttpUrl.Api + "userinfo/" + pubParam.toUrlParam(sign);
-        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(getActivity()).postNetRequestObject(path, requestBody)
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetUserInfo(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<JsonObject>() {
+                .subscribe(new Consumer<UserInfoResponse>() {
                     @Override
-                    public void accept(JsonObject jsonObject) throws Exception {
-                        String sfds = jsonObject.getAsString().toString();
+                    public void accept(UserInfoResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            if("0".equals(dir)){
+                                eventLogAdapter.refreshEventLog(response.getEventlist());
+                            }else if("2".equals(dir)){
+                                List<UserInfoResponse.EventlistBean> list = response.getEventlist();
+                                if(list!=null) {
+                                    UserInfoResponse.EventlistBean eventlistBean = list.get(list.size()-1);
+                                    if(eventlistBean!=null){
+                                        sid=eventlistBean.getEventid();
+                                    }
+                                    eventLogAdapter.loadMoreEventLog(response.getEventlist());
+                                }
+                            }
+                        }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -138,25 +178,6 @@ public class EventLogFragment extends Fragment {
                         throwable.printStackTrace();
                     }
                 });
-//        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetUserInfo(path, requestBody)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Consumer<UserInfoResponse>() {
-//                    @Override
-//                    public void accept(UserInfoResponse response) throws Exception {
-//                        if (response.isSuccessful()) {
-//
-//                        } else {
-//                            response.getUserinfo();
-//                        }
-//                    }
-//                }, new Consumer<Throwable>() {
-//                    @Override
-//                    public void accept(Throwable throwable) throws Exception {
-//                        throwable.printStackTrace();
-//                    }
-//                });
-
     }
 
 }

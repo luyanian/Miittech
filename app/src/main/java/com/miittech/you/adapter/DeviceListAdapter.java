@@ -71,7 +71,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         ViewHolder holder = (ViewHolder) viewHolder;
         holders.put(Common.formatDevId2Mac(devlistBean.getDevidX()),holder);
         holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
-        holder.itemLocation.setText(devlistBean.getLocinfo().getAddr());
+        holder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
         setTimeText(holder.itemTime,devlistBean.getLasttime());
         Glide.with(activity).load(devlistBean.getDevimg()).into(holder.itemIcon);
         holder.rlItem.setOnClickListener(new View.OnClickListener() {
@@ -156,7 +156,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             for(DeviceResponse.DevlistBean devlistBean : mData){
                 if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
                     viewHolder.itemBattery.setText(devlistBean.getDevbattery()+"%");
-                    viewHolder.itemLocation.setText(devlistBean.getLocinfo().getAddr());
+                    viewHolder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
                     setTimeText(viewHolder.itemTime,devlistBean.getLasttime());
                 }
             }

@@ -3,6 +3,7 @@ package com.miittech.you.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +26,8 @@ public class EventsFragment extends Fragment {
     TypeSelector typeSelector;
     Unbinder unbinder;
 
-    private FragmentTransaction transaction;
+    // 布局管理器
+    private FragmentManager fragmentManager;
     private EventLogFragment eventLogFragment;
     private TraceFragment traceFragment;
 
@@ -41,46 +43,60 @@ public class EventsFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        typeSelector.setItemText("轨迹追中","事件报告");
-        transaction = getChildFragmentManager().beginTransaction();
+        typeSelector.setItemText("轨迹追踪","事件报告");
+        fragmentManager = getActivity().getSupportFragmentManager();
         typeSelector.setTypeSelectorChangeLisener(new TypeSelectorChangeLisener() {
             @Override
             public void onTabSelectorChanged(int item) {
-                switchFragment(item);
+                FragmentTransaction trans = fragmentManager.beginTransaction();
+                hideFrament(trans);
+                setFragment(item,trans);
+                trans.commit();
             }
         });
-        switchFragment(1);
-        transaction.commit();
+        typeSelector.setSelectItem(0);
     }
 
-    private void switchFragment(int item) {
-        if(traceFragment!=null){
-            transaction.hide(traceFragment);
-        }
-        if(eventLogFragment!=null){
-            transaction.hide(eventLogFragment);
-        }
-
-        if(item==0){
-            if(traceFragment==null){
-                traceFragment = new TraceFragment();
-                transaction.add(R.id.id_fragment, traceFragment);
-            }else{
-                transaction.show(traceFragment);;
-            }
-        }else{
-            if(eventLogFragment==null){
-                eventLogFragment = new EventLogFragment();
-                transaction.add(R.id.id_fragment,eventLogFragment);
-            }else{
-                transaction.show(eventLogFragment);
-            }
-        }
-    }
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
+    }
+    /**
+     * 设置Fragment
+     * @param item
+     * @param trans
+     */
+    private void setFragment(int item,FragmentTransaction trans) {
+        switch (item) {
+            case 0:
+                if(traceFragment==null){
+                    traceFragment = new TraceFragment();
+                    trans.add(R.id.id_fragment, traceFragment);
+                }else{
+                    trans.show(traceFragment);
+                }
+                break;
+            case 1:
+                if(eventLogFragment==null){
+                    eventLogFragment = new EventLogFragment();
+                    trans.add(R.id.id_fragment, eventLogFragment);
+                }else{
+                    trans.show(eventLogFragment);
+                }
+                break;
+        }
+    }
+    /**
+     * 隐藏所有的fragment(编程初始化状态)
+     * @param trans
+     */
+    private void hideFrament(FragmentTransaction trans) {
+        if(traceFragment!=null){
+            trans.hide(traceFragment);
+        }
+        if(eventLogFragment!=null){
+            trans.hide(eventLogFragment);
+        }
     }
 }
