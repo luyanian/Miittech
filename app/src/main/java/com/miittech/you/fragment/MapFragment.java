@@ -51,7 +51,6 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.location.LocationClient;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendLocInfoResponse;
 import com.miittech.you.net.response.FriendsResponse;

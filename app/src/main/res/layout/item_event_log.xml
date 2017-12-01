@@ -20,27 +20,36 @@
         android:layout_height="wrap_content"
         android:textSize="14dp"
         android:text="20171130"/>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="140dp">
-        <com.baidu.mapapi.map.TextureMapView
-            android:id="@+id/map_view"
-            android:layout_width="match_parent"
-            android:layout_height="140dp"/>
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:layout_alignParentBottom="true"
-            android:background="@drawable/shape_event_log_addr">
-            <TextView
-                android:id="@+id/item_address"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginLeft="8dp"
-                android:textSize="16dp"/>
-        </RelativeLayout>
-    </RelativeLayout>
+    <!--<RelativeLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="140dp">-->
+        <!--<com.baidu.mapapi.map.TextureMapView-->
+            <!--android:id="@+id/map_view"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="140dp"/>-->
+        <!--<RelativeLayout-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="30dp"-->
+            <!--android:layout_alignParentBottom="true"-->
+            <!--android:background="@drawable/shape_event_log_addr">-->
+            <!--<TextView-->
+                <!--android:id="@+id/item_address"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_centerVertical="true"-->
+                <!--android:layout_marginLeft="8dp"-->
+                <!--android:textSize="16dp"/>-->
+        <!--</RelativeLayout>-->
+    <!--</RelativeLayout>-->
 
+    <FrameLayout
+        android:id="@+id/id_fragment_eventlog"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:visibility="gone"/>
+    <ImageView
+        android:id="@+id/item_img_map"
+        android:layout_width="match_parent"
+        android:layout_height="143dp" />
 
 </LinearLayout>
