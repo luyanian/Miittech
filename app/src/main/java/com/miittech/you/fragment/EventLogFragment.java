@@ -1,5 +1,6 @@
 package com.miittech.you.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
+import com.miittech.you.activity.event.EventLogDetailActivity;
 import com.miittech.you.adapter.EventLogAdapter;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
@@ -85,11 +87,13 @@ public class EventLogFragment extends Fragment {
         recyclerview.setLayoutManager(mLayoutManager);
         recyclerview.setHasFixedSize(true);
         //创建并设置Adapter
-        eventLogAdapter = new EventLogAdapter(getActivity(), new OnListItemClick<DeviceResponse.DevlistBean>() {
+        eventLogAdapter = new EventLogAdapter(getActivity(), new OnListItemClick<UserInfoResponse.EventlistBean>() {
             @Override
-            public void onItemClick(DeviceResponse.DevlistBean devlistBean) {
-                super.onItemClick(devlistBean);
-                ToastUtils.showShort("点我干嘛啊！");
+            public void onItemClick(UserInfoResponse.EventlistBean eventlistBean) {
+                super.onItemClick(eventlistBean);
+                Intent intent = new Intent(EventLogFragment.this.getActivity(), EventLogDetailActivity.class);
+                intent.putExtra("eventlistBean",eventlistBean);
+                startActivity(intent);
             }
         });
         recyclerview.setAdapter(eventLogAdapter);

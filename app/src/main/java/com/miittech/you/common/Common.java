@@ -20,6 +20,7 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.service.BleService;
+import com.miittech.you.utils.HexUtil;
 import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncodeUtils;
 import com.ryon.mutils.EncryptUtils;
@@ -170,8 +171,8 @@ public class Common {
     }
 
     public static byte[] formatBleMsg(int modeBind, String msg){
-//        byte[] temp = ConvertUtils.hexString2Bytes(msg);
-        byte[] temp = ConvertUtils.str2HexStr1(msg);
+//        byte[] temp = ConvertUtils.str2HexStr1(msg);
+        byte[] temp = HexUtil.decodeHex(HexUtil.encodeHex(msg.getBytes()));
         byte[] data = new byte[temp.length+1];
         if(modeBind==Params.BLEMODE.MODE_BIND){
             data[0] = 0x02;
@@ -183,6 +184,7 @@ public class Common {
         for (int i=0;i<temp.length;i++){
             data[i+1]=temp[i];
         }
+
         return  data;
     }
 

@@ -73,13 +73,7 @@ public final class ConvertUtils {
         }
         return re;
     }
-    public static void hex2Str(byte[] data) {
-//        for (int j = 0; j < in.length; j++) {
-//
-//        }
-    }
-    public static byte[] str2HexStr2(String str)
-    {
+    public static String str2HexStr2(String str){
 
         char[] chars = "0123456789ABCDEF".toCharArray();
         StringBuilder sb = new StringBuilder("");
@@ -92,9 +86,8 @@ public final class ConvertUtils {
             sb.append(chars[bit]);
             bit = bs[i] & 0x0f;
             sb.append(chars[bit]);
-            sb.append(' ');
         }
-        return sb.toString().trim().getBytes();
+        return sb.toString().trim();
     }
 
 

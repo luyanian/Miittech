@@ -26,6 +26,7 @@ import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.SupportMapFragment;
 import com.baidu.mapapi.map.TextureMapView;
 import com.baidu.mapapi.model.LatLng;
+import com.bumptech.glide.Glide;
 import com.miittech.you.R;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.Params;
@@ -47,19 +48,17 @@ import butterknife.ButterKnife;
 public class EventLogAdapter extends RecyclerView.Adapter {
 
     private List<UserInfoResponse.EventlistBean> eventlist = new ArrayList<>();
-    private FragmentActivity activity;
+    private Context context;
     private OnListItemClick onDeviceItemClick;
-    FragmentManager manager;
 
-    public EventLogAdapter(FragmentActivity context, OnListItemClick onDeviceItemClick) {
-        this.activity = context;
+    public EventLogAdapter(Context context, OnListItemClick onDeviceItemClick) {
+        this.context = context;
         this.onDeviceItemClick = onDeviceItemClick;
-        manager = activity.getSupportFragmentManager();
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, final int i) {
-        View view = View.inflate(activity, R.layout.item_event_log, null);
+        View view = View.inflate(context, R.layout.item_event_log, null);
         ViewHolder viewHolder = new ViewHolder(view);
         return viewHolder;
     }
@@ -86,45 +85,13 @@ public class EventLogAdapter extends RecyclerView.Adapter {
         holder.itemTitle.setText("您的" + Common.decodeBase64(eventlistBean.getDevname()) + eventStr);
         holder.itemTime.setText(TimeUtils.getFriendlyTimeSpanByNow(eventlistBean.getEtime(), new SimpleDateFormat("yyyyMMddhhmmss")));
         if (eventlistBean.getLocinfo() != null) {
-            LatLng latLng = new LatLng(eventlistBean.getLocinfo().getLat(), eventlistBean.getLocinfo().getLng());
-            MapStatus.Builder builder = new MapStatus.Builder();
-            builder.target(latLng);
-            BaiduMapOptions bo = new BaiduMapOptions().mapStatus(builder.build()).compassEnabled(false).zoomControlsEnabled(false);
-            SupportMapFragment supportMapFragment = SupportMapFragment.newInstance(bo);
-            manager.beginTransaction().add(R.id.id_fragment_eventlog, supportMapFragment, "map_fragment").commit();
+            holder.itemAddress.setText(Common.decodeBase64(eventlistBean.getLocinfo().getAddr()));
+            String imgUrl = "http://api.map.baidu.com/staticimage/v2?ak=eA32DSeForR8YOTkvDM6LhUcFaHwrwVR" +
+                    "&mcode=4B:DB:0E:E2:CA:AA:EF:77:C7:37:FA:46:B9:6D:C6:CB:CD:02:10:47;com.miittech.you" +
+                    "&center="+eventlistBean.getLocinfo().getLng()+","+eventlistBean.getLocinfo().getLat()+"&width=560&height=280&zoom=16" +
+                    "&markers="+eventlistBean.getLocinfo().getLng()+","+eventlistBean.getLocinfo().getLat()+"&markerStyles=l,A|m,B|l,C|l,D|m,E|,|l,G|m,H";
 
-            final BaiduMap mBaiduMap = supportMapFragment.getBaiduMap();
-            final MapView mapView = supportMapFragment.getMapView();
-            mBaiduMap.setOnMapLoadedCallback(new BaiduMap.OnMapLoadedCallback() {
-                @Override
-                public void onMapLoaded() {
-                    mBaiduMap.snapshot(new BaiduMap.SnapshotReadyCallback() {
-                        @Override
-                        public void onSnapshotReady(Bitmap bitmap) {
-                            if(bitmap!=null){
-                                holder.itemImgMap.setImageBitmap(bitmap);
-                            }
-                        }
-                    });
-                }
-            });
-
-//            MapView mapView = holder.supportMapFragment.getMapView();
-//            BaiduMap baiduMap = holder.supportMapFragment.getBaiduMap();
-//            baiduMap.getUiSettings().setAllGesturesEnabled(false);
-//            mapView.showZoomControls(false);
-//            mapView.setMapCustomEnable(false);
-//            mapView.setLogoPosition(LogoPosition.logoPostionRightBottom);
-//
-//            LatLng latLng = new LatLng(eventlistBean.getLocinfo().getLat(), eventlistBean.getLocinfo().getLng());
-//            MapStatusUpdate u1 = MapStatusUpdateFactory.newLatLng(latLng);
-//            baiduMap.setMapStatus(u1);
-
-//            BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromResource(R.drawable.ic_map);
-//            MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL, true, mCurrentMarker, 0xAAFFFF88, 0xAA00FF00);
-//            mBaiduMap.setMyLocationConfiguration(config);
-//            MyLocationData locData = new MyLocationData.Builder().latitude(eventlistBean.getLocinfo().getLat()).longitude(eventlistBean.getLocinfo().getLng()).build();
-//            mBaiduMap.setMyLocationData(locData);
+            Glide.with(context).load(imgUrl).into(holder.itemImgMap);
 
         }
         holder.llItem.setOnClickListener(new View.OnClickListener() {
@@ -149,6 +116,8 @@ public class EventLogAdapter extends RecyclerView.Adapter {
         TextView itemTime;
         @BindView(R.id.item_img_map)
         ImageView itemImgMap;
+        @BindView(R.id.item_address)
+        TextView itemAddress;
         @BindView(R.id.ll_item)
         LinearLayout llItem;
 
