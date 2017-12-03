@@ -247,7 +247,6 @@ public  class BleService extends Service {
                 .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
                 .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
                 .build();
-        BLEClientManager.getClient().refreshCache(mac);
         BLEClientManager.getClient().connect(mac,options, new BleConnectResponse() {
             @Override
             public void onResponse(int code, BleGattProfile data) {
@@ -457,7 +456,7 @@ public  class BleService extends Service {
                     temp = TimeUtils.getNowMills();
                 } else if (status == Constants.STATUS_DISCONNECTED) {
                     LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已断开");
-
+                    BLEClientManager.getClient().disconnect(mac);
                     DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
                     if(response!=null){
                         DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
@@ -466,7 +465,7 @@ public  class BleService extends Service {
                                 return;
                             }
                         }
-                        if(temp!=0&&TimeUtils.getTimeSpan(temp,TimeUtils.getNowMills(),TimeConstants.SEC)>10){
+                        if(temp!=0&&TimeUtils.getTimeSpan(temp,TimeUtils.getNowMills(),TimeConstants.SEC)>20){
                             doPlay(response);
                         };
                     }
