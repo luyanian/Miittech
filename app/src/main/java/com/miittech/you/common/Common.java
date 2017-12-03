@@ -6,6 +6,8 @@ import android.text.TextUtils;
 import android.util.Base64;
 
 import com.baidu.location.BDLocation;
+import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
@@ -19,23 +21,28 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.service.BleService;
 import com.miittech.you.utils.HexUtil;
 import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncodeUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.SpanUtils;
 import com.ryon.mutils.StringUtils;
+import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -86,7 +93,7 @@ public class Common {
         Map locinfo = new HashMap();
         Locinfo location = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
         if(location!=null) {
-            locinfo.put("addr", Common.decodeBase64(location.getAddr()));
+            locinfo.put("addr", Common.encodeBase64(location.getAddr()));
             locinfo.put("lat", location.getLat());
             locinfo.put("lng", location.getLng());
             param.put("locinfo", locinfo);
@@ -215,6 +222,80 @@ public class Common {
                         return true;
                     }
                 }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isUserContainDevice(String address) {
+        DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+        if(response!=null){
+            List<DeviceResponse.DevlistBean> list = response.getDevlist();
+            for (DeviceResponse.DevlistBean devlistBean : list){
+                if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isIgnoreBell() {
+        UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
+        if(response!=null&&response.getConfig()!=null){
+            UserInfoResponse.ConfigBean configBean = response.getConfig();
+            if(configBean.getDonotdisturb()!=null){
+                UserInfoResponse.ConfigBean.DonotdisturbBean donotdisturbBean = configBean.getDonotdisturb();
+                if(isAreaIgnore(donotdisturbBean.getArealist())||isTimeIgnore(donotdisturbBean.getTimelist())){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isAreaIgnore(List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist){
+        if(arealist!=null&&arealist.size()>0){
+            for (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean : arealist){
+                if(arealistBean.getSsid().equals(NetworkUtils.getSsidOfConnectWifi())){
+                    return true;
+                }
+                UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean.AreaBean areaBean = arealistBean.getArea();
+                if(areaBean!=null){
+                    Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+                    LatLng latLng1 = new LatLng(areaBean.getLat(),areaBean.getLng());
+                    LatLng latLng2 = new LatLng(locinfo.getLat(),locinfo.getLng());
+                    if(DistanceUtil.getDistance(latLng1, latLng2)<areaBean.getR()){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    public static boolean isTimeIgnore(List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist){
+        if(timelist==null||timelist.size()<=0){
+            return false;
+        }
+        for(UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean : timelist){
+            int index = TimeUtils.getWeekIndex(new Date());
+            String week = timelistBean.getDayofweek();
+            if(TextUtils.isEmpty(week)){
+                return false;
+            }
+            index = (index+7-1)%7;
+
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+            Date date = new Date();
+
+            String ymd = simpleDateFormat.format(date);
+            SimpleDateFormat format = new SimpleDateFormat("yyyyMMddhhmmss");
+            long stime = TimeUtils.string2Millis(ymd+timelistBean.getStime(),format);
+            long etime = TimeUtils.string2Millis(ymd+timelistBean.getEtime(),format);
+            long curTime = TimeUtils.getNowMills();
+
+            if(curTime>stime&&curTime<etime&&week.contains(index+"")){
+                return true;
             }
         }
         return false;

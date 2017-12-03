@@ -51,29 +51,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
         <RelativeLayout
-            android:id="@+id/rl_find_or_bell"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
+            android:id="@+id/rl_bell_status"
+            android:layout_width="180dp"
+            android:layout_height="45dp"
+            android:layout_marginTop="10dp"
             android:layout_alignParentBottom="true"
-            android:layout_marginTop="10dp">
-
-            <ImageView
-                android:id="@+id/img_find_background"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_device_find_background"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"/>
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/shape_corner_device_diconnect">
 
             <ImageView
                 android:id="@+id/img_find_butten"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:src="@drawable/ic_device_find"
-                android:layout_centerHorizontal="true"
+                android:layout_centerInParent="true"
                 android:layout_marginTop="15dp"/>
-
         </RelativeLayout>
     </RelativeLayout>
 

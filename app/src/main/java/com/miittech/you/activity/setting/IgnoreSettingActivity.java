@@ -19,6 +19,7 @@ import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnIgnoreAddOptions;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
@@ -30,6 +31,7 @@ import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
 
 import org.w3c.dom.Text;
@@ -198,6 +200,8 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
                         initIgnoreConfig(response);
+                        SPUtils.getInstance().readObject(SPConst.USER_INFO);
+                        SPUtils.getInstance().saveObject(SPConst.USER_INFO,response);
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -210,7 +214,6 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
     private void initIgnoreConfig(UserInfoResponse response) {
 //        addAreaIgnore(response.getConfig().getDonotdisturb().getArealist());
         if(response.getConfig()==null){
-
             return;
         }else if(response.getConfig().getDonotdisturb()==null){
 

@@ -7,18 +7,37 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceAddActivity;
 import com.miittech.you.activity.setting.SettingActivity;
 import com.miittech.you.fragment.EventsFragment;
 import com.miittech.you.fragment.ListFragment;
 import com.miittech.you.fragment.MapFragment;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.Params;
+import com.miittech.you.global.PubParam;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
+import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.EncryptUtils;
+import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.SPUtils;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 public class MainActivity extends BaseActivity {
 
@@ -62,6 +81,7 @@ public class MainActivity extends BaseActivity {
 
         tabMap.setSelected(true);
         onViewClicked(tabList);
+        getIgnoreSetting();
     }
 
     @OnClick({R.id.tab_list, R.id.tab_map, R.id.tab_events})
@@ -149,5 +169,33 @@ public class MainActivity extends BaseActivity {
             default:
                 break;
         }
+    }
+    private void getIgnoreSetting() {
+        Map param = new LinkedHashMap();
+        param.put("qrytype", Params.QRY_TYPE.ALL);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userinfo/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postToGetUserInfo(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<UserInfoResponse>() {
+                    @Override
+                    public void accept(UserInfoResponse response) throws Exception {
+                        SPUtils.getInstance().readObject(SPConst.USER_INFO);
+                        SPUtils.getInstance().saveObject(SPConst.USER_INFO,response);
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
     }
 }

@@ -9,11 +9,13 @@ import android.os.PersistableBundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
 import com.miittech.you.App;
 import com.miittech.you.R;
@@ -23,6 +25,7 @@ import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
+import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -38,9 +41,11 @@ import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
+import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import butterknife.BindView;
@@ -65,8 +70,8 @@ public class DeviceDetailActivity extends BaseActivity {
     CircleImageView imgDeviceIcon;
     @BindView(R.id.tv_device_name)
     TextView tvDeviceName;
-    @BindView(R.id.img_find_background)
-    ImageView imgFindBackground;
+    @BindView(R.id.rl_bell_status)
+    RelativeLayout rlBellStatus;
     @BindView(R.id.img_find_butten)
     ImageView imgFindBtn;
     @BindView(R.id.typeSelector)
@@ -140,8 +145,12 @@ public class DeviceDetailActivity extends BaseActivity {
     private void initViewData(DeviceInfoResponse.UserinfoBean.DevinfoBean device) {
         this.deviceDetailInfo = device;
         tvDeviceName.setText(Common.decodeBase64(device.getDevname()));
-        tvDeviceLocation.setText(device.getLocinfo().getAddr());
-        tvDeviceTime.setText(device.getLasttime());
+        if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(device.getDevid()))== Constants.STATUS_DEVICE_CONNECTED){
+            tvDeviceLocation.setText("现在");
+        }else {
+            tvDeviceLocation.setText(Common.decodeBase64(device.getLocinfo().getAddr()));
+        }
+        setTimeText(tvDeviceTime,device.getLasttime());
         Glide.with(this)
                 .load(device.getDevimg())
                 .into(imgDeviceIcon);
@@ -161,10 +170,10 @@ public class DeviceDetailActivity extends BaseActivity {
         }
     }
 
-    @OnClick({R.id.rl_find_or_bell, R.id.btn_option_map, R.id.btn_option_share, R.id.btn_option_setting, R.id.btn_option_delete})
+    @OnClick({R.id.rl_bell_status, R.id.btn_option_map, R.id.btn_option_share, R.id.btn_option_setting, R.id.btn_option_delete})
     public void onViewClicked(View view) {
         switch (view.getId()) {
-            case R.id.rl_find_or_bell:
+            case R.id.rl_bell_status:
                 doFindOrBell();
                 break;
             case R.id.btn_option_map:
@@ -189,6 +198,10 @@ public class DeviceDetailActivity extends BaseActivity {
     }
 
     private void doFindOrBell() {
+        if(Common.isIgnoreBell()){
+            ToastUtils.showShort("贴片在勿扰范围内");
+            return;
+        }
         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_ALERT_START);
@@ -199,14 +212,29 @@ public class DeviceDetailActivity extends BaseActivity {
         sendBroadcast(intent);
     }
     private void switchFindBtnStyle() {
-        if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
-            imgFindBackground.setImageResource(R.drawable.ic_device_find_background);
-            imgFindBtn.setImageResource(R.drawable.ic_device_find);
+        String mac = Common.formatDevId2Mac(device.getDevidX());
+        if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED) {
+            if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
+                rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
+                imgFindBtn.setImageResource(R.drawable.ic_device_find);
+            } else {
+                rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_bell);
+                imgFindBtn.setImageResource(R.drawable.ic_device_bell);
+            }
         }else{
-            imgFindBackground.setImageResource(R.drawable.ic_device_find_stop_background);
-            imgFindBtn.setImageResource(R.drawable.ic_device_bell);
+            rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_diconnect);
+            imgFindBtn.setImageResource(R.drawable.ic_device_find);
         }
     }
+    private void setTimeText(TextView itemTime, String lasttime) {
+        if(itemTime==null){
+            return;
+        }
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddhhmmss");
+        String timeSpan = TimeUtils.getFriendlyTimeSpanByNow(lasttime,sdf);
+        itemTime.setText(timeSpan);
+    }
+
     private void getDeviceInfo(final DeviceResponse.DevlistBean device) {
         if(!NetworkUtils.isConnected()){
             DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(device.getDevidX()));

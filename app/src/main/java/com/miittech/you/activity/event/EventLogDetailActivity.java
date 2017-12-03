@@ -16,6 +16,7 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.inuker.bluetooth.library.Constants;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.device.DeviceDetailActivity;
@@ -25,6 +26,7 @@ import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
+import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
@@ -51,8 +53,8 @@ public class EventLogDetailActivity extends BaseActivity {
     TextView tvTime;
     @BindView(R.id.map_view)
     MapView mapView;
-    @BindView(R.id.img_find_background)
-    ImageView imgFindBackground;
+    @BindView(R.id.rl_bell_status)
+    ImageView rlBellStatus;
     @BindView(R.id.img_find_butten)
     ImageView imgFindButten;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
@@ -93,18 +95,18 @@ public class EventLogDetailActivity extends BaseActivity {
         this.unregisterReceiver(cmdResponseReceiver);
     }
 
-    @OnClick({R.id.img_navagation, R.id.rl_find_or_bell})
+    @OnClick({R.id.img_navagation, R.id.rl_bell_status})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.img_navagation:
                 Intent i1 = new Intent();
                 i1.setData(Uri.parse("baidumap://map/direction?&destination=latlng:"
                         +eventlistBean.getLocinfo().getLat()+","+eventlistBean.getLocinfo().getLng()
-                        +"|name:"+eventlistBean.getLocinfo().getAddr()
+                        +"|name:"+Common.decodeBase64(eventlistBean.getLocinfo().getAddr())
                         +"&mode=transit&sy=3&index=0&target=1"));
                 startActivity(i1);
                 break;
-            case R.id.rl_find_or_bell:
+            case R.id.rl_bell_status:
                 doFindOrBell();
                 break;
         }
@@ -122,12 +124,18 @@ public class EventLogDetailActivity extends BaseActivity {
     }
 
     private void switchFindBtnStyle() {
-        if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(eventlistBean.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
-            imgFindBackground.setImageResource(R.drawable.ic_device_find_background);
+        String mac = Common.formatDevId2Mac(eventlistBean.getDevid());
+        if(BLEClientManager.getClient().getConnectStatus(mac)== Constants.STATUS_DEVICE_CONNECTED) {
+            if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(eventlistBean.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
+                rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
+                imgFindButten.setImageResource(R.drawable.ic_device_find);
+            } else {
+                rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_bell);
+                imgFindButten.setImageResource(R.drawable.ic_device_bell);
+            }
+        }else{
+            rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_diconnect);
             imgFindButten.setImageResource(R.drawable.ic_device_find);
-        } else {
-            imgFindBackground.setImageResource(R.drawable.ic_device_find_stop_background);
-            imgFindButten.setImageResource(R.drawable.ic_device_bell);
         }
     }
     public void updateMapLocalView(){

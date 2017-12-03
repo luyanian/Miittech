@@ -42,12 +42,15 @@ import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.FriendsResponse;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.ryon.constant.TimeConstants;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
+import com.ryon.mutils.ToastUtils;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -159,7 +162,12 @@ public  class BleService extends Service {
                         clearAllConnect();
                         break;
                     case IntentExtras.CMD.CMD_TASK_EXCE:
-                        exceTask();
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                exceTask();
+                            }
+                        }).start();
                         break;
                 }
             }
@@ -187,6 +195,27 @@ public  class BleService extends Service {
                         }
                     }
                 });
+                DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
+                if(response!=null) {
+                    DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                    if (alertinfoBean != null) {
+                        byte[] data = new byte[1];
+                        if (alertinfoBean.getIsRepeat() == 0 || Common.isIgnoreBell()) {
+                           data[0] = 0x00;
+
+                        }else{
+                            data[0] = 0x02;
+                        }
+//                        BLEClientManager.getClient().write(mac,BleCommon.linkLossUUID,BleCommon.characteristicUUID,data,new BleWriteResponse(){
+//                            @Override
+//                            public void onResponse(int code) {
+//                                if(code == REQUEST_SUCCESS){
+//
+//                                }
+//                            }
+//                        });
+                    }
+                }
             }else{
                 if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_DISCONNECTED){
                     connectDevice(mac);
@@ -245,8 +274,13 @@ public  class BleService extends Service {
             return;
         }
         mConnectedList.add(mac);
-
-        BLEClientManager.getClient().connect(mac, new BleConnectResponse() {
+        BleConnectOptions options = new BleConnectOptions.Builder()
+                .setConnectRetry(5)   // 连接如果失败重试3次
+                .setConnectTimeout(30000)   // 连接超时30s
+                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
+                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+                .build();
+        BLEClientManager.getClient().connect(mac,options, new BleConnectResponse() {
             @Override
             public void onResponse(int code, BleGattProfile data) {
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
@@ -371,8 +405,29 @@ public  class BleService extends Service {
                     LogUtils.d("bleResponse","贴片设置工作模式成功----->"+mac);
                     intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS);
                     sendBroadcast(intent);
-                    if(SPUtils.getInstance().getBoolean(SPConst.IS_DEVICE_REDISCOVER)){
-                        Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(mac),Params.EVENT_TYPE.DEVICE_REDISCOVER,null);
+                    if(SPUtils.getInstance().getBoolean(SPConst.IS_DEVICE_REDISCOVER)) {
+                        Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(mac), Params.EVENT_TYPE.DEVICE_REDISCOVER, null);
+                        final DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
+                        if (response != null) {
+                            DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                            if (alertinfoBean != null) {
+                                byte[] data = new byte[1];
+                                if (alertinfoBean.getIsReconnect()==1&&!Common.isIgnoreBell()) {
+                                    new Thread(new Runnable(){
+                                        public void run(){
+                                            try {
+                                                Thread.sleep(3000);
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+                                           if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+                                               doPlay(response);
+                                           }
+                                        }
+                                    }).start();
+                                }
+                            }
+                        }
                     }else{
                         Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(mac),Params.EVENT_TYPE.DEVICE_CONNECT,null);
                         SPUtils.getInstance().put(SPConst.IS_DEVICE_REDISCOVER,true);
@@ -391,16 +446,30 @@ public  class BleService extends Service {
     }
     public synchronized void registAndNotify(final String mac){
         BLEClientManager.getClient().registerConnectStatusListener(mac, new BleConnectStatusListener() {
+            long temp=0;
             @Override
             public void onConnectStatusChanged(String mac, int status) {
                 if (status == Constants.STATUS_CONNECTED) {
-
                     LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已连接");
                     if(!mConnectedList.contains(mac)){
                         mConnectedList.add(mac);
                     }
+                    temp = TimeUtils.getNowMills();
                 } else if (status == Constants.STATUS_DISCONNECTED) {
                     LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已断开");
+
+                    DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
+                    if(response!=null){
+                        DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                        if(alertinfoBean!=null){
+                            if(alertinfoBean.getIsRepeat()==0||Common.isIgnoreBell()){
+                                return;
+                            }
+                        }
+                        if(temp!=0&&TimeUtils.getTimeSpan(temp,TimeUtils.getNowMills(),TimeConstants.SEC)>10){
+                            doPlay(response);
+                        };
+                    }
                     Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(mac),Params.EVENT_TYPE.DEVICE_LOSE,null);
                     if(mConnectedList.contains(mac)){
                         mConnectedList.remove(mac);
@@ -418,21 +487,13 @@ public  class BleService extends Service {
             public void onNotify(UUID service, UUID character, byte[] value) {
                 LogUtils.d("接收到蓝牙发送广播》》》"+value);
                 if(value[0]==02){
+                    if(Common.isIgnoreBell()){
+                        LogUtils.d("贴片在勿扰范围内,报警忽略！");
+                        return;
+                    }
                     DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
                     if(response!=null){
-                        String url = response.getUserinfo().getDevinfo().getAlertinfo().getUrlX();
-                        boolean isRepeat = (response.getUserinfo().getDevinfo().getAlertinfo().getIsRepeat()==1)?true:false;
-                        boolean isShake = (response.getUserinfo().getDevinfo().getAlertinfo().getIsShake()==1)?true:false;
-                        int duration = response.getUserinfo().getDevinfo().getAlertinfo().getDuration();
-                        if(url.contains("bluesforslim")){
-                            SoundPlayUtils.play(1,isRepeat,duration);
-                        }else if(url.contains("countryfair")){
-                            SoundPlayUtils.play(2,isRepeat,duration);
-                        }else if(url.contains("theclassiccall")){
-                            SoundPlayUtils.play(4,isRepeat,duration);
-                        }else{
-                            SoundPlayUtils.play(3,isRepeat,duration);
-                        }
+                        doPlay(response);
                     }
 
                 }
@@ -462,6 +523,23 @@ public  class BleService extends Service {
             }
         });
     }
+
+    private void doPlay(DeviceInfoResponse response) {
+        String url = response.getUserinfo().getDevinfo().getAlertinfo().getUrlX();
+        boolean isRepeat = (response.getUserinfo().getDevinfo().getAlertinfo().getIsRepeat()==1)?true:false;
+        boolean isShake = (response.getUserinfo().getDevinfo().getAlertinfo().getIsShake()==1)?true:false;
+        int duration = response.getUserinfo().getDevinfo().getAlertinfo().getDuration();
+        if(url.contains("bluesforslim")){
+            SoundPlayUtils.play(1,isRepeat,duration);
+        }else if(url.contains("countryfair")){
+            SoundPlayUtils.play(2,isRepeat,duration);
+        }else if(url.contains("theclassiccall")){
+            SoundPlayUtils.play(4,isRepeat,duration);
+        }else{
+            SoundPlayUtils.play(3,isRepeat,duration);
+        }
+    }
+
     public synchronized void setBindMode(final String mac){
         byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getInstance().getUserId());
         BLEClientManager.getClient().write(mac, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, new BleWriteResponse() {
@@ -502,13 +580,12 @@ public  class BleService extends Service {
             long curMillis = TimeUtils.getNowDate().getTime();
             if(lastLocation!=null) {
                 LatLng last = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-                if(DistanceUtil. getDistance(last, current)>200||TimeUtils.getTimeSpan(curMillis,lastMillins, TimeConstants.MIN)>30){
+                if(DistanceUtil.getDistance(last, current)>200||TimeUtils.getTimeSpan(curMillis,lastMillins, TimeConstants.MIN)>30){
                     reportUserLocation(curMillis,location);
                 }
             }else{
                 reportUserLocation(curMillis,location);
             }
-            lastLocation = location;
         }
     }
 
@@ -538,9 +615,10 @@ public  class BleService extends Service {
                 devItem.put("usedstate", 1);
                 devItem.put("bindstate", 1);
                 devlist.add(devItem);
-            }else{
-                return;
             }
+        }
+        if(devlist.size()<=0){
+            return;
         }
         Map repdata = new HashMap();
         repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyyMMddhhmmss")));
@@ -560,6 +638,8 @@ public  class BleService extends Service {
             reportList.add(json);
             SPUtils.getInstance().put("reportList", reportList);
         }
+        lastLocation = location;
+        lastMillins = millis;
     }
     public synchronized void exceReportSubmit(){
         if(!NetworkUtils.isConnected()){
