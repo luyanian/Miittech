@@ -9,6 +9,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.miittech.you.R;
+import com.miittech.you.common.SoundPlayUtils;
+import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.SoundListResponse;
@@ -78,6 +80,8 @@ public class SelectRingAdapter extends RecyclerView.Adapter {
                 value.imgItem.setVisibility(View.GONE);
             }
         }
+        int index = (currentItem+1+2)%4;
+        SoundPlayUtils.playSound(index,false,10000);
     }
 
     public void initSelectAlerName(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo) {

@@ -17,12 +17,18 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
+import com.luck.picture.lib.PictureSelector;
+import com.luck.picture.lib.config.PictureConfig;
+import com.luck.picture.lib.config.PictureMimeType;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
+import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.dialog.MsgTipDialog;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
+import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.manager.BLEClientManager;
@@ -173,6 +179,9 @@ public class DeviceDetailActivity extends BaseActivity {
     @OnClick({R.id.rl_bell_status, R.id.btn_option_map, R.id.btn_option_share, R.id.btn_option_setting, R.id.btn_option_delete})
     public void onViewClicked(View view) {
         switch (view.getId()) {
+            case R.id.img_device_icon:
+//                Intent intent = new Intent(this,DeviceSetAttrActivity.class);
+                break;
             case R.id.rl_bell_status:
                 doFindOrBell();
                 break;
@@ -189,10 +198,25 @@ public class DeviceDetailActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.btn_option_delete:
-                Intent unbind= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-                unbind.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
-                unbind.putExtra("address",Common.formatDevId2Mac(device.getDevidX()));
-                sendBroadcast(unbind);
+                MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(this);
+                msgTipDialog.setTitle("删除设备").setMsg("删除操作将清空所有的设备信息，是否确定删除");
+                msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
+                    @Override
+                    public void onSure() {
+                        super.onSure();
+                        Intent unbind= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                        unbind.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
+                        unbind.putExtra("address",Common.formatDevId2Mac(device.getDevidX()));
+                        sendBroadcast(unbind);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        super.onCancel();
+
+                    }
+                });
+                msgTipDialog.show();
                 break;
         }
     }
@@ -254,21 +278,6 @@ public class DeviceDetailActivity extends BaseActivity {
         LogUtils.d("sign_sha1", sign);
         String path = HttpUrl.Api + "deviceinfo/" + pubParam.toUrlParam(sign);
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-
-//        ApiServiceManager.getInstance().buildApiService(this).postNetRequestObject(path, requestBody)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Consumer<JsonObject>() {
-//                    @Override
-//                    public void accept(JsonObject response) throws Exception {
-//                        JsonObject jsonObject = response;
-//                    }
-//                }, new Consumer<Throwable>() {
-//                    @Override
-//                    public void accept(Throwable throwable) throws Exception {
-//                        throwable.printStackTrace();
-//                    }
-//                });
 
         ApiServiceManager.getInstance().buildApiService(this).postDeviceInfoOption(path, requestBody)
                 .subscribeOn(Schedulers.io())

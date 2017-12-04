@@ -6,14 +6,36 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
+import com.miittech.you.App;
+import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.activity.device.DeviceDetailActivity;
+import com.miittech.you.common.Common;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.Params;
+import com.miittech.you.global.PubParam;
+import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.BaseResponse;
+import com.miittech.you.net.response.DeviceInfoResponse;
+import com.ryon.mutils.AppUtils;
+import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.SPUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import cn.jpush.android.api.JPushInterface;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 /**
  * 自定义接收器
@@ -35,6 +57,7 @@ public class MyReceiver extends BroadcastReceiver {
 				String regId = bundle.getString(JPushInterface.EXTRA_REGISTRATION_ID);
 				LogUtils.d(TAG, "[MyReceiver] 接收Registration Id : " + regId);
 				//send the Registration Id to your server...
+				sendRegistationIdToServer(context,regId);
 
 			} else if (JPushInterface.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) {
 				LogUtils.d(TAG, "[MyReceiver] 接收到推送下来的自定义消息: " + bundle.getString(JPushInterface.EXTRA_MESSAGE));
@@ -69,6 +92,37 @@ public class MyReceiver extends BroadcastReceiver {
 
 		}
 
+	}
+
+	private void sendRegistationIdToServer(final Context context, String regId) {
+		Map param = new HashMap();
+		param.put("regid", regId);
+		param.put("ostype", "android");
+		param.put("ver", AppUtils.getAppVersionName());
+		String json = new Gson().toJson(param);
+		PubParam pubParam = new PubParam(App.getInstance().getUserId());
+		String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+		LogUtils.d("sign_unsha1", sign_unSha1);
+		String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+		LogUtils.d("sign_sha1", sign);
+		String path = HttpUrl.Api + "jpushid/" + pubParam.toUrlParam(sign);
+		final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+		ApiServiceManager.getInstance().buildApiService(context).postNetRequest(path, requestBody)
+				.subscribeOn(Schedulers.io())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new Consumer<BaseResponse>() {
+					@Override
+					public void accept(BaseResponse response) throws Exception {
+						if (response.isSuccessful()) {
+
+						}
+					}
+				}, new Consumer<Throwable>() {
+					@Override
+					public void accept(Throwable throwable) throws Exception {
+						throwable.printStackTrace();
+					}
+				});
 	}
 
 	// 打印所有的 intent extra 数据

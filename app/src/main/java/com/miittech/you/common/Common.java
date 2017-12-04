@@ -231,6 +231,9 @@ public class Common {
         DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
         if(response!=null){
             List<DeviceResponse.DevlistBean> list = response.getDevlist();
+            if(list==null||list.size()<=0){
+                return false;
+            }
             for (DeviceResponse.DevlistBean devlistBean : list){
                 if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
                     return true;
@@ -257,11 +260,11 @@ public class Common {
     public static boolean isAreaIgnore(List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist){
         if(arealist!=null&&arealist.size()>0){
             for (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean : arealist){
-                if(arealistBean.getSsid().equals(NetworkUtils.getSsidOfConnectWifi())){
+                if(arealistBean!=null&&!TextUtils.isEmpty(arealistBean.getSsid())&&arealistBean.getSsid().equals(NetworkUtils.getSsidOfConnectWifi())){
                     return true;
                 }
                 UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean.AreaBean areaBean = arealistBean.getArea();
-                if(areaBean!=null){
+                if(areaBean!=null&&areaBean.getLat()<=0&&areaBean.getLat()<=0){
                     Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
                     LatLng latLng1 = new LatLng(areaBean.getLat(),areaBean.getLng());
                     LatLng latLng2 = new LatLng(locinfo.getLat(),locinfo.getLng());

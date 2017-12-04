@@ -34,6 +34,7 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import cn.jpush.android.api.JPushInterface;
 import cn.sharesdk.framework.Platform;
 import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.framework.ShareSDK;
@@ -138,7 +139,8 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID,response.getUserid());
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME,response.getUsername());
-
+                            JPushInterface.setAlias(LoginActivity.this,0,response.getUserid());
+                            JPushInterface.getRegistrationID(LoginActivity.this);
                             ToastUtils.showShort(getResources().getString(R.string.msg_user_login_successful));
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);

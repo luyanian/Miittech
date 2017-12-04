@@ -49,6 +49,12 @@ public class SoundPlayUtils {
      * 
      * @param soundID
      */
+    public static void playSound(int soundID,boolean loop,int duration) {
+        int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
+        if(!loop) {
+            timer.schedule(new MyTimerTask(mSoundPlayer, playId), 1000, duration);
+        }
+    }
     public static void play(int soundID,boolean loop,int duration) {
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
         if(!loop) {

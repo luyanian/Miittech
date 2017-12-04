@@ -51,7 +51,7 @@ public class UserInfoResponse extends BaseResponse{
         this.tracelist = tracelist;
     }
 
-    public static class UserinfoBean {
+    public static class UserinfoBean implements Serializable {
         /**
          * username :
          * nickname : cnlvbg==
@@ -187,7 +187,7 @@ public class UserInfoResponse extends BaseResponse{
             this.locinfo = locinfo;
         }
 
-        public static class AlertinfoBean {
+        public static class AlertinfoBean implements Serializable {
             /**
              * vol : 15
              * isShake : 0
@@ -274,7 +274,7 @@ public class UserInfoResponse extends BaseResponse{
             }
         }
 
-        public static class LocinfoBean {
+        public static class LocinfoBean implements Serializable {
             /**
              * lat : 0
              * lng : 0
@@ -321,7 +321,7 @@ public class UserInfoResponse extends BaseResponse{
         }
     }
 
-    public static class ConfigBean {
+    public static class ConfigBean implements Serializable {
         /**
          * workconf : {"isalarm":1,"nearrssi":-60,"farrssi":-75,"alarmrssi":-85,"lossrssi":-95}
          * donotdisturb : {"arealist":[{"id":25,"title":"5a62","inout":0,"area":{"lat":0,"lng":0,"addr":"","R":0}},{"id":26,"title":"5YWs5Y+4","inout":0,"area":{"lat":0,"lng":0,"addr":"","R":0}},{"id":134,"title":"���j","inout":1,"ssid":"lan-hi"},{"id":136,"title":"L","inout":1,"area":{"lat":0,"lng":0,"addr":"","R":0}}],"timelist":[{"id":135,"title":"u001c","dayofweek":"1267","repeat":1,"stime":51635,"etime":111637}]}
@@ -346,7 +346,7 @@ public class UserInfoResponse extends BaseResponse{
             this.donotdisturb = donotdisturb;
         }
 
-        public static class WorkconfBean {
+        public static class WorkconfBean implements Serializable {
             /**
              * isalarm : 1
              * nearrssi : -60
@@ -402,7 +402,7 @@ public class UserInfoResponse extends BaseResponse{
             }
         }
 
-        public static class DonotdisturbBean {
+        public static class DonotdisturbBean implements Serializable {
             private List<ArealistBean> arealist;
             private List<TimelistBean> timelist;
 
@@ -422,7 +422,7 @@ public class UserInfoResponse extends BaseResponse{
                 this.timelist = timelist;
             }
 
-            public static class ArealistBean {
+            public static class ArealistBean implements Serializable {
                 /**
                  * id : 25
                  * title : 5a62
@@ -477,7 +477,7 @@ public class UserInfoResponse extends BaseResponse{
                     this.ssid = ssid;
                 }
 
-                public static class AreaBean {
+                public static class AreaBean implements Serializable {
                     /**
                      * lat : 0
                      * lng : 0
@@ -485,24 +485,24 @@ public class UserInfoResponse extends BaseResponse{
                      * R : 0
                      */
 
-                    private int lat;
-                    private int lng;
+                    private double lat;
+                    private double lng;
                     private String addr;
                     private int R;
 
-                    public int getLat() {
+                    public double getLat() {
                         return lat;
                     }
 
-                    public void setLat(int lat) {
+                    public void setLat(double lat) {
                         this.lat = lat;
                     }
 
-                    public int getLng() {
+                    public double getLng() {
                         return lng;
                     }
 
-                    public void setLng(int lng) {
+                    public void setLng(double lng) {
                         this.lng = lng;
                     }
 
@@ -524,7 +524,7 @@ public class UserInfoResponse extends BaseResponse{
                 }
             }
 
-            public static class TimelistBean {
+            public static class TimelistBean implements Serializable {
                 /**
                  * id : 135
                  * title : u001c

@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.Image;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -76,11 +77,10 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         holders.put(Common.formatDevId2Mac(devlistBean.getDevidX()),holder);
         holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
         if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(devlistBean.getDevidX()))!= Constants.STATUS_DEVICE_CONNECTED){
-            holder.itemBattery.setText("剩余电量  "+devlistBean.getDevbattery()+"%");
             holder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
             setTimeText(holder.itemTime,devlistBean.getLasttime());
         }
-        setConnectStatusStyle(Common.formatDevId2Mac(devlistBean.getDevidX()),holder.itemIconStatus,holder.itemIcon);
+        setConnectStatusStyle(Common.formatDevId2Mac(devlistBean.getDevidX()));
         Glide.with(activity).load(devlistBean.getDevimg()).into(holder.itemIcon);
         holder.rlItem.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,16 +92,20 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         });
     }
 
-    private void setConnectStatusStyle(String mac,ImageView itemIconStatus, ImageView itemIcon) {
-        if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(mac))== Constants.STATUS_DEVICE_CONNECTED){
-            itemIconStatus.setVisibility(View.VISIBLE);
-            itemIconStatus.setBackgroundResource(R.drawable.anim_connect_status);
-            AnimationDrawable animationDrawable = (AnimationDrawable) itemIconStatus.getBackground();
+    private void setConnectStatusStyle(String mac) {
+        ViewHolder holder = holders.get(mac);
+        if(holder==null){
+            return;
+        }
+        if(BLEClientManager.getClient().getConnectStatus(mac)== Constants.STATUS_DEVICE_CONNECTED){
+            holder.itemIconStatus.setVisibility(View.VISIBLE);
+            holder.itemIconStatus.setBackgroundResource(R.drawable.anim_connect_status);
+            AnimationDrawable animationDrawable = (AnimationDrawable) holder.itemIconStatus.getBackground();
             if(animationDrawable!=null&&!animationDrawable.isRunning()){
                 animationDrawable.start();
             }
         }else{
-            itemIconStatus.setVisibility(View.GONE);
+            holder.itemIconStatus.setVisibility(View.GONE);
         }
     }
 
@@ -112,13 +116,14 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
 
     public void updateData(List<DeviceResponse.DevlistBean> devlist) {
         mData.clear();
-        mData.addAll(devlist);
-        notifyDataSetChanged();
-
         ArrayList<String> tempList = new ArrayList<>();
         tempList.clear();
-        for(DeviceResponse.DevlistBean devlistBean : devlist){
-            tempList.add(Common.formatDevId2Mac(devlistBean.getDevidX()));
+        if(devlist!=null){
+            mData.addAll(devlist);
+            notifyDataSetChanged();
+            for(DeviceResponse.DevlistBean devlistBean : devlist){
+                tempList.add(Common.formatDevId2Mac(devlistBean.getDevidX()));
+            }
         }
         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_ADD);
@@ -155,7 +160,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 String address = intent.getStringExtra("address");
                 switch (ret){
                     case IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS:
-
+                        setConnectStatusStyle(address);
                         break;
                     case IntentExtras.RET.RET_DEVICE_READ_RSSI:
                         LogUtils.d("RET_DEVICE_READ_RSSI");
@@ -168,6 +173,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                         updateItemBattery(address,battery);
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
+                        setConnectStatusStyle(address);
                         updateItemData(address);
                         break;
                 }
@@ -181,7 +187,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         if(viewHolder!=null&&viewHolder.itemLocation!=null){
             for(DeviceResponse.DevlistBean devlistBean : mData){
                 if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
-                    viewHolder.itemBattery.setText(devlistBean.getDevbattery()+"%");
                     viewHolder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
                     setTimeText(viewHolder.itemTime,devlistBean.getLasttime());
                 }
@@ -201,8 +206,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
 
     private void updateItemBattery(String address, String battery) {
         ViewHolder viewHolder = holders.get(address);
-        if(viewHolder!=null){
-            if(viewHolder.itemBattery!=null) {
+        if(viewHolder!=null&&!TextUtils.isEmpty(battery)){
+            if(viewHolder.itemBattery!=null&&Integer.valueOf(battery)<20) {
                 viewHolder.itemBattery.setText("剩余电量  " + battery + "%");
             }
             if(viewHolder.itemTime!=null) {

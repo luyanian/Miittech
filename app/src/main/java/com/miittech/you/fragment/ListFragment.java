@@ -192,7 +192,7 @@ public class ListFragment extends Fragment {
             return;
         }
         Map param = new LinkedHashMap();
-        param.put("qrytype", Params.QRY_TYPE.USED);
+        param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getInstance().getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
@@ -227,10 +227,10 @@ public class ListFragment extends Fragment {
         if (devlist == null || devlist.size() == 0) {
             rlTip.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
-            return;
+        }else{
+            rlTip.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
         }
-        rlTip.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.VISIBLE);
         mDeviceListAdapter.updateData(devlist);
     }
 

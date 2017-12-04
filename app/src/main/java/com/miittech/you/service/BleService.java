@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.function.Predicate;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -228,8 +229,26 @@ public  class BleService extends Service {
         this.mMacList.clear();
         this.mMacList.addAll(macList);
 
-        for(final String mac:macList){
+        for(String mac:macList){
             connectDevice(mac);
+        }
+        for (String conMac : mConnectedList){
+            if(!macList.contains(conMac)){
+                BLEClientManager.getClient().unregisterConnectStatusListener(conMac, new BleConnectStatusListener() {
+                    @Override
+                    public void onConnectStatusChanged(String mac, int status) {
+
+                    }
+                });
+                BLEClientManager.getClient().unnotify(conMac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleUnnotifyResponse() {
+                    @Override
+                    public void onResponse(int code) {
+
+                    }
+                });
+                BLEClientManager.getClient().disconnect(conMac);
+                mConnectedList.remove(conMac);
+            }
         }
     }
 

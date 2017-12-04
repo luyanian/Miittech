@@ -93,7 +93,7 @@
         <meta-data android:name="Mob-AppSecret" android:value="6ce26bdfe2f5a30d780770e4"/>
         <!-- ............................ShareSDK配置end.................... -->
 
-        <!-- ............................JPUSH配置end.................... -->
+        <!-- ............................JPUSH配置start.................... -->
         <!-- Rich push 核心功能 since 2.0.6-->
         <activity
             android:name="cn.jpush.android.ui.PopWinActivity"
@@ -196,7 +196,7 @@
         </receiver>
         <!-- Required  . Enable it you can get statistics data with channel -->
         <meta-data android:name="JPUSH_CHANNEL" android:value="developer-default"/>
-        <meta-data android:name="JPUSH_APPKEY" android:value="您应用的Appkey" /> <!--  </>值来自开发者平台取得的AppKey-->
+        <meta-data android:name="JPUSH_APPKEY" android:value="0f9c88770d1cba50d02e2047" /> <!--  </>值来自开发者平台取得的AppKey-->
 
         <!-- ............................JPUSH配置end.................... -->
 
