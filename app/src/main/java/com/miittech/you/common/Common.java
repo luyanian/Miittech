@@ -21,6 +21,7 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.service.BleService;
 import com.miittech.you.utils.HexUtil;
@@ -128,7 +129,69 @@ public class Common {
                     }
                 });
     }
+    public synchronized static void eventConfirm(final Context context, String eventId, String method){
+        Map param = new HashMap();
+        param.put("eventid", eventId);
+        param.put("method", method);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "eventconfirm/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(context).postNetRequest(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BaseResponse>() {
+                    @Override
+                    public void accept(BaseResponse response) throws Exception {
+                        if(response.isSuccessful()) {
 
+                        }else{
+                            response.onError(context);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+    public synchronized static void AddFriendConfirm(final Context context, String friendId, String method) {
+        Map param = new HashMap();
+        param.put("method", method);
+        param.put("friended", friendId);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "friend/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(context).postToGetFriendList(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<FriendsResponse>() {
+                    @Override
+                    public void accept(FriendsResponse response) throws Exception {
+                        if(response.isSuccessful()){
+
+                        }else{
+                            response.onError(context);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
     public static String formatMac2DevId(String address){
         String[] temp = address.toUpperCase().split(":");
         StringBuilder builder = new StringBuilder();
@@ -235,7 +298,7 @@ public class Common {
                 return false;
             }
             for (DeviceResponse.DevlistBean devlistBean : list){
-                if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
+                if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))&&TextUtils.isEmpty(devlistBean.getFriendname())){
                     return true;
                 }
             }

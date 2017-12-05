@@ -11,6 +11,8 @@ import com.miittech.you.R;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.BtnTextView;
 import com.miittech.you.weight.CircleImageView;
+
+import java.util.ArrayList;
 import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -22,11 +24,10 @@ import butterknife.ButterKnife;
 public class SharedFriendListAdapter extends RecyclerView.Adapter {
 
     private Context context;
-    private List<FriendsResponse.FriendlistBean> friendlist;
+    private List<FriendsResponse.FriendlistBean> friendlist = new ArrayList<>();
 
     public SharedFriendListAdapter(Context context) {
         this.context = context;
-        this.friendlist = friendlist;
     }
 
     @Override

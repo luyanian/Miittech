@@ -29,6 +29,8 @@ public class MsgTipDialog extends Dialog {
     TextView msgInfo;
     @BindView(R.id.btn_button_sure)
     TextView btnButtonSure;
+    @BindView(R.id.tv_lines)
+    TextView tvLines;
     @BindView(R.id.btn_button_cancle)
     TextView btnButtonCancle;
     private OnMsgTipOptions onMsgTipOptions;
@@ -57,9 +59,22 @@ public class MsgTipDialog extends Dialog {
         msgInfo.setText(msg);
         return this;
     }
-
+    public MsgTipDialog setLeftBtnText(String leftBtnText){
+        btnButtonCancle.setText(leftBtnText);
+        return this;
+    }
+    public MsgTipDialog setRightBtnText(String rightBtnText){
+        btnButtonSure.setText(rightBtnText);
+        return this;
+    }
     public MsgTipDialog setOnMsgTipOptions(OnMsgTipOptions onMsgTipOptions) {
         this.onMsgTipOptions = onMsgTipOptions;
+        return this;
+    }
+
+    public MsgTipDialog hideLeftBtn(){
+        this.btnButtonCancle.setVisibility(View.GONE);
+        this.tvLines.setVisibility(View.GONE);
         return this;
     }
 

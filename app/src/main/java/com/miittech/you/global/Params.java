@@ -45,6 +45,9 @@ public class Params {
         public static final String FRIEND_UPDATE="UPDATE";//编辑好友信息
         public static final String BINGD = "Bind";//绑定设备
         public static final String UNBIND = "Unbind";//解除绑定
+        public static final String CONFIRM_YES="YES";//YES:确认操作事件，比如确认贴片的移交
+        public static final String CONFIRM_NO="NO";//NO:拒绝事件操作，比如拒绝贴片的移交
+        public static final String CONFIRM_DELETE="DELETE";//DELETE:删除该条事件，对于待确认的比如贴片移交操作，将同时执行一个NO操作
     }
 
     public static class FRIEND_STATUS{

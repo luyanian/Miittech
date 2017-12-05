@@ -51,9 +51,9 @@ public class SoundCloseDialog extends Dialog {
     @OnClick(R.id.ll_btn_sure)
     public void onViewClicked() {
         if(setSoundId!=-100){
-            SoundPlayUtils.stop(setSoundId);
+            SoundPlayUtils.stopAll();
             NotificationManager notificationManager = (NotificationManager)context.getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.cancel(setSoundId);
+            notificationManager.cancel(1);
             if(this.isShowing()){
                 this.dismiss();
             }

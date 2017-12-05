@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -14,12 +15,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.inuker.bluetooth.library.Constants;
-import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
-import com.luck.picture.lib.PictureSelector;
-import com.luck.picture.lib.config.PictureConfig;
-import com.luck.picture.lib.config.PictureMimeType;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
@@ -88,6 +84,8 @@ public class DeviceDetailActivity extends BaseActivity {
     LinearLayout llOptions;
     @BindView(R.id.tv_device_location)
     TextView tvDeviceLocation;
+    @BindView(R.id.tv_battarry)
+    TextView tvBattarry;
     @BindView(R.id.tv_device_time)
     TextView tvDeviceTime;
     private DeviceResponse.DevlistBean device;
@@ -151,12 +149,14 @@ public class DeviceDetailActivity extends BaseActivity {
     private void initViewData(DeviceInfoResponse.UserinfoBean.DevinfoBean device) {
         this.deviceDetailInfo = device;
         tvDeviceName.setText(Common.decodeBase64(device.getDevname()));
+        tvBattarry.setVisibility(View.GONE);
         if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(device.getDevid()))== Constants.STATUS_DEVICE_CONNECTED){
-            tvDeviceLocation.setText("现在");
+            tvDeviceTime.setText("现在");
         }else {
+            setTimeText(tvDeviceTime,device.getLasttime());
             tvDeviceLocation.setText(Common.decodeBase64(device.getLocinfo().getAddr()));
         }
-        setTimeText(tvDeviceTime,device.getLasttime());
+
         Glide.with(this)
                 .load(device.getDevimg())
                 .into(imgDeviceIcon);
@@ -183,13 +183,18 @@ public class DeviceDetailActivity extends BaseActivity {
 //                Intent intent = new Intent(this,DeviceSetAttrActivity.class);
                 break;
             case R.id.rl_bell_status:
-                doFindOrBell();
+                if(App.getInstance().getUserId().equals(TextUtils.isEmpty(deviceDetailInfo.getOwneruser()))) {
+                    doFindOrBell();
+                }
                 break;
             case R.id.btn_option_map:
+                Intent map = new Intent(this, DeviceMapDetailActivity.class);
+                map.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
+                startActivity(map);
                 break;
             case R.id.btn_option_share:
                 Intent toshareIntent = new Intent(this,DeviceSharedListActivity.class);
-                toshareIntent.putExtra(IntentExtras.DEVICE.ID,device.getDevidX());
+                toshareIntent.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
                 startActivity(toshareIntent);
                 break;
             case R.id.btn_option_setting:
@@ -353,12 +358,48 @@ public class DeviceDetailActivity extends BaseActivity {
                         SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL);
                         switchFindBtnStyle();
                         break;
+                    case IntentExtras.RET.RET_DEVICE_READ_RSSI:
+                        LogUtils.d("RET_DEVICE_READ_RSSI");
+                        int rssi = intent.getIntExtra("rssi",0);
+                        updateItemRssi(rssi);
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_READ_BATTERY:
+                        LogUtils.d("RET_DEVICE_READ_BATTERY");
+                        String battery = intent.getStringExtra("battery");
+                        updateItemBattery(battery);
+                        break;
                     case IntentExtras.RET.RET_DEVICE_UNBIND_SUCCESS:
                         unbindDevice();
                         break;
                 }
 
             }
+        }
+    }
+    private void updateItemRssi(int rssi) {
+        if (tvDeviceLocation != null) {
+            if (rssi < -85) {
+                tvDeviceLocation.setText("远离");
+            }
+            if (rssi > -85 && rssi < -70) {
+                tvDeviceLocation.setText("较远");
+            }
+            if (rssi > -70) {
+                tvDeviceLocation.setText("很近");
+            }
+        }
+        if(tvDeviceTime!=null){
+            tvDeviceTime.setText("现在");
+        }
+    }
+
+    private void updateItemBattery(String battery) {
+        if(tvBattarry!=null&&Integer.valueOf(battery)<20) {
+            tvBattarry.setVisibility(View.VISIBLE);
+            tvBattarry.setText("剩余电量  " + battery + "%");
+        }
+        if(tvDeviceTime!=null){
+            tvDeviceTime.setText("现在");
         }
     }
 }

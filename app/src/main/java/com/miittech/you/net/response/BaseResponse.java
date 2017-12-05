@@ -117,25 +117,26 @@ public class BaseResponse implements Serializable{
     }
 
     public void onError(Context context){
+        ToastUtils.showShort(errmsg);
         switch (errcodeX){
             case ResponseCode.user_notexist:
-                ToastUtils.showShort(R.string.msg_user_not_exist);
+//                ToastUtils.showShort(R.string.msg_user_not_exist);
                 break;
             case ResponseCode.user_invalidpasswd:
-                ToastUtils.showShort(R.string.msg_user_invalid_password);
+//                ToastUtils.showShort(R.string.msg_user_invalid_password);
                 break;
             case ResponseCode.user_account_already_bind:
-                ToastUtils.showShort(R.string.msg_account_already_bind);
+//                ToastUtils.showShort(R.string.msg_account_already_bind);
                 break;
             case ResponseCode.invalid_sign://签名错误，请重新登录
-                ToastUtils.showShort("登录信息已失效，请重新登录");
+//                ToastUtils.showShort("登录信息已失效，请重新登录");
                 SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
                 Intent intent = new Intent(context,LoginRegisteActivity.class);
                 context.startActivity(intent);
                 ActivityPools.finishAllExcept(LoginRegisteActivity.class);
                 break;
             default:
-                ToastUtils.showShort(errmsg);
+//                ToastUtils.showShort(errmsg);
                 break;
         }
     }

@@ -54,6 +54,7 @@
                     android:textSize="18dp"
                     android:textColor="@color/text_color_cancel"/>
                 <TextView
+                    android:id="@+id/tv_lines"
                     android:layout_width="1dp"
                     android:layout_height="match_parent"
                     android:background="@drawable/bg_lines"/>

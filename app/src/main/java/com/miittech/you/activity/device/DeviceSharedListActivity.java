@@ -8,17 +8,22 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
+import com.inuker.bluetooth.library.Constants;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.FriendListAdapter;
 import com.miittech.you.adapter.SharedFriendListAdapter;
+import com.miittech.you.common.Common;
+import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
+import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
@@ -26,6 +31,8 @@ import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +43,13 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import cn.sharesdk.framework.Platform;
+import cn.sharesdk.framework.PlatformActionListener;
+import cn.sharesdk.onekeyshare.OnekeyShare;
+import cn.sharesdk.onekeyshare.ShareContentCustomizeCallback;
+import cn.sharesdk.tencent.qq.QQ;
+import cn.sharesdk.wechat.friends.Wechat;
+import cn.sharesdk.wechat.moments.WechatMoments;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -55,7 +69,7 @@ public class DeviceSharedListActivity extends BaseActivity {
     RelativeLayout rlTip;
 
     private SharedFriendListAdapter mAdapter;
-    private String deviceId;
+    private DeviceInfoResponse.UserinfoBean.DevinfoBean devinfoBean;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +77,7 @@ public class DeviceSharedListActivity extends BaseActivity {
         setContentView(R.layout.activity_device_shared_list);
         ButterKnife.bind(this);
         initMyTitleBar(titlebar,"分享");
-        deviceId = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
+        devinfoBean = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         titlebar.showBackOption();
         titlebar.showSettingOption();
         titlebar.setSettingIcon(R.drawable.ic_device_shared);
@@ -73,11 +87,10 @@ public class DeviceSharedListActivity extends BaseActivity {
                 super.onBack();
                 finish();
             }
-
             @Override
             public void onSetting() {
                 super.onSetting();
-                doShare();
+                shareToSocial();
             }
         });
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -90,18 +103,70 @@ public class DeviceSharedListActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        getDeviceSharedList(deviceId);
+        getDeviceSharedList(devinfoBean.getDevid());
     }
 
     @OnClick(R.id.btn_shared)
     public void onViewClicked() {
-        doShare();
+        shareToFriend();
     }
 
-    private void doShare() {
+    private void shareToFriend() {
         Intent intent = new Intent(this,DeviceSharedAddActivity.class);
         intent.putExtras(getIntent());
         startActivity(intent);
+    }
+    private void shareToSocial(){
+        OnekeyShare oks = new OnekeyShare();
+        oks.setShareContentCustomizeCallback(new ShareContentCustomizeCallback() {
+            @Override
+            public void onShare(Platform platform, Platform.ShareParams paramsToShare) {
+                double lat = 0;
+                double lng = 0;
+                if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(devinfoBean.getDevid()))== Constants.STATUS_DEVICE_CONNECTED){
+                    Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+                    if(locinfo!=null){
+                        lat = locinfo.getLat();
+                        lng = locinfo.getLng();
+                    }else{
+                        lat = devinfoBean.getLocinfo().getLat();
+                        lng = devinfoBean.getLocinfo().getLng();
+                    }
+                }else{
+                    lat = devinfoBean.getLocinfo().getLat();
+                    lng = devinfoBean.getLocinfo().getLng();
+                }
+                String imgUrl = "http://api.map.baidu.com/staticimage/v2?ak=eA32DSeForR8YOTkvDM6LhUcFaHwrwVR" +
+                        "&mcode=4B:DB:0E:E2:CA:AA:EF:77:C7:37:FA:46:B9:6D:C6:CB:CD:02:10:47;com.miittech.you" +
+                        "&center="+lng+","+lat+"&width=560&height=280&zoom=16" +
+                        "&markers="+lng+","+lat+"&markerStyles=l,A|m,B|l,C|l,D|m,E|,|l,G|m,H";
+                if(WechatMoments.NAME.equals(platform.getName())||Wechat.NAME.equals(platform.getName())){
+                    paramsToShare.setShareType(Platform.SHARE_IMAGE);
+                    paramsToShare.setTitle("智云有物");
+                    paramsToShare.setImageUrl(imgUrl);
+                }else if(QQ.NAME.equals(platform.getName())){
+                    paramsToShare.setShareType(Platform.SHARE_IMAGE);
+                    paramsToShare.setImageUrl(imgUrl);
+                }
+            }
+        });
+        oks.setCallback(new PlatformActionListener() {
+            @Override
+            public void onComplete(Platform platform, int i, HashMap<String, Object> hashMap) {
+                ToastUtils.showShort("分享成功");
+            }
+
+            @Override
+            public void onError(Platform platform, int i, Throwable throwable) {
+                ToastUtils.showShort("分享失败，请重试");
+            }
+
+            @Override
+            public void onCancel(Platform platform, int i) {
+                ToastUtils.showShort("取消分享");
+            }
+        });
+        oks.show(this);
     }
 
     private void getDeviceSharedList(String devId) {

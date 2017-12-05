@@ -76,6 +76,12 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         ViewHolder holder = (ViewHolder) viewHolder;
         holders.put(Common.formatDevId2Mac(devlistBean.getDevidX()),holder);
         holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
+        if(TextUtils.isEmpty(devlistBean.getFriendname())){
+            holder.itemShared.setVisibility(View.GONE);
+        }else{
+            holder.itemShared.setVisibility(View.VISIBLE);
+            holder.itemShared.setText("分享自"+Common.decodeBase64(devlistBean.getFriendname()));
+        }
         if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(devlistBean.getDevidX()))!= Constants.STATUS_DEVICE_CONNECTED){
             holder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
             setTimeText(holder.itemTime,devlistBean.getLasttime());
@@ -122,7 +128,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             mData.addAll(devlist);
             notifyDataSetChanged();
             for(DeviceResponse.DevlistBean devlistBean : devlist){
-                tempList.add(Common.formatDevId2Mac(devlistBean.getDevidX()));
+                if(TextUtils.isEmpty(devlistBean.getFriendname())) {
+                    tempList.add(Common.formatDevId2Mac(devlistBean.getDevidX()));
+                }
             }
         }
         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
@@ -144,6 +152,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         TextView itemLocation;
         @BindView(R.id.item_battery)
         TextView itemBattery;
+        @BindView(R.id.item_shared)
+        TextView itemShared;
         @BindView(R.id.item_time)
         TextView itemTime;
 

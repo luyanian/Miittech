@@ -87,6 +87,7 @@ public class DeviceResponse extends BaseResponse {
         private int bindstateX;
         private String bindtime;
         private String friendid;
+        private String friendname;
         private LocinfoBean locinfo;
 
         public String getDevidX() {
@@ -201,6 +202,14 @@ public class DeviceResponse extends BaseResponse {
             this.friendid = friendid;
         }
 
+        public String getFriendname() {
+            return friendname;
+        }
+
+        public void setFriendname(String friendname) {
+            this.friendname = friendname;
+        }
+
         public LocinfoBean getLocinfo() {
             return locinfo;
         }
@@ -274,10 +283,10 @@ public class DeviceResponse extends BaseResponse {
             case 1:
                 break;
             case 0:
-                ToastUtils.showShort("设备已被绑定或者设备不可用！");
+//                ToastUtils.showShort("设备已被绑定或者设备不可用！");
                 break;
             case -1:
-                ToastUtils.showShort("不合法设备！");
+//                ToastUtils.showShort("不合法设备！");
                 break;
         }
     }

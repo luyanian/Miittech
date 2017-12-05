@@ -13,6 +13,8 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.global.IntentExtras;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,6 +27,7 @@ public class SoundPlayUtils {
     static Timer timer = new Timer();
     // 上下文
     static Context mContext;
+    private static List<Integer> soundIds = new ArrayList<>();
 
     /**
      * 初始化
@@ -50,21 +53,34 @@ public class SoundPlayUtils {
      * @param soundID
      */
     public static void playSound(int soundID,boolean loop,int duration) {
+        stopAll();
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
+        soundIds.add(playId);
         if(!loop) {
             timer.schedule(new MyTimerTask(mSoundPlayer, playId), 1000, duration);
         }
     }
     public static void play(int soundID,boolean loop,int duration) {
+        stopAll();
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
+        soundIds.add(playId);
         if(!loop) {
             timer.schedule(new MyTimerTask(mSoundPlayer, playId), 1000, duration);
         }
         localNotify(App.getInstance(),playId);
     }
 
+    public static void stopAll(){
+        for (int soundId : soundIds){
+            mSoundPlayer.stop(soundId);
+        }
+        soundIds.clear();
+    }
     public static void stop(int soundId) {
         mSoundPlayer.stop(soundId);
+        if(soundIds.contains(soundId)) {
+            soundIds.remove(soundId);
+        }
     }
 
     static class MyTimerTask extends TimerTask {
@@ -102,10 +118,10 @@ public class SoundPlayUtils {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0,intent,0);
         mBuilder.setContentIntent(pendingIntent);
         Notification notification = mBuilder.build();
-        manager.notify(playId,notification);
+        manager.notify(1,notification);
 
         Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG);
-        intent1.putExtra("soundId", playId);
+        intent1.putExtra("soundId", 1);
         context.sendBroadcast(intent1);
     }
 

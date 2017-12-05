@@ -8,13 +8,20 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.miittech.you.App;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.common.Common;
+import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.dialog.MsgTipDialog;
+import com.miittech.you.entity.JpushFriend;
+import com.miittech.you.entity.JpushShared;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceInfoResponse;
@@ -162,28 +169,70 @@ public class MyReceiver extends BroadcastReceiver {
 	}
 	
 	//send msg to MainActivity
-	private void processCustomMessage(Context context, Bundle bundle) {
-		Activity activity = ActivityPools.getTopActivity();
+	private void processCustomMessage(final Context context, Bundle bundle) {
+		final Activity activity = ActivityPools.getTopActivity();
 		if(activity!=null){
-
-		}
-//		if (MainActivity.isForeground) {
-//			String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
+			String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
 //			String extras = bundle.getString(JPushInterface.EXTRA_EXTRA);
-//			Intent msgIntent = new Intent(MainActivity.MESSAGE_RECEIVED_ACTION);
-//			msgIntent.putExtra(MainActivity.KEY_MESSAGE, message);
-//			if (!ExampleUtil.isEmpty(extras)) {
-//				try {
-//					JSONObject extraJson = new JSONObject(extras);
-//					if (extraJson.length() > 0) {
-//						msgIntent.putExtra(MainActivity.KEY_EXTRAS, extras);
-//					}
-//				} catch (JSONException e) {
-//
-//				}
-//
-//			}
-//			LocalBroadcastManager.getInstance(context).sendBroadcast(msgIntent);
-//		}
+//			String title = bundle.getString(JPushInterface.EXTRA_TITLE);
+			JsonObject object = new JsonParser().parse(message).getAsJsonObject();
+			String contentType = object.get("content_type").getAsString();
+			Gson gson = new Gson();
+			if("addfriend".equals(contentType)) {
+				final JpushFriend jpushFriend = gson.fromJson(message, JpushFriend.class);
+				MsgTipDialog msgTipDialog = DialogUtils.createMsgTipDialog(activity);
+				msgTipDialog.setTitle(jpushFriend.getTitle());
+				msgTipDialog.setMsg(jpushFriend.getMsg_content());
+				int state = jpushFriend.getExtras().getState();
+				if(state==1) {
+					msgTipDialog.setLeftBtnText("拒绝");
+					msgTipDialog.setRightBtnText("同意");
+					msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
+						@Override
+						public void onSure() {
+							super.onSure();
+							Common.AddFriendConfirm(context, jpushFriend.getExtras().getSourceid(), Params.METHOD.FRIEND_CONFIRM);
+						}
+
+						@Override
+						public void onCancel() {
+							super.onCancel();
+							Common.AddFriendConfirm(context, jpushFriend.getExtras().getSourceid(), Params.METHOD.FRIEND_REFUSE);
+						}
+					});
+				}else{
+					msgTipDialog.hideLeftBtn();
+					msgTipDialog.setRightBtnText("关闭");
+				}
+				msgTipDialog.show();
+			}else if("shared".equals(contentType)){
+				final JpushShared jpushShared = gson.fromJson(message,JpushShared.class);
+				int state = jpushShared.getExtras().getState();
+				MsgTipDialog msgTipDialog = DialogUtils.createMsgTipDialog(activity);
+				msgTipDialog.setTitle(jpushShared.getTitle());
+				msgTipDialog.setMsg(jpushShared.getMsg_content());
+				if(state==1) {
+					msgTipDialog.setLeftBtnText("拒绝");
+					msgTipDialog.setRightBtnText("同意");
+					msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
+						@Override
+						public void onSure() {
+							super.onSure();
+							Common.eventConfirm(activity, jpushShared.getExtras().getEventid(), Params.METHOD.CONFIRM_YES);
+						}
+
+						@Override
+						public void onCancel() {
+							super.onCancel();
+							Common.eventConfirm(activity, jpushShared.getExtras().getEventid(), Params.METHOD.CONFIRM_NO);
+						}
+					});
+				}else {
+					msgTipDialog.hideLeftBtn();
+					msgTipDialog.setRightBtnText("关闭");
+				}
+				msgTipDialog.show();
+			}
+		}
 	}
 }

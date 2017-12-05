@@ -30,9 +30,9 @@ public class LocalReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         int soundId = intent.getIntExtra("soundId",0);
         if(intent.getAction()== IntentExtras.ACTION.ACTION_SOUND_PLAY_ONCLICK){
-            SoundPlayUtils.stop(soundId);
+            SoundPlayUtils.stopAll();
             NotificationManager notificationManager = (NotificationManager) App.getInstance().getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.cancel(soundId);
+            notificationManager.cancel(1);
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG){
             Activity activity = ActivityPools.getTopActivity();
             if(activity!=null){
