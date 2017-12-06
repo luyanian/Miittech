@@ -45,6 +45,11 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import cn.sharesdk.framework.Platform;
+import cn.sharesdk.framework.PlatformActionListener;
+import cn.sharesdk.framework.ShareSDK;
+import cn.sharesdk.tencent.qq.QQ;
+import cn.sharesdk.wechat.friends.Wechat;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -294,8 +299,22 @@ public class UserCenterActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.btn_user_wechat:
+                if(userinfoBean.getIsBindWx()==0){
+                    Platform wechat = ShareSDK.getPlatform(Wechat.NAME);
+                    wechat.SSOSetting(false);  //设置false表示使用SSO授权方式
+                    wechat.setPlatformActionListener(platformActionListener); // 设置分享事件回调
+                    wechat.authorize();//单独授权
+                    wechat.showUser(null);//授权并获取用户信息
+                }
                 break;
             case R.id.btn_user_qq:
+                if (userinfoBean.getIsBindQQ() == 0) {
+                    Platform qq = ShareSDK.getPlatform(QQ.NAME);
+                    qq.SSOSetting(false);  //设置false表示使用SSO授权方式
+                    qq.setPlatformActionListener(platformActionListener); // 设置分享事件回调
+                    qq.authorize();//单独授权
+                    qq.showUser(null);//授权并获取用户信息
+                }
                 break;
             case R.id.btn_user_location:
                 break;
@@ -336,6 +355,66 @@ public class UserCenterActivity extends BaseActivity {
                             Intent intent = new Intent(UserCenterActivity.this,LoginRegisteActivity.class);
                             startActivity(intent);
                             ActivityPools.finishAllExcept(LoginRegisteActivity.class);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+    private PlatformActionListener platformActionListener = new PlatformActionListener() {
+        @Override
+        public void onComplete(Platform platform, int i, HashMap<String, Object> hashMap) {
+            doBindSSO(platform);
+        }
+
+        @Override
+        public void onError(Platform platform, int i, Throwable throwable) {
+
+        }
+
+        @Override
+        public void onCancel(Platform platform, int i) {
+
+        }
+    };
+
+    private void doBindSSO(Platform platform) {
+        String access_token = platform.getDb().getToken(); // 获取授权token
+        String openid = platform.getDb().getUserId(); // 获取用户在此平台的ID
+        long expires_in = platform.getDb().getExpiresIn();
+        String unionid = platform.getDb().get("unionid");
+        Map param = new HashMap();
+        if(Wechat.NAME.equals(platform.getName())){
+            param.put("method", Params.METHOD.WECHART);
+        }else if(QQ.NAME.equals(platform.getName())){
+            param.put("method", Params.METHOD.QQSSO);
+        }
+        param.put("openid", openid);
+        param.put("access_token", access_token);
+        param.put("expires_in", expires_in);
+        param.put("unionid", unionid);
+
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(App.getInstance().getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userbind/" + pubParam.toUrlParam(sign);
+        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(this).postNetRequest(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BaseResponse>() {
+                    @Override
+                    public void accept(BaseResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            getUserInfo();
+                        } else {
+                            response.onError(UserCenterActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {
