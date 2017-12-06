@@ -27,8 +27,9 @@ import butterknife.OnClick;
  */
 
 public class TraceDalySelectAdapter extends RecyclerView.Adapter {
-    private Activity context;
+    private Context context;
     private OnListItemClick onListItemClick;
+    private RecyclerView recyclerview;
     List<Date> mlist = new ArrayList<>();
     List<TextView> textViews = new ArrayList<>();
     public TraceDalySelectAdapter(Context context, OnListItemClick onListItemClick) {
@@ -52,7 +53,7 @@ public class TraceDalySelectAdapter extends RecyclerView.Adapter {
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         final ViewHolder viewHolder = (ViewHolder) holder;
         final Date date = mlist.get(position);
         textViews.add(viewHolder.tvDaly);
@@ -62,17 +63,33 @@ public class TraceDalySelectAdapter extends RecyclerView.Adapter {
             @Override
             public void onClick(View v) {
                 unSelectAll();
+                if(recyclerview!=null){
+                    recyclerview.scrollToPosition(position);
+                }
                 viewHolder.tvDaly.setSelected(true);
                 if(onListItemClick!=null){
                     onListItemClick.onItemClick(date);
                 }
             }
         });
+        if(position==mlist.size()-1){
+            viewHolder.tvDaly.setSelected(true);
+        }
     }
 
     @Override
     public int getItemCount() {
         return mlist.size();
+    }
+
+    public void setView(RecyclerView recyclerview) {
+        this.recyclerview = recyclerview;
+    }
+
+    public void scrollToEnd() {
+        if(recyclerview!=null){
+            recyclerview.scrollToPosition(mlist.size()-1);
+        }
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

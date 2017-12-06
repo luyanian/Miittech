@@ -102,7 +102,8 @@ public class EventTraceDetailActivity extends BaseActivity {
                 ToastUtils.showShort(TimeUtils.date2String(date));
             }
         });
+        traceDalySelectAdapter.setView(recyclerview);
         recyclerview.setAdapter(traceDalySelectAdapter);
-
+        traceDalySelectAdapter.scrollToEnd();
     }
 }
