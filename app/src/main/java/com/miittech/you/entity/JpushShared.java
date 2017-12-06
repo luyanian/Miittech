@@ -70,7 +70,7 @@ public class JpushShared implements Serializable {
         private String targetid;
         private String addtime;
         private String msgid;
-        private int state;//1：等待确认  -1：已取消
+        private int state;//0/1/-1分别是等待确认/已分享/已拒绝或取消
 
         public String getSourceid() {
             return sourceid;

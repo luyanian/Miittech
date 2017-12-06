@@ -184,7 +184,7 @@ public class MyReceiver extends BroadcastReceiver {
 				msgTipDialog.setTitle(jpushFriend.getTitle());
 				msgTipDialog.setMsg(jpushFriend.getMsg_content());
 				int state = jpushFriend.getExtras().getState();
-				if(state==1) {
+				if(state==0) {
 					msgTipDialog.setLeftBtnText("拒绝");
 					msgTipDialog.setRightBtnText("同意");
 					msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
@@ -202,7 +202,7 @@ public class MyReceiver extends BroadcastReceiver {
 					});
 				}else{
 					msgTipDialog.hideLeftBtn();
-					msgTipDialog.setRightBtnText("关闭");
+					msgTipDialog.setRightBtnText("知道了");
 				}
 				msgTipDialog.show();
 			}else if("shared".equals(contentType)){
@@ -211,7 +211,7 @@ public class MyReceiver extends BroadcastReceiver {
 				MsgTipDialog msgTipDialog = DialogUtils.createMsgTipDialog(activity);
 				msgTipDialog.setTitle(jpushShared.getTitle());
 				msgTipDialog.setMsg(jpushShared.getMsg_content());
-				if(state==1) {
+				if(state==0) {
 					msgTipDialog.setLeftBtnText("拒绝");
 					msgTipDialog.setRightBtnText("同意");
 					msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
@@ -229,7 +229,7 @@ public class MyReceiver extends BroadcastReceiver {
 					});
 				}else {
 					msgTipDialog.hideLeftBtn();
-					msgTipDialog.setRightBtnText("关闭");
+					msgTipDialog.setRightBtnText("知道了");
 				}
 				msgTipDialog.show();
 			}

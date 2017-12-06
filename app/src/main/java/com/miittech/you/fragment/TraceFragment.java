@@ -1,5 +1,6 @@
 package com.miittech.you.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -8,20 +9,27 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.miittech.you.App;
 import com.miittech.you.R;
-import com.miittech.you.adapter.EventTraceAdapter;
+import com.miittech.you.activity.event.EventTraceDetailActivity;
+import com.miittech.you.adapter.DeviceListAdapter;
+import com.miittech.you.global.IntentExtras;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.SPUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
@@ -31,6 +39,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -49,12 +59,12 @@ import okhttp3.RequestBody;
 public class TraceFragment extends Fragment {
     @BindView(R.id.recyclerview)
     RecyclerView recyclerview;
+    @BindView(R.id.rl_tip)
+    RelativeLayout rlTip;
     @BindView(R.id.refreshLayout)
     SmartRefreshLayout refreshLayout;
     Unbinder unbinder;
-
-    private String sid="0";
-    private EventTraceAdapter traceAdapter;
+    private DeviceListAdapter mDeviceListAdapter;
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -63,8 +73,7 @@ public class TraceFragment extends Fragment {
             @Override
             public void onRefresh(RefreshLayout refreshlayout) {
                 refreshlayout.finishRefresh(2000);
-                sid="0";
-                getTraceList();
+                getDeviceList();
             }
         });
         refreshLayout.setOnLoadmoreListener(new OnLoadmoreListener() {
@@ -76,13 +85,18 @@ public class TraceFragment extends Fragment {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         recyclerview.setLayoutManager(layoutManager);
         recyclerview.setHasFixedSize(true);
-        traceAdapter = new EventTraceAdapter(getActivity(),new OnListItemClick(){
+        mDeviceListAdapter = new DeviceListAdapter(getActivity(),new OnListItemClick(){
             @Override
             public void onItemClick(Object o) {
                 super.onItemClick(o);
+                DeviceResponse.DevlistBean devlistBean = (DeviceResponse.DevlistBean) o;
+                Intent intent = new Intent(getActivity(), EventTraceDetailActivity.class);
+                intent.putExtra(IntentExtras.DEVICE.ID,devlistBean.getDevidX());
+                startActivity(intent);
             }
         });
-        recyclerview.setAdapter(traceAdapter);
+        recyclerview.setAdapter(mDeviceListAdapter);
+        refreshLayout.autoRefresh();
     }
 
     @Nullable
@@ -93,42 +107,36 @@ public class TraceFragment extends Fragment {
         return view;
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        unbinder.unbind();
-    }
-
-    private void getTraceList() {
-        Map param = new HashMap();
-        param.put("qrytype", Params.QRY_TYPE.TRACE);
-        param.put("dir", 0);
-        param.put("len", 10);
-        param.put("sid", sid);
-
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        param.put("edate", simpleDateFormat.format(calendar.getTime()));
-        calendar.add(Calendar.MONTH, -1);
-        param.put("sdate", simpleDateFormat.format(calendar.getTime()));
-
+    private void getDeviceList() {
+        if(!NetworkUtils.isConnected()){
+            DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+            if(response!=null){
+                initDeviceList(response.getDevlist());
+            }
+            return;
+        }
+        Map param = new LinkedHashMap();
+        param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getInstance().getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "userinfo/" + pubParam.toUrlParam(sign);
+        String path = HttpUrl.Api + "userdevicelist/" + pubParam.toUrlParam(sign);
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetUserInfo(path, requestBody)
+
+        ApiServiceManager.getInstance().buildApiService(getActivity()).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<UserInfoResponse>() {
+                .subscribe(new Consumer<DeviceResponse>() {
                     @Override
-                    public void accept(UserInfoResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            traceAdapter.refreshData(response.getTracelist());
+                    public void accept(DeviceResponse response) throws Exception {
+                        SPUtils.getInstance().remove(SPConst.DATA.DEVICELIST);
+                        SPUtils.getInstance().saveObject(SPConst.DATA.DEVICELIST,response);
+                        initDeviceList(response.getDevlist());
+                        if (!response.isSuccessful()) {
+                            response.onError(getActivity());
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -137,7 +145,25 @@ public class TraceFragment extends Fragment {
                         throwable.printStackTrace();
                     }
                 });
-
     }
 
+    private void initDeviceList(List<DeviceResponse.DevlistBean> devlist) {
+        if (devlist == null || devlist.size() == 0) {
+            rlTip.setVisibility(View.VISIBLE);
+            recyclerview.setVisibility(View.GONE);
+        }else{
+            rlTip.setVisibility(View.GONE);
+            recyclerview.setVisibility(View.VISIBLE);
+        }
+        mDeviceListAdapter.updateData(devlist);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if(mDeviceListAdapter!=null){
+            mDeviceListAdapter.unregist();
+        }
+        unbinder.unbind();
+    }
 }

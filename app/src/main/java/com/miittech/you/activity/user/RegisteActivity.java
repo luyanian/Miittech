@@ -13,6 +13,8 @@ import com.google.gson.Gson;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
+import com.miittech.you.activity.setting.PrivacyProtocolsActivity;
+import com.miittech.you.activity.setting.UseTermsActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.common.OnGetVerCodeComplete;
 import com.miittech.you.global.SPConst;
@@ -23,6 +25,7 @@ import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
+import com.miittech.you.net.response.LoginResponse;
 import com.miittech.you.utils.CountDownTimerUtils;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
@@ -71,6 +74,7 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
     TextView btnGetCode;
 
     private String cliendid = "";
+    private boolean isSSORegist = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,15 +91,18 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
                 finish();
             }
         });
+        isSSORegist = getIntent().hasExtra("method");
+        if(isSSORegist){
+            typeSelector.disableSelectEmail();
+        }
     }
 
-    @OnClick({R.id.btn_get_code, R.id.btn_ok})
+    @OnClick({R.id.btn_get_code, R.id.btn_ok,R.id.tv_use_terms,R.id.tv_privace_protocols})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_get_code:
                 String phone = etUserPhone.getText().toString().trim();
                 Common.getMsgCode(this,phone,new OnGetVerCodeComplete(){
-
                     @Override
                     public void onSuccessful(String cliendid) {
                         RegisteActivity.this.cliendid = cliendid;
@@ -106,6 +113,14 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
                 break;
             case R.id.btn_ok:
                 doRegiste();
+                break;
+            case R.id.tv_use_terms:
+                Intent terms = new Intent(this, UseTermsActivity.class);
+                startActivity(terms);
+                break;
+            case R.id.tv_privace_protocols:
+                Intent privace = new Intent(this, PrivacyProtocolsActivity.class);
+                startActivity(privace);
                 break;
         }
     }
@@ -141,8 +156,12 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
             ToastUtils.showShort(R.string.tip_ver_password_empty);
             return;
         }
-
         Map param = new HashMap();
+        if(isSSORegist) {
+            String openid = getIntent().getStringExtra("openid");
+            method = getIntent().getStringExtra("method");
+            param.put("openid", openid);
+        }
         param.put("method", method);
         param.put("phone", phone);
         param.put("clientid", cliendid);
@@ -157,12 +176,12 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
         String path = HttpUrl.Api + "user/" + pubParam.toUrlParam(sign);
         RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
 
-        ApiServiceManager.getInstance().buildApiService(this).postNetRequest(path, requestBody)
+        ApiServiceManager.getInstance().buildApiService(this).postToLogin(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<BaseResponse>() {
+                .subscribe(new Consumer<LoginResponse>() {
                     @Override
-                    public void accept(BaseResponse response) throws Exception {
+                    public void accept(LoginResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID,response.getUserid());

@@ -156,10 +156,7 @@ public class DeviceDetailActivity extends BaseActivity {
             setTimeText(tvDeviceTime,device.getLasttime());
             tvDeviceLocation.setText(Common.decodeBase64(device.getLocinfo().getAddr()));
         }
-
-        Glide.with(this)
-                .load(device.getDevimg())
-                .into(imgDeviceIcon);
+        Glide.with(this).load(device.getDevimg()).into(imgDeviceIcon);
         switchFindBtnStyle();
     }
 
@@ -183,26 +180,44 @@ public class DeviceDetailActivity extends BaseActivity {
 //                Intent intent = new Intent(this,DeviceSetAttrActivity.class);
                 break;
             case R.id.rl_bell_status:
-                if(App.getInstance().getUserId().equals(TextUtils.isEmpty(deviceDetailInfo.getOwneruser()))) {
+                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
                     doFindOrBell();
+                }else{
+                    ToastUtils.showShort("您不是贴片拥有者，无操作权限");
                 }
                 break;
             case R.id.btn_option_map:
-                Intent map = new Intent(this, DeviceMapDetailActivity.class);
-                map.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
-                startActivity(map);
+                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
+                    Intent map = new Intent(this, DeviceMapDetailActivity.class);
+                    map.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
+                    startActivity(map);
+                }else{
+                    ToastUtils.showShort("您不是贴片拥有者，无操作权限");
+                }
                 break;
             case R.id.btn_option_share:
-                Intent toshareIntent = new Intent(this,DeviceSharedListActivity.class);
-                toshareIntent.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
-                startActivity(toshareIntent);
+                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
+                    Intent toshareIntent = new Intent(this, DeviceSharedListActivity.class);
+                    toshareIntent.putExtra(IntentExtras.DEVICE.DATA, deviceDetailInfo);
+                    startActivity(toshareIntent);
+                }else{
+                    ToastUtils.showShort("您不是贴片拥有者，无操作权限");
+                }
                 break;
             case R.id.btn_option_setting:
-                Intent intent = new Intent(this,DeviceDetailSettingActivity.class);
-                intent.putExtra(IntentExtras.DEVICE.DATA,this.deviceDetailInfo);
-                startActivity(intent);
+                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
+                    Intent intent = new Intent(this, DeviceDetailSettingActivity.class);
+                    intent.putExtra(IntentExtras.DEVICE.DATA, this.deviceDetailInfo);
+                    startActivity(intent);
+                }else{
+                    ToastUtils.showShort("您不是贴片拥有者，无操作权限");
+                }
                 break;
             case R.id.btn_option_delete:
+                if(!TextUtils.isEmpty(deviceDetailInfo.getOwneruser())&&!"0".equals(deviceDetailInfo.getOwneruser())){
+
+                    return;
+                }
                 MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(this);
                 msgTipDialog.setTitle("删除设备").setMsg("删除操作将清空所有的设备信息，是否确定删除");
                 msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
@@ -342,13 +357,18 @@ public class DeviceDetailActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
+                String address = intent.getStringExtra("address");
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 switch (ret){
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS:
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS:
                         LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
+                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
+                        switchFindBtnStyle();
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
                         LogUtils.d("RET_DEVICE_CONNECT_FAILED");
+                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
+                        switchFindBtnStyle();
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_START_SUCCESS:
                         SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
@@ -361,15 +381,16 @@ public class DeviceDetailActivity extends BaseActivity {
                     case IntentExtras.RET.RET_DEVICE_READ_RSSI:
                         LogUtils.d("RET_DEVICE_READ_RSSI");
                         int rssi = intent.getIntExtra("rssi",0);
-                        updateItemRssi(rssi);
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            updateItemRssi(rssi);
+                        }
                         break;
                     case IntentExtras.RET.RET_DEVICE_READ_BATTERY:
                         LogUtils.d("RET_DEVICE_READ_BATTERY");
                         String battery = intent.getStringExtra("battery");
-                        updateItemBattery(battery);
-                        break;
-                    case IntentExtras.RET.RET_DEVICE_UNBIND_SUCCESS:
-                        unbindDevice();
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            updateItemBattery(battery);
+                        }
                         break;
                 }
 

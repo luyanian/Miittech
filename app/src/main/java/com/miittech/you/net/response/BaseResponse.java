@@ -30,10 +30,8 @@ public class BaseResponse implements Serializable{
     private String clientid;
     private String url;
     private String errmsg;
-    private String username;
-    private String token;
-    private String userid;
     private int configid;
+
 
     public String getClientid() {
         return clientid;
@@ -67,30 +65,6 @@ public class BaseResponse implements Serializable{
         this.errmsg = errmsg;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public String getUserid() {
-        return userid;
-    }
-
-    public void setUserid(String userid) {
-        this.userid = userid;
-    }
-
     public int getConfigid() {
         return configid;
     }
@@ -106,14 +80,16 @@ public class BaseResponse implements Serializable{
                 ", clientid='" + clientid + '\'' +
                 ", url='" + url + '\'' +
                 ", errmsg='" + errmsg + '\'' +
-                ", token='" + token + '\'' +
-                ", userid='" + userid + '\'' +
                 ", configid='" + configid + '\'' +
                 '}';
     }
 
     public boolean isSuccessful(){
         return this.errcodeX== ResponseCode.successful;
+    }
+
+    public boolean unExsitUser(){
+        return this.errcodeX==ResponseCode.user_notexist;
     }
 
     public void onError(Context context){

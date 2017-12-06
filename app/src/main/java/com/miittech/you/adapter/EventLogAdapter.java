@@ -90,9 +90,7 @@ public class EventLogAdapter extends RecyclerView.Adapter {
                     "&mcode=4B:DB:0E:E2:CA:AA:EF:77:C7:37:FA:46:B9:6D:C6:CB:CD:02:10:47;com.miittech.you" +
                     "&center="+eventlistBean.getLocinfo().getLng()+","+eventlistBean.getLocinfo().getLat()+"&width=560&height=280&zoom=16" +
                     "&markers="+eventlistBean.getLocinfo().getLng()+","+eventlistBean.getLocinfo().getLat()+"&markerStyles=l,A|m,B|l,C|l,D|m,E|,|l,G|m,H";
-
             Glide.with(context).load(imgUrl).into(holder.itemImgMap);
-
         }
         holder.llItem.setOnClickListener(new View.OnClickListener() {
             @Override

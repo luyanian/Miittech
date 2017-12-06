@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.baidu.mapapi.map.BaiduMap;
@@ -33,6 +34,7 @@ import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
@@ -57,7 +59,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
     @BindView(R.id.map_view)
     MapView mapView;
     @BindView(R.id.rl_bell_status)
-    ImageView rlBellStatus;
+    RelativeLayout rlBellStatus;
     @BindView(R.id.img_find_butten)
     ImageView imgFindButten;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
@@ -102,15 +104,19 @@ public class DeviceMapDetailActivity extends BaseActivity {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.img_navagation:
-                Intent i1 = new Intent();
-                i1.setData(Uri.parse("baidumap://map/direction?&destination=latlng:"
-                        +deviceDetailInfo.getLocinfo().getLat()+","+deviceDetailInfo.getLocinfo().getLng()
-                        +"|name:"+Common.decodeBase64(deviceDetailInfo.getLocinfo().getAddr())
-                        +"&mode=transit&sy=3&index=0&target=1"));
-                startActivity(i1);
+                if(AppUtils.isInstallApp("com.baidu.BaiduMap")){
+                    Intent i1 = new Intent();
+                    i1.setData(Uri.parse("baidumap://map/geocoder?location="+deviceDetailInfo.getLocinfo().getLat()+","+deviceDetailInfo.getLocinfo().getLng()));
+                    startActivity(i1);
+                }else{
+                    Intent l2 = new Intent(Intent.ACTION_VIEW);
+                    l2.setData(Uri.parse("http://api.map.baidu.com/geocoder?location="+deviceDetailInfo.getLocinfo().getLat()+","+deviceDetailInfo.getLocinfo().getLng()
+                            +"&coord_type=bd09ll&output=html&src=智云有物"));
+                    startActivity(l2);
+                }
                 break;
             case R.id.rl_bell_status:
-                if(App.getInstance().getUserId().equals(TextUtils.isEmpty(deviceDetailInfo.getOwneruser()))) {
+                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
                     doFindOrBell();
                 }
                 break;

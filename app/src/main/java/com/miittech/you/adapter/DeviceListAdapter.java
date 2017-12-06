@@ -33,6 +33,8 @@ import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,9 +78,18 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         ViewHolder holder = (ViewHolder) viewHolder;
         holders.put(Common.formatDevId2Mac(devlistBean.getDevidX()),holder);
         holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
+        holder.tvIsShared.setVisibility(View.GONE);
         if(TextUtils.isEmpty(devlistBean.getFriendname())){
             holder.itemShared.setVisibility(View.GONE);
         }else{
+            if(i==0){
+                holder.tvIsShared.setVisibility(View.VISIBLE);
+            }else{
+                DeviceResponse.DevlistBean lastItem = mData.get(i-1);
+                if(TextUtils.isEmpty(lastItem.getFriendname())){
+                    holder.tvIsShared.setVisibility(View.VISIBLE);
+                }
+            }
             holder.itemShared.setVisibility(View.VISIBLE);
             holder.itemShared.setText("分享自"+Common.decodeBase64(devlistBean.getFriendname()));
         }
@@ -125,6 +136,15 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         ArrayList<String> tempList = new ArrayList<>();
         tempList.clear();
         if(devlist!=null){
+            Collections.sort(devlist, new Comparator<DeviceResponse.DevlistBean>() {
+                @Override
+                public int compare(DeviceResponse.DevlistBean o1, DeviceResponse.DevlistBean o2) {
+                    if(TextUtils.isEmpty(o1.getFriendname())){
+                        return -1;
+                    }
+                    return 1;
+                }
+            });
             mData.addAll(devlist);
             notifyDataSetChanged();
             for(DeviceResponse.DevlistBean devlistBean : devlist){
@@ -142,6 +162,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.rl_item)
         RelativeLayout rlItem;
+        @BindView(R.id.tv_is_shared)
+        TextView tvIsShared;
         @BindView(R.id.item_icon_status)
         ImageView itemIconStatus;
         @BindView(R.id.item_icon)

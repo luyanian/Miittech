@@ -24,6 +24,7 @@ public class TypeSelector extends LinearLayout implements View.OnClickListener{
     private Drawable drawableUnSelect;
     private TypeSelectorChangeLisener typeSelectorChangeLisener;
     private int selectItem = 0;
+    private boolean conSelectEmail = true;
     public TypeSelector(Context context) {
         super(context);
         init(context);
@@ -93,6 +94,9 @@ public class TypeSelector extends LinearLayout implements View.OnClickListener{
                 tvItem1.setCompoundDrawables(null, null, null, drawableSelect);
                 break;
             case R.id.tv_item2:
+                if(!conSelectEmail){
+                    return;
+                }
                 this.selectItem = 1;
                 tvItem1.setSelected(false);
                 tvItem1.setCompoundDrawables(null, null, null, drawableUnSelect);
@@ -103,5 +107,9 @@ public class TypeSelector extends LinearLayout implements View.OnClickListener{
         if(typeSelectorChangeLisener!=null){
             typeSelectorChangeLisener.onTabSelectorChanged(selectItem);
         }
+    }
+
+    public void disableSelectEmail() {
+        this.conSelectEmail=false;
     }
 }

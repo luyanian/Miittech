@@ -35,6 +35,8 @@ public class Params {
         public static final String UNAME="UNAME";
         public static final String QQSSO="QQSSO";
         public static final String WECHART="WECHART";
+        public static final String PHONEWITHQQ="PHONEWITHQQ";
+        public static final String PHONEWITHWX="PHONEWITHWX";
         public static final String IGNORE_ADD="ADD";//添加申请
         public static final String IGNORE_UPD="UPD";//添加申请
         public static final String IGNORE_DEL="DEL";//添加申请

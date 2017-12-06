@@ -252,6 +252,7 @@
             android:layout_marginTop="10dp"
             android:layout_gravity="center_horizontal">
             <TextView
+                android:id="@+id/tv_use_terms"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="16dp"
@@ -265,6 +266,7 @@
                 android:layout_marginRight="5dp"
                 android:text="@string/text_register_and"/>
             <TextView
+                android:id="@+id/tv_privace_protocols"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="16dp"

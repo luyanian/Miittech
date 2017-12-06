@@ -13,6 +13,29 @@
             android:layout_height="match_parent"
             android:overScrollMode="never"
             android:background="#fff" />
+        <RelativeLayout
+            android:id="@+id/rl_tip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ll_tips"
+            android:padding="40dp">
+
+            <ImageView
+                android:id="@+id/textView"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/ic_tip_unbind"
+                android:layout_centerHorizontal="true"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_device_current_unbind"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/textView"
+                android:layout_marginTop="25dp"
+                android:textColor="@color/black"
+                android:textSize="18dp"/>
+        </RelativeLayout>
     </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
 </LinearLayout>

@@ -5,6 +5,7 @@ import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendLocInfoResponse;
 import com.miittech.you.net.response.FriendsResponse;
+import com.miittech.you.net.response.LoginResponse;
 import com.miittech.you.net.response.RegisteCodeResponse;
 import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.net.response.UserInfoResponse;
@@ -26,6 +27,9 @@ public interface ApiService {
 
     @POST()
     Observable<UserInfoResponse> postToGetUserInfo(@Url String url, @Body RequestBody body);
+
+    @POST()
+    Observable<LoginResponse> postToLogin(@Url String url, @Body RequestBody body);
 
     @POST()
     Observable<FriendsResponse> postToGetFriendList(@Url String url, @Body RequestBody body);

@@ -18,6 +18,7 @@ import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.net.response.LoginResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
@@ -129,12 +130,12 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
         LogUtils.d("sign_sha1", sign);
         String path = HttpUrl.Api + "login/" + pubParam.toUrlParam(sign);
         RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(this).postToGetUserInfo(path, requestBody)
+        ApiServiceManager.getInstance().buildApiService(this).postToLogin(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<UserInfoResponse>() {
+                .subscribe(new Consumer<LoginResponse>() {
                     @Override
-                    public void accept(UserInfoResponse response) throws Exception {
+                    public void accept(LoginResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID,response.getUserid());
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
@@ -166,11 +167,11 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
             case R.id.btn_forget_password:
                 break;
             case R.id.btn_login_with_wechat:
-                Platform weibo = ShareSDK.getPlatform(Wechat.NAME);
-                weibo.SSOSetting(false);  //设置false表示使用SSO授权方式
-                weibo.setPlatformActionListener(this); // 设置分享事件回调
-                weibo.authorize();//单独授权
-                weibo.showUser(null);//授权并获取用户信息
+                Platform wechat = ShareSDK.getPlatform(Wechat.NAME);
+                wechat.SSOSetting(false);  //设置false表示使用SSO授权方式
+                wechat.setPlatformActionListener(this); // 设置分享事件回调
+                wechat.authorize();//单独授权
+                wechat.showUser(null);//授权并获取用户信息
                 break;
             case R.id.btn_login_with_qq:
                 Platform qq = ShareSDK.getPlatform(QQ.NAME);
@@ -184,7 +185,7 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
 
     @Override
     public void onComplete(Platform platform, int i, HashMap<String, Object> hashMap) {
-
+        doShareSdkLogin(platform);
     }
 
     @Override
@@ -196,4 +197,69 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
     public void onCancel(Platform platform, int i) {
 
     }
+
+    private synchronized void doShareSdkLogin(final Platform platform) {
+        Map param = new HashMap();
+        String access_token = platform.getDb().getToken(); // 获取授权token
+        String openid = platform.getDb().getUserId(); // 获取用户在此平台的ID
+        long expires_in = platform.getDb().getExpiresIn();
+        String unionid = platform.getDb().get("unionid");
+        if (Wechat.NAME.equals(platform.getName())) {
+            param.put("method", Params.METHOD.WECHART);
+        } else if (QQ.NAME.equals(platform.getName())) {
+            param.put("method", Params.METHOD.QQSSO);
+        }
+        param.put("access_token", access_token);
+        param.put("openid", openid);
+        param.put("expires_in", expires_in);
+        param.put("unionid", unionid);
+
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Params.userid_unlogin);
+        String sign_unSha1 = pubParam.toValueString() + json + EncryptUtils.encryptSHA1ToString(Params.signkey_unlogin).toLowerCase();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "login/" + pubParam.toUrlParam(sign);
+        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(this).postToLogin(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<LoginResponse>() {
+                    @Override
+                    public void accept(LoginResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID, response.getUserid());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN, response.getToken());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME, response.getUsername());
+                            JPushInterface.setAlias(LoginActivity.this, 0, response.getUserid());
+                            JPushInterface.getRegistrationID(LoginActivity.this);
+                            ToastUtils.showShort(getResources().getString(R.string.msg_user_login_successful));
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            ActivityPools.finishAllExcept(MainActivity.class);
+                        }else if(response.unExsitUser()){
+                            Intent intent = new Intent(LoginActivity.this,RegisteActivity.class);
+                            if (Wechat.NAME.equals(platform.getName())) {
+                                intent.putExtra("method",Params.METHOD.PHONEWITHWX);
+                                intent.putExtra("openid",response.getOpenid());
+                                startActivity(intent);
+                            }
+                            if (QQ.NAME.equals(platform.getName())) {
+                                intent.putExtra("method",Params.METHOD.PHONEWITHQQ);
+                                intent.putExtra("openid",response.getOpenid());
+                                startActivity(intent);
+                            }
+                        } else {
+                            response.onError(LoginActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+
 }

@@ -50,7 +50,7 @@ public class JpushFriend implements Serializable {
         private String sourceid;
         private String targetid;
         private String addtime;
-        private int state;//1：等待确认  100：已确认  -1：已取消  -100：已拒绝
+        private int state;//0/1/-1 分别是等待确认/已分享/已拒绝或取消
 
         public String getNsgid() {
             return nsgid;
