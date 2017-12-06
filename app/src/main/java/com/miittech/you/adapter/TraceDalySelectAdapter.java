@@ -35,7 +35,6 @@ public class TraceDalySelectAdapter extends RecyclerView.Adapter {
     public TraceDalySelectAdapter(Context context, OnListItemClick onListItemClick) {
         this.context = context;
         this.onListItemClick = onListItemClick;
-        textViews.clear();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.MONTH, -1);
