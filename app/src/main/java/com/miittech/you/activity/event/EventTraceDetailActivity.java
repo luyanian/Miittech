@@ -160,6 +160,7 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
             @Override
             public void onItemClick(Date date) {
                 super.onItemClick(date);
+                mBaiduMap.clear();
                 getPoints(date);
             }
         });
