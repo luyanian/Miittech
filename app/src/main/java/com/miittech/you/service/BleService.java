@@ -17,6 +17,10 @@ import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.inuker.bluetooth.library.BluetoothContext;
 import com.inuker.bluetooth.library.Constants;
 import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
@@ -41,6 +45,7 @@ import com.miittech.you.global.SPConst;
 import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
+import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.ryon.constant.TimeConstants;
@@ -608,52 +613,77 @@ public  class BleService extends Service {
     }
 
     private synchronized void reportUserLocation(final long millis, final BDLocation location) {
-        if(mConnectedList.size()<=0){
+        DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+        if(response==null){
+            return;
+        }
+        List<DeviceResponse.DevlistBean> mlist = response.getDevlist();
+        if(mlist==null||mlist.size()<=0){
+            return;
+        }
+        final List<Map> devlist = new ArrayList<>();
+        for (DeviceResponse.DevlistBean devlistBean : mlist){
+            String mac = Common.formatDevId2Mac(devlistBean.getDevidX());
+            final Map devItem = new HashMap();
+            devItem.put("devid", devlistBean.getDevidX());
+            devItem.put("usedstate", devlistBean.getUsedstate());
+            devItem.put("bindstate", 1);
+            if(TextUtils.isEmpty(devlistBean.getFriendname())){
+                devItem.put("sourceid", 0);
+                devItem.put("devbattery",0);
+                devItem.put("devposstate", 0);
+                devItem.put("devstate", 0);
+            }else{
+                devItem.put("sourceid", devlistBean.getFriendid());
+                if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+                    devItem.put("devstate", 1);
+                    if (mapBattery.containsKey(mac)){
+                        devItem.put("devbattery", mapBattery.get(mac));
+                    }else{
+                        return;
+                    }
+                    if(mapRssi.containsKey(mac)){
+                        int rssi = mapRssi.get(mac);
+                        if (rssi < -85) {
+                            devItem.put("devposstate", 3);
+                        } else if (rssi > -85 && rssi < -70) {
+                            devItem.put("devposstate", 2);
+                        } else if (rssi > -70) {
+                            devItem.put("devposstate", 1);
+                        }
+                    }else{
+                        return;
+                    }
+                }else {
+                    devItem.put("devbattery",0);
+                    devItem.put("devposstate", 100);
+                    devItem.put("devstate", -99);
+                }
+            }
+            devlist.add(devItem);
+        }
+        if(devlist.size()<=0){
             return;
         }
         final Map user_loc = new HashMap();
         user_loc.put("lat", location.getLatitude());
         user_loc.put("lng", location.getLongitude());
         user_loc.put("addr", Common.encodeBase64(location.getAddrStr()));
-        final List<Map> devlist = new ArrayList<>();
-        for (final String mac : mConnectedList) {
-            if (mapBattery.containsKey(mac) && mapRssi.containsKey(mac)) {
-                final Map devItem = new HashMap();
-                devItem.put("devid", Common.formatMac2DevId(mac));
-                devItem.put("devbattery", mapBattery.get(mac));
-                int rssi = mapRssi.get(mac);
-                if (rssi < -85) {
-                    devItem.put("devposstate", 3);
-                } else if (rssi > -85 && rssi < -70) {
-                    devItem.put("devposstate", 2);
-                } else if (rssi > -70) {
-                    devItem.put("devposstate", 1);
-                }
-                devItem.put("devstate", 1);
-                devItem.put("usedstate", 1);
-                devItem.put("bindstate", 1);
-                devlist.add(devItem);
-            }
-        }
-        if(devlist.size()<=0){
-            return;
-        }
         Map repdata = new HashMap();
         repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyyMMddhhmmss")));
         repdata.put("user_loc", user_loc);
         repdata.put("devlist", devlist);
-        Map param = new HashMap();
-        param.put("method", 1);
-        param.put("repdata", repdata);
-        String json = new Gson().toJson(param);
+        String json = new Gson().toJson(repdata);
         if(NetworkUtils.isConnected()){
-            doReport(json);
+            JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+            JsonArray jsonArray = new JsonArray();
+            jsonArray.add(jsonObject);
+            doReport(1,jsonArray);
         }else {
-            Set<String> reportList = SPUtils.getInstance().getStringSet("reportList");
-            if (reportList == null) {
-                reportList = new LinkedHashSet<>();
-            }
+            Set<String> reportList = new LinkedHashSet<>();
+            reportList.addAll(SPUtils.getInstance().getStringSet("reportList"));
             reportList.add(json);
+            SPUtils.getInstance().remove("reportList");
             SPUtils.getInstance().put("reportList", reportList);
         }
         lastLocation = location;
@@ -667,14 +697,23 @@ public  class BleService extends Service {
         if(reportList==null||reportList.size()<=0){
             return;
         }
-
-        final Iterator iterator = reportList.iterator();//先迭代出来
+        JsonArray jsonArray = new JsonArray();
+        Iterator iterator = reportList.iterator();//先迭代出来
         while(iterator.hasNext()){//遍历
-            doReport((String) iterator.next());
+            JsonObject jsonObject = new JsonParser().parse((String)iterator.next()).getAsJsonObject();
+            jsonArray.add(jsonObject);
+            if(jsonArray.size()>50){
+                break;
+            }
         }
+        doReport(2,jsonArray);
     }
 
-    private void doReport(final String json) {
+    private void doReport(final int method, final JsonArray jsonArray) {
+        Map param = new HashMap();
+        param.put("method", method);
+        param.put("repdata",jsonArray);
+        String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(App.getInstance().getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
@@ -689,13 +728,19 @@ public  class BleService extends Service {
                     @Override
                     public synchronized void accept(FriendsResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            final Set<String> reportList = SPUtils.getInstance().getStringSet("reportList");
-                            if(reportList!=null||reportList.contains(json)){
-                                reportList.remove(json);
-                                SPUtils.getInstance().remove("reportList");
-                                SPUtils.getInstance().put("reportList",reportList);
+                            final Set<String> reportList = new LinkedHashSet<>();
+                            reportList.addAll(SPUtils.getInstance().getStringSet("reportList"));
+                            if(reportList==null||reportList.size()<=0){
+                                return;
                             }
-
+                            for (JsonElement jsonElement : jsonArray){
+                                String report = new Gson().toJson(jsonElement);
+                                if(reportList.contains(report)){
+                                    reportList.remove(report);
+                                }
+                            }
+                            SPUtils.getInstance().remove("reportList");
+                            SPUtils.getInstance().put("reportList",reportList);
                         }
                     }
                 }, new Consumer<Throwable>() {

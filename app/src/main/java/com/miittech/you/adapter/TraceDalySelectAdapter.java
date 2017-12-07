@@ -29,7 +29,6 @@ import butterknife.OnClick;
 public class TraceDalySelectAdapter extends RecyclerView.Adapter {
     private Context context;
     private OnListItemClick onListItemClick;
-    private RecyclerView recyclerview;
     List<Date> mlist = new ArrayList<>();
     List<TextView> textViews = new ArrayList<>();
     public TraceDalySelectAdapter(Context context, OnListItemClick onListItemClick) {
@@ -62,9 +61,6 @@ public class TraceDalySelectAdapter extends RecyclerView.Adapter {
             @Override
             public void onClick(View v) {
                 unSelectAll();
-                if(recyclerview!=null){
-                    recyclerview.scrollToPosition(position);
-                }
                 viewHolder.tvDaly.setSelected(true);
                 if(onListItemClick!=null){
                     onListItemClick.onItemClick(date);
@@ -81,13 +77,10 @@ public class TraceDalySelectAdapter extends RecyclerView.Adapter {
         return mlist.size();
     }
 
-    public void setView(RecyclerView recyclerview) {
-        this.recyclerview = recyclerview;
-    }
 
-    public void scrollToEnd() {
-        if(recyclerview!=null){
-            recyclerview.scrollToPosition(mlist.size()-1);
+    public void scrollToEnd(RecyclerView recyclerView) {
+        if(recyclerView!=null){
+            recyclerView.scrollToPosition(mlist.size()-1);
         }
     }
 

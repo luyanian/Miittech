@@ -19,7 +19,7 @@
             android:id="@+id/view_device"
             layout="@layout/item_device_list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="100dp"
             android:layout_alignParentBottom="true"/>
         <com.baidu.mapapi.map.MapView
             android:id="@+id/map_view"

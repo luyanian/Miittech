@@ -3,6 +3,7 @@ package com.miittech.you.net.response;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/11/7.
@@ -17,6 +18,7 @@ public class DeviceInfoResponse extends BaseResponse {
 
     private UserinfoBean userinfo;
     private ConfigBean config;
+    private List<TracelistBean> tracelist;
 
     public UserinfoBean getUserinfo() {
         return userinfo;
@@ -32,6 +34,14 @@ public class DeviceInfoResponse extends BaseResponse {
 
     public void setConfig(ConfigBean config) {
         this.config = config;
+    }
+
+    public List<TracelistBean> getTracelist() {
+        return tracelist;
+    }
+
+    public void setTracelist(List<TracelistBean> tracelist) {
+        this.tracelist = tracelist;
     }
 
     public static class UserinfoBean implements Serializable{
@@ -350,6 +360,89 @@ public class DeviceInfoResponse extends BaseResponse {
         }
     }
 
+
     public static class ConfigBean  implements Serializable{
+    }
+
+    public static class TracelistBean implements Serializable {
+        /**
+         * ttime : 20171204155433
+         * traceid : 42943
+         * ttype : 0
+         * locinfo : {"lat":39.101208,"lng":117.13795,"addr":"5Lit5Zu95aSp5rSl5biC6KW/6Z2S5Yy656u56IuR6LevNuWPtzUwNzYwNw=="}
+         */
+
+        private String ttime;
+        private String traceid;
+        private int ttype;
+        private LocinfoBean locinfo;
+
+        public String getTtime() {
+            return ttime;
+        }
+
+        public void setTtime(String ttime) {
+            this.ttime = ttime;
+        }
+
+        public String getTraceid() {
+            return traceid;
+        }
+
+        public void setTraceid(String traceid) {
+            this.traceid = traceid;
+        }
+
+        public int getTtype() {
+            return ttype;
+        }
+
+        public void setTtype(int ttype) {
+            this.ttype = ttype;
+        }
+
+        public LocinfoBean getLocinfo() {
+            return locinfo;
+        }
+
+        public void setLocinfo(LocinfoBean locinfo) {
+            this.locinfo = locinfo;
+        }
+
+        public static class LocinfoBean implements Serializable {
+            /**
+             * lat : 39.101208
+             * lng : 117.13795
+             * addr : 5Lit5Zu95aSp5rSl5biC6KW/6Z2S5Yy656u56IuR6LevNuWPtzUwNzYwNw==
+             */
+
+            private double lat;
+            private double lng;
+            private String addr;
+
+            public double getLat() {
+                return lat;
+            }
+
+            public void setLat(double lat) {
+                this.lat = lat;
+            }
+
+            public double getLng() {
+                return lng;
+            }
+
+            public void setLng(double lng) {
+                this.lng = lng;
+            }
+
+            public String getAddr() {
+                return addr;
+            }
+
+            public void setAddr(String addr) {
+                this.addr = addr;
+            }
+        }
     }
 }

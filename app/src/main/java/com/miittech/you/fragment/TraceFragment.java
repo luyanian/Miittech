@@ -91,7 +91,7 @@ public class TraceFragment extends Fragment {
                 super.onItemClick(o);
                 DeviceResponse.DevlistBean devlistBean = (DeviceResponse.DevlistBean) o;
                 Intent intent = new Intent(getActivity(), EventTraceDetailActivity.class);
-                intent.putExtra(IntentExtras.DEVICE.ID,devlistBean.getDevidX());
+                intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
                 startActivity(intent);
             }
         });
