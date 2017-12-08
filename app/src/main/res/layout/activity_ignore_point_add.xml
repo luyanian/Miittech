@@ -111,7 +111,7 @@
                 android:layout_toRightOf="@+id/tv_left"
                 android:layout_toLeftOf="@+id/tv_right"
                 android:progressDrawable="@drawable/shap_seekbar"
-                android:thumb="@drawable/shao_seekbar_thumb" />
+                android:thumb="@drawable/shao_seekbar_thumb"/>
         </RelativeLayout>
         <com.baidu.mapapi.map.MapView
             android:id="@+id/map_view"

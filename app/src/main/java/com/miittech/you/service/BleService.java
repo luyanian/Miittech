@@ -3,6 +3,7 @@ package com.miittech.you.service;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothGatt;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,22 +17,19 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
+import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleGattCallback;
+import com.clj.fastble.callback.BleRssiCallback;
+import com.clj.fastble.callback.BleScanCallback;
+import com.clj.fastble.data.BleConnectState;
+import com.clj.fastble.data.BleDevice;
+import com.clj.fastble.exception.BleException;
+import com.clj.fastble.scan.BleScanRuleConfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.inuker.bluetooth.library.BluetoothContext;
-import com.inuker.bluetooth.library.Constants;
-import com.inuker.bluetooth.library.connect.listener.BleConnectStatusListener;
-import com.inuker.bluetooth.library.connect.options.BleConnectOptions;
-import com.inuker.bluetooth.library.connect.response.BleConnectResponse;
-import com.inuker.bluetooth.library.connect.response.BleNotifyResponse;
-import com.inuker.bluetooth.library.connect.response.BleReadResponse;
-import com.inuker.bluetooth.library.connect.response.BleReadRssiResponse;
-import com.inuker.bluetooth.library.connect.response.BleUnnotifyResponse;
-import com.inuker.bluetooth.library.connect.response.BleWriteResponse;
-import com.inuker.bluetooth.library.model.BleGattProfile;
 import com.miittech.you.App;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
@@ -73,8 +71,6 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-
-import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
 import static com.miittech.you.common.BleCommon.characteristicUUID;
 import static com.miittech.you.common.BleCommon.serviceUUID;
 import static com.miittech.you.common.BleCommon.userCharacteristicLogUUID;
@@ -89,17 +85,18 @@ public  class BleService extends Service {
     private Map<String, Integer> mapRssi = new HashMap<String, Integer>();
     private Map<String,String> mapBattery = new HashMap<>();
     private BDLocation lastLocation;
-    private List<String> mMacList = new ArrayList<>();
 
     @Override  
     public IBinder onBind(Intent intent) {
-        return null;  
+        return null;
     }  
   
     @Override  
     public void onCreate() {
         super.onCreate();
-        BluetoothContext.set(getApplicationContext());
+        BleManager.getInstance().init(getApplication());
+        BleManager.getInstance().setMaxConnectCount(6);
+//        BluetoothContext.set(getApplicationContext());
         mLocationClient = new LocationClient(getApplicationContext());
         mLocationClient.registerLocationListener(myListener);
         LocationClientOption option = new LocationClientOption();
@@ -182,26 +179,31 @@ public  class BleService extends Service {
 
     private synchronized void exceTask() {
         exceReportSubmit();
-        if(mMacList.size()<=0){
+        List<BleDevice> list = BleManager.getInstance().getMultipleBluetoothController().getDeviceList();
+        if(list.size()<=0){
             return;
         }
-        for(final String mac : mMacList){
-            if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
-                BLEClientManager.getClient().readRssi(mac, new BleReadRssiResponse() {
+        for(final BleDevice bleDevice : list){
+            if(BleManager.getInstance().getConnectState(bleDevice)== BleConnectState.CONNECT_CONNECTED){
+                BleManager.getInstance().readRssi(bleDevice, new BleRssiCallback() {
                     @Override
-                    public void onResponse(int code, Integer data) {
-                        if(code==Constants.REQUEST_SUCCESS) {
-                            LogUtils.d("readRssi",mac+">>>"+data);
-                            Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                            intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_RSSI);
-                            intent.putExtra("address", mac);
-                            intent.putExtra("rssi", data);
-                            sendBroadcast(intent);
-                            mapRssi.put(mac,data);
-                        }
+                    public void onRssiFailure(BleException exception) {
+
+                    }
+
+                    @Override
+                    public void onRssiSuccess(int rssi) {
+                        LogUtils.d("readRssi",bleDevice.getMac()+">>>"+rssi);
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_RSSI);
+                        intent.putExtra("address", bleDevice.getMac());
+                        intent.putExtra("rssi", rssi);
+                        sendBroadcast(intent);
+                        mapRssi.put(bleDevice.getMac(),rssi);
                     }
                 });
-                DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
+
+                DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(bleDevice.getMac());
                 if(response!=null) {
                     DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
                     if (alertinfoBean != null) {
@@ -223,80 +225,98 @@ public  class BleService extends Service {
                     }
                 }
             }else{
-                if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_DISCONNECTED){
-                    connectDevice(mac);
+                if(BleManager.getInstance().getConnectState(bleDevice)== BleConnectState.CONNECT_DISCONNECT){
+                    connectDevice(bleDevice);
                 }
             }
         }
     }
 
     public synchronized void addDeviceList(ArrayList<String> macList){
-        this.mMacList.clear();
-        this.mMacList.addAll(macList);
-
         for(String mac:macList){
-            connectDevice(mac);
+            scanDevice(mac);
         }
-        for (String conMac : mConnectedList){
-            if(!macList.contains(conMac)){
-                BLEClientManager.getClient().unregisterConnectStatusListener(conMac, new BleConnectStatusListener() {
-                    @Override
-                    public void onConnectStatusChanged(String mac, int status) {
-
-                    }
-                });
-                BLEClientManager.getClient().unnotify(conMac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleUnnotifyResponse() {
-                    @Override
-                    public void onResponse(int code) {
-
-                    }
-                });
-                BLEClientManager.getClient().disconnect(conMac);
-                mConnectedList.remove(conMac);
-            }
-        }
+//        for (String conMac : mConnectedList){
+//            if(!macList.contains(conMac)){
+//                BLEClientManager.getClient().unregisterConnectStatusListener(conMac, new BleConnectStatusListener() {
+//                    @Override
+//                    public void onConnectStatusChanged(String mac, int status) {
+//
+//                    }
+//                });
+//                BLEClientManager.getClient().unnotify(conMac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleUnnotifyResponse() {
+//                    @Override
+//                    public void onResponse(int code) {
+//
+//                    }
+//                });
+//                BLEClientManager.getClient().disconnect(conMac);
+//                mConnectedList.remove(conMac);
+//            }
+//        }
     }
 
-    public synchronized void connectDevice(final String mac){
-        if(mConnectedList.contains(mac)){
-            return;
-        }
-        mConnectedList.add(mac);
-        if(BLEClientManager.getClient().getConnectStatus(mac)!=Constants.STATUS_DEVICE_DISCONNECTED){
-            return;
-        }
-        BleConnectOptions options = new BleConnectOptions.Builder()
-                .setConnectRetry(5)   // 连接如果失败重试3次
-                .setConnectTimeout(30000)   // 连接超时30s
-                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
-                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
+    public synchronized  void scanDevice(String mac){
+        BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
+                .setDeviceName(true,"yoowoo")
+                .setDeviceMac(mac)                  // 只扫描指定mac的设备，可选
+                .setAutoConnect(true)      // 连接时的autoConnect参数，可选，默认false
+                .setScanTimeOut(0)              // 扫描超时时间，可选，默认10秒
                 .build();
-        BLEClientManager.getClient().connect(mac,options, new BleConnectResponse() {
+        BleManager.getInstance().initScanRule(scanRuleConfig);
+        BleManager.getInstance().scan(new BleScanCallback() {
             @Override
-            public void onResponse(int code, BleGattProfile data) {
+            public void onScanStarted(boolean success) {
+
+            }
+
+            @Override
+            public void onScanning(BleDevice result) {
+                connectDevice(result);
+            }
+
+            @Override
+            public void onScanFinished(List<BleDevice> scanResultList) {
+
+            }
+        });
+    }
+    public synchronized void connectDevice(final BleDevice bleDevice){
+        if(BleManager.getInstance().isConnected(bleDevice)){
+            return;
+        }
+        BleManager.getInstance().connect(bleDevice, new BleGattCallback() {
+            @Override
+            public void onStartConnect() {
+
+            }
+
+            @Override
+            public void onConnectFail(BleException exception) {
+                LogUtils.d("bleResponse","贴片连接失败----->"+bleDevice.getMac());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                if(code==Constants.REQUEST_SUCCESS){
-                    LogUtils.d("bleResponse","贴片连接成功----->"+mac);
-                    intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS);
-                    sendBroadcast(intent);
-                    setWorkMode(mac);
-                }else{
-                    if(mConnectedList.contains(mac)){
-                        mConnectedList.remove(mac);
-                    }
-                    LogUtils.d("bleResponse","贴片连接失败----->"+mac);
-                    intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
-                    sendBroadcast(intent);
-                }
+                intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
+                sendBroadcast(intent);
+            }
+
+            @Override
+            public void onConnectSuccess(BleDevice bleDevice, BluetoothGatt gatt, int status) {
+                LogUtils.d("bleResponse","贴片连接成功----->"+bleDevice.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS);
+                sendBroadcast(intent);
+                setWorkMode(bleDevice.getMac());
+            }
+
+            @Override
+            public void onDisConnected(boolean isActiveDisConnected, BleDevice device, BluetoothGatt gatt, int status) {
+
             }
         });
     }
 
     public synchronized void bindDevice(final String mac){
-        if(mConnectedList.contains(mac)){
-            return;
-        }
-        mConnectedList.add(mac);
+
         BleConnectOptions options = new BleConnectOptions.Builder()
                 .setConnectRetry(5)   // 连接如果失败重试3次
                 .setConnectTimeout(30000)   // 连接超时30s
