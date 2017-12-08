@@ -81,7 +81,7 @@
                     android:layout_toLeftOf="@+id/imageView2"
                     android:layout_centerVertical="true"
                     android:layout_marginRight="10dp"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="@string/text_user_name_empty"/>
             </RelativeLayout>
             <TextView
@@ -116,7 +116,7 @@
                     android:layout_toLeftOf="@+id/imageView3"
                     android:layout_centerVertical="true"
                     android:layout_marginRight="10dp"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="@string/text_edit"/>
             </RelativeLayout>
             <RelativeLayout
@@ -149,7 +149,7 @@
                     android:layout_toLeftOf="@+id/imageView4"
                     android:layout_centerVertical="true"
                     android:layout_marginRight="10dp"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="@string/text_unbind"/>
             </RelativeLayout>
             <TextView
@@ -185,7 +185,7 @@
                     android:layout_toLeftOf="@+id/imageView5"
                     android:layout_centerVertical="true"
                     android:layout_marginRight="10dp"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="@string/text_unbind"/>
             </RelativeLayout>
             <TextView
@@ -221,7 +221,7 @@
                     android:layout_toLeftOf="@+id/imageView6"
                     android:layout_centerVertical="true"
                     android:layout_marginRight="10dp"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="@string/text_unbind"/>
             </RelativeLayout>
             <TextView
@@ -257,7 +257,7 @@
                     android:layout_toLeftOf="@+id/imageView7"
                     android:layout_centerVertical="true"
                     android:layout_marginRight="10dp"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="@string/text_unbind"/>
             </RelativeLayout>
             <RelativeLayout
@@ -277,7 +277,7 @@
                 <CheckBox
                     android:id="@+id/user_location_toogle"
                     android:layout_width="53dp"
-                    android:layout_height="35dp"
+                    android:layout_height="32dp"
                     android:layout_marginRight="20dp"
                     android:button="@null"
                     android:background="@drawable/sl_switch"

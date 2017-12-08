@@ -30,7 +30,7 @@
             android:layout_toRightOf="@+id/textView"
             android:background="@null"
             android:gravity="right"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="#646464"
             android:textColorHint="#646464"
             android:hint="请输入您要修改的名称"/>

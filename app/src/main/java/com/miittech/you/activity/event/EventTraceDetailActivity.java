@@ -1,6 +1,9 @@
 package com.miittech.you.activity.event;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -110,6 +113,7 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
     private TraceDalySelectAdapter traceDalySelectAdapter;
     private ClusterManager mClusterManager;
     private MapStatus ms;
+    private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,10 +121,10 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         setContentView(R.layout.activity_event_trace_detail);
         ButterKnife.bind(this);
         devlistBean = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        initMyTitleBar(titlebar,"LOGO");
+        initMyTitleBar(titlebar, "LOGO");
         titlebar.showBackOption();
         titlebar.showSettingOption();
-        titlebar.setTitleBarOptions(new TitleBarOptions(){
+        titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override
             public void onBack() {
                 super.onBack();
@@ -139,7 +143,7 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
         mBaiduMap.setOnMapLoadedCallback(this);
         Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
-        if(locinfo!=null) {
+        if (locinfo != null) {
             ms = new MapStatus.Builder().target(new LatLng(locinfo.getLat(), locinfo.getLng())).zoom(16).build();
             mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(ms));
         }
@@ -168,27 +172,36 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         traceDalySelectAdapter.scrollToEnd(recyclerview);
         getPoints(new Date());
         initDeviceInfo();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+        this.registerReceiver(cmdResponseReceiver, filter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(cmdResponseReceiver);
     }
 
     private void initDeviceInfo() {
         itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
         tvIsShared.setVisibility(View.GONE);
-        if(TextUtils.isEmpty(devlistBean.getFriendname())){
+        if (TextUtils.isEmpty(devlistBean.getFriendname())) {
             itemShared.setVisibility(View.GONE);
-        }else {
+        } else {
             itemShared.setVisibility(View.VISIBLE);
             itemShared.setText("分享自" + Common.decodeBase64(devlistBean.getFriendname()));
         }
 
-        if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(devlistBean.getDevidX()))!= Constants.STATUS_DEVICE_CONNECTED){
+        if (BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(devlistBean.getDevidX())) != Constants.STATUS_DEVICE_CONNECTED) {
             itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
-            setTimeText(itemTime,devlistBean.getLasttime());
+            setTimeText(itemTime, devlistBean.getLasttime());
         }
         Glide.with(this).load(devlistBean.getDevimg()).into(itemIcon);
     }
 
     private void getPoints(Date date) {
-        String daly = TimeUtils.date2String(date,new SimpleDateFormat("yyyyMMdd"));
+        String daly = TimeUtils.date2String(date, new SimpleDateFormat("yyyyMMdd"));
         Map param = new HashMap();
         param.put("devid", devlistBean.getDevidX());
         param.put("qrytype", Params.QRY_TYPE.TRACE);
@@ -204,40 +217,40 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
 
         ApiServiceManager.getInstance().buildApiService(this).postDeviceInfoOption(path, requestBody)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Consumer<DeviceInfoResponse>() {
-                @Override
-                public void accept(DeviceInfoResponse response) throws Exception {
-                    if (response.isSuccessful()) {
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceInfoResponse>() {
+                    @Override
+                    public void accept(DeviceInfoResponse response) throws Exception {
+                        if (response.isSuccessful()) {
                             initMapPoints(response.getTracelist());
-                    } else {
-                        response.onError(EventTraceDetailActivity.this);
+                        } else {
+                            response.onError(EventTraceDetailActivity.this);
+                        }
                     }
-                }
-            }, new Consumer<Throwable>() {
-                @Override
-                public void accept(Throwable throwable) throws Exception {
-                    throwable.printStackTrace();
-                }
-            });
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
     }
 
     private void initMapPoints(List<DeviceInfoResponse.TracelistBean> tracelist) {
-        if(tracelist==null||tracelist.size()<=0){
+        if (tracelist == null || tracelist.size() <= 0) {
             ToastUtils.showShort("没有发现轨迹信息");
             return;
         }
         List<OverlayOptions> options = new ArrayList<OverlayOptions>();
         DeviceInfoResponse.TracelistBean.LocinfoBean locinfoBean = tracelist.get(0).getLocinfo();
-        LatLng latLng = new LatLng(locinfoBean.getLat(),locinfoBean.getLng());
+        LatLng latLng = new LatLng(locinfoBean.getLat(), locinfoBean.getLng());
         ms = new MapStatus.Builder().target(latLng).zoom(16).build();
         mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(ms));
         List<MyItem> items = new ArrayList<>();
-        for (DeviceInfoResponse.TracelistBean tracelistBean : tracelist){
+        for (DeviceInfoResponse.TracelistBean tracelistBean : tracelist) {
             LatLng point1 = new LatLng(tracelistBean.getLocinfo().getLat(), tracelistBean.getLocinfo().getLng());
             BitmapDescriptor descriptor = BitmapDescriptorFactory.fromResource(R.drawable.ic_map_point);
-            OverlayOptions option1 =  new MarkerOptions()
+            OverlayOptions option1 = new MarkerOptions()
                     .position(point1)
                     .icon(descriptor);
             options.add(option1);
@@ -249,11 +262,11 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
     }
 
     private void setTimeText(TextView itemTime, String lasttime) {
-        if(itemTime==null){
+        if (itemTime == null) {
             return;
         }
-        SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddhhmmss");
-        String timeSpan = TimeUtils.getFriendlyTimeSpanByNow(lasttime,sdf);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
+        String timeSpan = TimeUtils.getFriendlyTimeSpanByNow(lasttime, sdf);
         itemTime.setText(timeSpan);
     }
 
@@ -284,4 +297,74 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
                     .fromResource(R.drawable.ic_map_point);
         }
     }
+
+    private class CmdResponseReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)) {
+                String address = intent.getStringExtra("address");
+                int ret = intent.getIntExtra("ret", -1);//获取Extra信息
+                switch (ret) {
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS:
+                        LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
+                        if (itemTime != null) {
+                            itemTime.setText("现在");
+                        }
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
+                        LogUtils.d("RET_DEVICE_CONNECT_FAILED");
+                        if(itemLocation!=null) {
+                            itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
+                        }
+                        if (itemTime != null) {
+                            setTimeText(itemTime,devlistBean.getLasttime());
+                        }
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_READ_RSSI:
+                        LogUtils.d("RET_DEVICE_READ_RSSI");
+                        int rssi = intent.getIntExtra("rssi", 0);
+                        if (address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+                            updateItemRssi(rssi);
+                        }
+                        break;
+                    case IntentExtras.RET.RET_DEVICE_READ_BATTERY:
+                        LogUtils.d("RET_DEVICE_READ_BATTERY");
+                        String battery = intent.getStringExtra("battery");
+                        if (address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+                            updateItemBattery(battery);
+                        }
+                        break;
+                }
+
+            }
+        }
+    }
+
+    private void updateItemRssi(int rssi) {
+        if (itemLocation != null) {
+            if (rssi < -85) {
+                itemLocation.setText("远离");
+            }
+            if (rssi > -85 && rssi < -70) {
+                itemLocation.setText("较远");
+            }
+            if (rssi > -70) {
+                itemLocation.setText("很近");
+            }
+        }
+        if (itemTime != null) {
+            itemTime.setText("现在");
+        }
+    }
+
+    private void updateItemBattery(String battery) {
+        if (itemBattery != null && Integer.valueOf(battery) < 20) {
+            itemBattery.setVisibility(View.VISIBLE);
+            itemBattery.setText("剩余电量  " + battery + "%");
+        }
+        if (itemTime != null) {
+            itemTime.setText("现在");
+        }
+    }
+
 }

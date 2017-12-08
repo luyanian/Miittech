@@ -24,8 +24,9 @@
             android:textSize="16dp"/>
         <ImageView
             android:id="@+id/img_week_1"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="8dp"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_device_rings_select"
             android:layout_centerVertical="true"/>
@@ -48,8 +49,9 @@
             android:textSize="16dp"/>
         <ImageView
             android:id="@+id/img_week_2"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="8dp"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_device_rings_select"
             android:layout_centerVertical="true"/>
@@ -72,8 +74,9 @@
             android:textSize="16dp"/>
         <ImageView
             android:id="@+id/img_week_3"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="8dp"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_device_rings_select"
             android:layout_centerVertical="true"/>
@@ -96,8 +99,9 @@
             android:textSize="16dp"/>
         <ImageView
             android:id="@+id/img_week_4"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="8dp"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_device_rings_select"
             android:layout_centerVertical="true"/>
@@ -120,8 +124,9 @@
             android:textSize="16dp"/>
         <ImageView
             android:id="@+id/img_week_5"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="8dp"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_device_rings_select"
             android:layout_centerVertical="true"/>
@@ -144,8 +149,9 @@
             android:textSize="16dp"/>
         <ImageView
             android:id="@+id/img_week_6"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="8dp"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_device_rings_select"
             android:layout_centerVertical="true"/>
@@ -168,8 +174,9 @@
             android:textSize="16dp"/>
         <ImageView
             android:id="@+id/img_week_7"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="8dp"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_device_rings_select"
             android:layout_centerVertical="true"/>

@@ -39,7 +39,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="钥匙"
                     android:layout_marginLeft="16dp"/>
@@ -58,7 +58,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="钱包"
                     android:layout_marginLeft="16dp"/>
@@ -76,7 +76,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="手提包"
                     android:layout_marginLeft="16dp"/>
@@ -95,7 +95,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="电脑"
                     android:layout_marginLeft="16dp"/>
@@ -120,7 +120,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="自行车"
                     android:layout_marginLeft="16dp"/>
@@ -138,7 +138,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="汽车"
                     android:layout_marginLeft="16dp"/>
@@ -163,7 +163,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="相机"
                     android:layout_marginLeft="16dp"/>
@@ -181,7 +181,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="雨伞"
                     android:layout_marginLeft="16dp"/>
@@ -199,7 +199,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="衣服"
                     android:layout_marginLeft="16dp"/>
@@ -217,7 +217,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="身份证"
                     android:layout_marginLeft="16dp"/>
@@ -235,7 +235,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="护照"
                     android:layout_marginLeft="16dp"/>
@@ -253,7 +253,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="行李箱"
                     android:layout_marginLeft="16dp"/>
@@ -271,7 +271,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="背包"
                     android:layout_marginLeft="16dp"/>
@@ -289,7 +289,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="手提箱"
                     android:layout_marginLeft="16dp"/>
@@ -314,7 +314,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="#323232"
                     android:text="其他"
                     android:layout_marginLeft="16dp"/>

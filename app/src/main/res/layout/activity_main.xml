@@ -25,36 +25,40 @@
         android:layout_height="60dp"
         android:layout_alignParentBottom="true"
         android:background="@color/white"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
         <TextView
             android:id="@+id/tab_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:drawableTop="@drawable/sl_tab_img_list"
             android:layout_centerHorizontal="true"
             android:textColor="@drawable/sl_tab_text_color"
             android:gravity="center"
+            android:textSize="16dp"
             android:text="@string/text_tab_list"/>
         <TextView
             android:id="@+id/tab_map"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:drawableTop="@drawable/sl_tab_img_map"
             android:layout_centerHorizontal="true"
             android:textColor="@drawable/sl_tab_text_color"
             android:gravity="center"
+            android:textSize="16dp"
             android:text="@string/text_tab_map"/>
         <TextView
             android:id="@+id/tab_events"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:drawableTop="@drawable/sl_tab_img_events"
             android:layout_centerHorizontal="true"
             android:textColor="@drawable/sl_tab_text_color"
             android:gravity="center"
+            android:textSize="16dp"
             android:text="@string/text_tab_events"/>
     </LinearLayout>
 </RelativeLayout>

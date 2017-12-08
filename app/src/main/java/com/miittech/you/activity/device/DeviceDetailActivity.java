@@ -362,12 +362,10 @@ public class DeviceDetailActivity extends BaseActivity {
                 switch (ret){
                     case IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS:
                         LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
                         switchFindBtnStyle();
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
                         LogUtils.d("RET_DEVICE_CONNECT_FAILED");
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
                         switchFindBtnStyle();
                         break;
                     case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_START_SUCCESS:

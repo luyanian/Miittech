@@ -70,8 +70,8 @@
             android:textColor="@color/white"/>
         <RelativeLayout
             android:id="@+id/rl_bell_status"
-            android:layout_width="180dp"
-            android:layout_height="45dp"
+            android:layout_width="140dp"
+            android:layout_height="35dp"
             android:layout_marginTop="10dp"
             android:background="@drawable/shape_corner_device_diconnect">
 

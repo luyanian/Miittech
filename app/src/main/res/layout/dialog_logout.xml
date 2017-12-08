@@ -16,7 +16,7 @@
             android:gravity="center"
             android:padding="20dp"
             android:textSize="18dp"
-            android:textColor="@color/text_color_gray"/>
+            android:textColor="@color/colorPrimary"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="1dp"

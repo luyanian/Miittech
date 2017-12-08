@@ -22,7 +22,7 @@
             android:text="@string/text_bluetooth"
             android:textColor="@color/black"
             android:paddingBottom="5dp"
-            android:textSize="20dp"/>
+            android:textSize="18dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -33,7 +33,7 @@
         <CheckBox
             android:id="@+id/check_bluetooth"
             android:layout_width="53dp"
-            android:layout_height="35dp"
+            android:layout_height="32dp"
             android:button="@null"
             android:background="@drawable/sl_switch"
             android:checked="true"
@@ -55,7 +55,7 @@
             android:text="@string/text_location_service"
             android:textColor="@color/black"
             android:paddingBottom="5dp"
-            android:textSize="20dp"/>
+            android:textSize="18dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -66,7 +66,7 @@
         <CheckBox
             android:id="@+id/check_lcoation"
             android:layout_width="53dp"
-            android:layout_height="35dp"
+            android:layout_height="32dp"
             android:button="@null"
             android:background="@drawable/sl_switch"
             android:checked="true"
@@ -88,7 +88,7 @@
             android:text="@string/text_notification"
             android:textColor="@color/black"
             android:paddingBottom="5dp"
-            android:textSize="20dp"/>
+            android:textSize="18dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -99,7 +99,7 @@
         <CheckBox
             android:id="@+id/check_notification"
             android:layout_width="53dp"
-            android:layout_height="35dp"
+            android:layout_height="32dp"
             android:button="@null"
             android:background="@drawable/sl_switch"
             android:checked="true"
@@ -120,7 +120,7 @@
             android:layout_height="wrap_content"
             android:text="@string/text_background_application_refresh"
             android:textColor="@color/black"
-            android:textSize="20dp"/>
+            android:textSize="18dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -131,7 +131,7 @@
         <CheckBox
             android:id="@+id/check_background"
             android:layout_width="53dp"
-            android:layout_height="35dp"
+            android:layout_height="32dp"
             android:button="@null"
             android:background="@drawable/sl_switch"
             android:checked="true"

@@ -38,7 +38,7 @@
             android:text="Don’t cry"
             android:layout_toLeftOf="@+id/img_more1"
             android:lines="1"
-            android:textSize="20dp"
+            android:textSize="16dp"
             android:layout_marginRight="-10dp"/>
     </RelativeLayout>
     <TextView
@@ -97,7 +97,7 @@
             android:layout_centerVertical="true"
             android:text="30s"
             android:layout_toLeftOf="@+id/img_more2"
-            android:textSize="20dp"
+            android:textSize="16dp"
             android:layout_marginRight="-10dp"/>
     </RelativeLayout>
     <TextView
@@ -105,7 +105,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
-        android:textSize="18dp"
+        android:textSize="16dp"
         android:layout_marginTop="2dp"/>
     <TextView
         android:layout_width="match_parent"
@@ -138,7 +138,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
-        android:textSize="18dp"
+        android:textSize="16dp"
         android:layout_marginTop="2dp"/>
     <TextView
         android:layout_width="match_parent"
@@ -172,7 +172,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
-        android:textSize="18dp"
+        android:textSize="16dp"
         android:layout_marginTop="2dp"/>
     <TextView
         android:layout_width="match_parent"

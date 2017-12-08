@@ -26,6 +26,10 @@ import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.constant.SpinnerStyle;
+import com.scwang.smartrefresh.layout.footer.BallPulseFooter;
+import com.scwang.smartrefresh.layout.header.BezierRadarHeader;
+import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 import java.text.SimpleDateFormat;
@@ -81,8 +85,6 @@ public class EventLogFragment extends Fragment {
                 }
             }
         });
-
-        //创建默认的线性LayoutManager
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerview.setLayoutManager(mLayoutManager);
         recyclerview.setHasFixedSize(true);

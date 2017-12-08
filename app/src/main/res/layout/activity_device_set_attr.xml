@@ -66,7 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_toLeftOf="@+id/img_right2"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="#646464"
             android:text="自行车"/>
     </RelativeLayout>
@@ -93,7 +93,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="#646464"
             android:text="自行车"/>
     </RelativeLayout>
