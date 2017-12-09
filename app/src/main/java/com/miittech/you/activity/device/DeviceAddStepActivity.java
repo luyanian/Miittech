@@ -1,6 +1,7 @@
 package com.miittech.you.activity.device;
 
 import android.Manifest;
+import android.bluetooth.BluetoothGatt;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,10 +13,13 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleScanAndConnectCallback;
+import com.clj.fastble.data.BleDevice;
+import com.clj.fastble.exception.BleException;
+import com.clj.fastble.scan.BleScanRuleConfig;
 import com.google.gson.Gson;
-import com.inuker.bluetooth.library.search.SearchRequest;
-import com.inuker.bluetooth.library.search.SearchResult;
-import com.inuker.bluetooth.library.search.response.SearchResponse;
 import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
@@ -23,7 +27,6 @@ import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -69,8 +72,6 @@ public class DeviceAddStepActivity extends BaseActivity{
     TextView tvConnectMsg;
     @BindView(R.id.step3)
     RelativeLayout step3;
-
-    private List<String> mScanList = new ArrayList<>();
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +90,6 @@ public class DeviceAddStepActivity extends BaseActivity{
         step2.setVisibility(View.GONE);
         step3.setVisibility(View.GONE);
         step1.setVisibility(View.VISIBLE);
-        mScanList.clear();
 
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
@@ -112,58 +112,16 @@ public class DeviceAddStepActivity extends BaseActivity{
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
-                            SearchRequest request = new SearchRequest.Builder()
-                                    .searchBluetoothLeDevice(10000, 3)   // 先扫BLE设备3次，每次3s
-                                    .searchBluetoothLeDevice(5000)      // 再扫BLE设备2s
-                                    .build();
-                            BLEClientManager.getClient().search(request, new SearchResponse() {
-                                @Override
-                                public void onSearchStarted() {
-                                    LogUtils.d("onSearchStarted");
-                                }
-
-                                @Override
-                                public void onDeviceFounded(final SearchResult device) {
-                                    if(!device.getName().contains("yoowoo")||device.rssi<-50||Common.isUserContainDevice(device.getAddress())){
-                                        return;
-                                    }
-
-                                    if(mScanList.contains(device.getAddress())){
-                                        return;
-                                    }
-
-                                    mScanList.add(device.getAddress());
-                                    step1.setVisibility(View.GONE);
-                                    step3.setVisibility(View.GONE);
-                                    step2.setVisibility(View.VISIBLE);
-                                    progressbar.setProgress(0);
-                                    tvProgress.setText("正在激活");
-
-                                    Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-                                    intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND);
-                                    intent.putExtra("address",device.getAddress());
-                                    sendBroadcast(intent);
-                                    LogUtils.v(String.format("device for %s\n%s", device.getAddress(), device.toString()));
-                                    BLEClientManager.getClient().stopSearch();
-                                }
-
-                                @Override
-                                public void onSearchStopped() {
-                                    LogUtils.d("onSearchStopped");
-                                }
-
-                                @Override
-                                public void onSearchCanceled() {
-                                    LogUtils.d("onSearchCanceled");
-                                }
-                            });
+                            Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_BIND_SCAN);
+                            sendBroadcast(intent);
                         }
                     }
                 });
     }
 
     private void vertifyDevice(final String mac) {
-        progressbar.setProgress(38);
+        progressbar.setProgress(12);
         Map param = new HashMap();
         param.put("devid", Common.formatMac2DevId(mac));
         String json = new Gson().toJson(param);
@@ -180,29 +138,26 @@ public class DeviceAddStepActivity extends BaseActivity{
                 .subscribe(new Consumer<DeviceResponse>() {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
-                        progressbar.setProgress(40);
+                        progressbar.setProgress(24);
                         if(response.isVerSuccessful()){
-                            progressbar.setProgress(69);
-                            bindDevice(mac);
-                        }else{
-                            response.onError(DeviceAddStepActivity.this);
+                            progressbar.setProgress(27);
                             Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-                            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
+                            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND);
                             intent.putExtra("address",mac);
                             sendBroadcast(intent);
+                        }else{
+                            response.onVerError();
+                            Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
+                            intent.putExtra("address",mac);
+                            sendBroadcast(intent);
+                            outBindError();
                         }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
-                        step1.setVisibility(View.GONE);
-                        step2.setVisibility(View.GONE);
-                        step3.setVisibility(View.VISIBLE);
-                        imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-                        tvConnectStatus.setText("绑定失败");
-                        tvConnectMsg.setVisibility(View.VISIBLE);
-                        tvConnectMsg.setText("请重新绑定");
-
+                        outBindError();
                         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                         intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
                         intent.putExtra("address",mac);
@@ -211,8 +166,18 @@ public class DeviceAddStepActivity extends BaseActivity{
                 });
     }
 
+    private void outBindError() {
+        step1.setVisibility(View.GONE);
+        step2.setVisibility(View.GONE);
+        step3.setVisibility(View.VISIBLE);
+        imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
+        tvConnectStatus.setText("绑定失败");
+        tvConnectMsg.setVisibility(View.VISIBLE);
+        tvConnectMsg.setText("请重新绑定");
+    }
+
     private void bindDevice(final String mac) {
-        progressbar.setProgress(81);
+        progressbar.setProgress(71);
         Map param = new HashMap();
         param.put("devid", Common.formatMac2DevId(mac));
         param.put("method", Params.METHOD.BINGD);
@@ -230,7 +195,7 @@ public class DeviceAddStepActivity extends BaseActivity{
                 .subscribe(new Consumer<DeviceResponse>() {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
-                        progressbar.setProgress(96);
+                        progressbar.setProgress(85);
                         if(response.isBindSuccessful()){
                             progressbar.setProgress(100);
                             step1.setVisibility(View.GONE);
@@ -240,34 +205,17 @@ public class DeviceAddStepActivity extends BaseActivity{
                             tvConnectStatus.setText("绑定成功");
                             tvConnectMsg.setVisibility(View.GONE);
                             Common.doCommitEvents(DeviceAddStepActivity.this,response.getDevid(),Params.EVENT_TYPE.DEVICE_ADD,null);
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Intent intent = new Intent(DeviceAddStepActivity.this,DeviceSetClassifyActivity.class);
-                                    intent.putExtra(IntentExtras.DEVICE.ID,Common.formatMac2DevId(mac));
-                                    startActivity(intent);
-                                }
-                            },2000);
+                            Intent intent = new Intent(DeviceAddStepActivity.this,DeviceSetClassifyActivity.class);
+                            intent.putExtra(IntentExtras.DEVICE.ID,Common.formatMac2DevId(mac));
+                            startActivity(intent);
                         }else{
-                            step1.setVisibility(View.GONE);
-                            step2.setVisibility(View.GONE);
-                            step3.setVisibility(View.VISIBLE);
-                            imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-                            tvConnectStatus.setText("绑定失败");
-                            tvConnectMsg.setVisibility(View.VISIBLE);
-                            tvConnectMsg.setText("请重新绑定");
+                            outBindError();
                         }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
-                        step1.setVisibility(View.GONE);
-                        step2.setVisibility(View.GONE);
-                        step3.setVisibility(View.VISIBLE);
-                        imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-                        tvConnectStatus.setText("绑定失败");
-                        tvConnectMsg.setVisibility(View.VISIBLE);
-                        tvConnectMsg.setText("请重新绑定");
+                        outBindError();
                     }
                 });
     }
@@ -287,35 +235,47 @@ public class DeviceAddStepActivity extends BaseActivity{
     }
 
     private class CmdResponseReceiver extends BroadcastReceiver {
+        private String bindMac;
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
-                int ret = intent.getIntExtra("ret", -1);//获取Extra信息
+                int ret = intent.getIntExtra("ret", -1);
+                String address = intent.getStringExtra("address");
                 switch (ret){
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS:
-                        progressbar.setProgress(13);
-                        break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
+                    case IntentExtras.RET.RET_BLE_FIND_BIND_DEVICE:
+                        bindMac = address;
                         step1.setVisibility(View.GONE);
-                        step2.setVisibility(View.GONE);
-                        step3.setVisibility(View.VISIBLE);
-                        imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-                        tvConnectStatus.setText("绑定失败");
-                        tvConnectMsg.setVisibility(View.VISIBLE);
-                        tvConnectMsg.setText("请重新绑定");
+                        step3.setVisibility(View.GONE);
+                        step2.setVisibility(View.VISIBLE);
+                        progressbar.setProgress(0);
+                        tvProgress.setText("正在激活");
+                        vertifyDevice(address);
                         break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_BIND_SUCCESS:
-                        progressbar.setProgress(27);
-                        vertifyDevice(intent.getStringExtra("address"));
+                    case IntentExtras.RET.RET_BLE_CONNECT_START:
+                        if(address.equals(bindMac)) {
+                            progressbar.setProgress(31);
+                        }
                         break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_BIND_FAIL:
-                        step1.setVisibility(View.GONE);
-                        step2.setVisibility(View.GONE);
-                        step3.setVisibility(View.VISIBLE);
-                        imgConnectStatus.setImageResource(R.drawable.ic_device_connect_faild);
-                        tvConnectStatus.setText("绑定失败");
-                        tvConnectMsg.setVisibility(View.VISIBLE);
-                        tvConnectMsg.setText("请重新绑定");
+                    case IntentExtras.RET.RET_BLE_CONNECT_FAILED:
+                        if(address.equals(bindMac)) {
+                            outBindError();
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_CONNECT_SUCCESS:
+                        if(address.equals(bindMac)) {
+                            progressbar.setProgress(46);
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_MODE_BIND_SUCCESS:
+                        if(address.equals(bindMac)) {
+                            progressbar.setProgress(59);
+                            bindDevice(address);
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_MODE_BIND_FAIL:
+                        if(address.equals(bindMac)) {
+                            outBindError();
+                        }
                         break;
                 }
 

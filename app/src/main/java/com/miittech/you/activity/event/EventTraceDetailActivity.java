@@ -12,7 +12,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
@@ -23,20 +22,15 @@ import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.bumptech.glide.Glide;
+import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.inuker.bluetooth.library.Constants;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.activity.MainActivity;
-import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.activity.setting.SettingActivity;
-import com.miittech.you.adapter.EventLogAdapter;
 import com.miittech.you.adapter.TraceDalySelectAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.entity.Locinfo;
-import com.miittech.you.fragment.EventLogFragment;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
@@ -44,25 +38,20 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
-import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -193,7 +182,7 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
             itemShared.setText("分享自" + Common.decodeBase64(devlistBean.getFriendname()));
         }
 
-        if (BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(devlistBean.getDevidX())) != Constants.STATUS_DEVICE_CONNECTED) {
+        if (!BleManager.getInstance().isConnected(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
             itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
             setTimeText(itemTime, devlistBean.getLasttime());
         }
@@ -305,33 +294,41 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
                 String address = intent.getStringExtra("address");
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 switch (ret) {
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS:
-                        LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
-                        if (itemTime != null) {
-                            itemTime.setText("现在");
+                    case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
+                        if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+                            LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
+                            if (itemTime != null) {
+                                itemTime.setText("现在");
+                            }
                         }
                         break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
-                        LogUtils.d("RET_DEVICE_CONNECT_FAILED");
-                        if(itemLocation!=null) {
-                            itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
-                        }
-                        if (itemTime != null) {
-                            setTimeText(itemTime,devlistBean.getLasttime());
-                        }
-                        break;
-                    case IntentExtras.RET.RET_DEVICE_READ_RSSI:
-                        LogUtils.d("RET_DEVICE_READ_RSSI");
-                        int rssi = intent.getIntExtra("rssi", 0);
-                        if (address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
-                            updateItemRssi(rssi);
+                    case IntentExtras.RET.RET_BLE_DISCONNECT:
+                        if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+                            LogUtils.d("RET_DEVICE_CONNECT_FAILED");
+                            if (itemLocation != null) {
+                                itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
+                            }
+                            if (itemTime != null) {
+                                setTimeText(itemTime, devlistBean.getLasttime());
+                            }
                         }
                         break;
-                    case IntentExtras.RET.RET_DEVICE_READ_BATTERY:
-                        LogUtils.d("RET_DEVICE_READ_BATTERY");
-                        String battery = intent.getStringExtra("battery");
-                        if (address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
-                            updateItemBattery(battery);
+                    case IntentExtras.RET.RET_BLE_READ_RSSI:
+                        if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+                            LogUtils.d("RET_DEVICE_READ_RSSI");
+                            int rssi = intent.getIntExtra("rssi", 0);
+                            if (address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+                                updateItemRssi(rssi);
+                            }
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_READ_BATTERY:
+                        if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+                            LogUtils.d("RET_DEVICE_READ_BATTERY");
+                            String battery = intent.getStringExtra("battery");
+                            if (address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+                                updateItemBattery(battery);
+                            }
                         }
                         break;
                 }

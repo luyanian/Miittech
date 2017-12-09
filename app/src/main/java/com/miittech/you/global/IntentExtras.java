@@ -33,18 +33,25 @@ public class IntentExtras {
         public final static int CMD_DEVICE_UNBIND=0x014;
         public final static int CMD_DEVICE_LIST_CLEAR=0x015;
         public final static int CMD_TASK_EXCE=0x016;
+        public final static int CMD_DEVICE_BIND_SCAN=0x017;
+        public final static int CMD_DEVICE_UNBIND_ERROR=0x018;
     }
     public static class RET{
-        public final static int RET_DEVICE_CONNECT_SUCCESS=0x020;
-        public final static int RET_DEVICE_CONNECT_FAILED=0x021;
-        public final static int RET_DEVICE_CONNECT_BIND_SUCCESS=0x022;
-        public final static int RET_DEVICE_CONNECT_BIND_FAIL=0x023;
-        public final static int RET_DEVICE_CONNECT_WORK_SUCCESS=0x024;
-        public final static int RET_DEVICE_CONNECT_WORK_FAILED=0x025;
-        public final static int RET_DEVICE_CONNECT_ALERT_START_SUCCESS=0x026;
-        public final static int RET_DEVICE_CONNECT_ALERT_STOP_SUCCESS=0x027;
-        public final static int RET_DEVICE_UNBIND_SUCCESS=0x028;
-        public final static int RET_DEVICE_READ_RSSI=0x029;
-        public final static int RET_DEVICE_READ_BATTERY=0x030;
+        public final static int RET_BLE_SCAN_START=0x20;
+        public final static int RET_BLE_SCANING=0x21;
+        public final static int RET_BLE_CONNECT_START=0x22;
+        public final static int RET_BLE_CONNECT_SUCCESS=0x023;
+        public final static int RET_BLE_CONNECT_FAILED=0x024;
+        public final static int RET_BLE_DISCONNECT=0x025;
+        public final static int RET_BLE_FIND_BIND_DEVICE=0x26;
+        public final static int RET_BLE_MODE_BIND_SUCCESS=0x027;
+        public final static int RET_BLE_MODE_BIND_FAIL=0x028;
+        public final static int RET_BLE_MODE_WORK_SUCCESS=0x029;
+        public final static int RET_BLE_MODE_WORK_FAIL=0x030;
+        public final static int RET_BLE_ALERT_STARTED=0x031;
+        public final static int RET_BLE_ALERT_STOPED=0x032;
+        public final static int RET_BLE_UNBIND_COMPLETE=0x33;
+        public final static int RET_BLE_READ_RSSI=0x034;
+        public final static int RET_BLE_READ_BATTERY=0x035;
     }
 }

@@ -3,12 +3,14 @@ package com.miittech.you;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.multidex.MultiDex;
+
 import com.baidu.mapapi.SDKInitializer;
-import com.inuker.bluetooth.library.BluetoothContext;
 import com.miittech.you.common.SoundPlayUtils;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.service.BleService;
@@ -99,5 +101,10 @@ public class App extends MobApplication {
                 }
             });
         }
+    }
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this) ;
     }
 }

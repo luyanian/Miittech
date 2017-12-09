@@ -274,19 +274,15 @@ public class DeviceResponse extends BaseResponse {
         return (super.isSuccessful()&&this.bindstate==1);
     }
 
-
-
-    @Override
-    public void onError(Context context) {
-        super.onError(context);
+    public void onVerError(){
         switch (this.valid){
             case 1:
                 break;
             case 0:
-//                ToastUtils.showShort("设备已被绑定或者设备不可用！");
+                ToastUtils.showShort("设备已被绑定或者设备不可用！");
                 break;
             case -1:
-//                ToastUtils.showShort("不合法设备！");
+                ToastUtils.showShort("不合法设备！");
                 break;
         }
     }

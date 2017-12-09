@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.AnimationDrawable;
-import android.media.Image;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
@@ -15,22 +14,14 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
-import com.inuker.bluetooth.library.Constants;
+import com.clj.fastble.BleManager;
 import com.miittech.you.R;
-import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
-import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.response.DeviceResponse;
-import com.ryon.constant.TimeConstants;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
-
-import org.w3c.dom.Text;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -93,7 +84,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             holder.itemShared.setVisibility(View.VISIBLE);
             holder.itemShared.setText("分享自"+Common.decodeBase64(devlistBean.getFriendname()));
         }
-        if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(devlistBean.getDevidX()))!= Constants.STATUS_DEVICE_CONNECTED){
+        if(!BleManager.getInstance().isConnected(Common.formatDevId2Mac(devlistBean.getDevidX()))){
             holder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
             setTimeText(holder.itemTime,devlistBean.getLasttime());
         }
@@ -114,7 +105,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         if(holder==null){
             return;
         }
-        if(BLEClientManager.getClient().getConnectStatus(mac)== Constants.STATUS_DEVICE_CONNECTED){
+        if(BleManager.getInstance().isConnected(mac)){
             holder.itemIconStatus.setVisibility(View.VISIBLE);
             holder.itemIconStatus.setBackgroundResource(R.drawable.anim_connect_status);
             AnimationDrawable animationDrawable = (AnimationDrawable) holder.itemIconStatus.getBackground();
@@ -191,20 +182,20 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 String address = intent.getStringExtra("address");
                 switch (ret){
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS:
+                    case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
                         setConnectStatusStyle(address);
                         break;
-                    case IntentExtras.RET.RET_DEVICE_READ_RSSI:
+                    case IntentExtras.RET.RET_BLE_READ_RSSI:
                         LogUtils.d("RET_DEVICE_READ_RSSI");
                         int rssi = intent.getIntExtra("rssi",0);
                         updateItemRssi(address,rssi);
                         break;
-                    case IntentExtras.RET.RET_DEVICE_READ_BATTERY:
+                    case IntentExtras.RET.RET_BLE_READ_BATTERY:
                         LogUtils.d("RET_DEVICE_READ_BATTERY");
                         String battery = intent.getStringExtra("battery");
                         updateItemBattery(address,battery);
                         break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
+                    case IntentExtras.RET.RET_BLE_DISCONNECT:
                         setConnectStatusStyle(address);
                         updateItemData(address);
                         break;

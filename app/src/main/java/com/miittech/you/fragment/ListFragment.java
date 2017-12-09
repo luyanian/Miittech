@@ -1,14 +1,15 @@
 package com.miittech.you.fragment;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.PermissionChecker;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -16,39 +17,31 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-
+import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
-import com.inuker.bluetooth.library.connect.listener.BluetoothStateListener;
 import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
-import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
-import com.ryon.mutils.ToastUtils;
-
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import cn.jpush.android.api.JPushInterface;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -110,7 +103,7 @@ public class ListFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        if(!BLEClientManager.getClient().isBluetoothOpened()){
+        if(!BleManager.getInstance().isBlueEnable()){
             llBluetoothDisabled.setVisibility(View.VISIBLE);
         }else{
             llBluetoothDisabled.setVisibility(View.GONE);
@@ -145,16 +138,30 @@ public class ListFragment extends Fragment {
     }
 
     private void initServiceState() {
-        BLEClientManager.getClient().registerBluetoothStateListener(new BluetoothStateListener() {
+        IntentFilter statusFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        getActivity().registerReceiver(new BroadcastReceiver() {
             @Override
-            public void onBluetoothStateChanged(boolean openOrClosed) {
-                if(openOrClosed){
-                    llBluetoothDisabled.setVisibility(View.GONE);
-                }else{
-                    llBluetoothDisabled.setVisibility(View.VISIBLE);
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getAction()) {
+                    case BluetoothAdapter.ACTION_STATE_CHANGED:
+                        int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
+                        switch (blueState) {
+                            case BluetoothAdapter.STATE_TURNING_ON:
+                                break;
+                            case BluetoothAdapter.STATE_ON:
+                                llBluetoothDisabled.setVisibility(View.GONE);
+                                break;
+                            case BluetoothAdapter.STATE_TURNING_OFF:
+                                break;
+                            case BluetoothAdapter.STATE_OFF:
+                                llBluetoothDisabled.setVisibility(View.VISIBLE);
+                                BleManager.getInstance().disconnectAllDevice();
+                                break;
+                        }
+                        break;
                 }
             }
-        });
+        }, statusFilter);
     }
 
     @Override

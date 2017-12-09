@@ -14,8 +14,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.clj.fastble.BleManager;
+import com.clj.fastble.data.BleDevice;
 import com.google.gson.Gson;
-import com.inuker.bluetooth.library.Constants;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
@@ -27,7 +28,6 @@ import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
-import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -58,9 +58,6 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-
-import static com.inuker.bluetooth.library.Constants.REQUEST_SUCCESS;
-
 /**
  * Created by Administrator on 2017/10/25.
  */
@@ -150,7 +147,8 @@ public class DeviceDetailActivity extends BaseActivity {
         this.deviceDetailInfo = device;
         tvDeviceName.setText(Common.decodeBase64(device.getDevname()));
         tvBattarry.setVisibility(View.GONE);
-        if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(device.getDevid()))== Constants.STATUS_DEVICE_CONNECTED){
+
+        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(device.getDevid()))){
             tvDeviceTime.setText("现在");
         }else {
             setTimeText(tvDeviceTime,device.getLasttime());
@@ -180,6 +178,9 @@ public class DeviceDetailActivity extends BaseActivity {
 //                Intent intent = new Intent(this,DeviceSetAttrActivity.class);
                 break;
             case R.id.rl_bell_status:
+                if(deviceDetailInfo==null){
+                    return;
+                }
                 if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
                     doFindOrBell();
                 }else{
@@ -257,7 +258,7 @@ public class DeviceDetailActivity extends BaseActivity {
     }
     private void switchFindBtnStyle() {
         String mac = Common.formatDevId2Mac(device.getDevidX());
-        if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED) {
+        if(BleManager.getInstance().isConnected(mac)) {
             if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
                 rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
                 imgFindBtn.setImageResource(R.drawable.ic_device_find);
@@ -357,36 +358,47 @@ public class DeviceDetailActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
+                if(deviceDetailInfo==null){
+                    return;
+                }
                 String address = intent.getStringExtra("address");
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 switch (ret){
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS:
-                        LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
-                        switchFindBtnStyle();
-                        break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
-                        LogUtils.d("RET_DEVICE_CONNECT_FAILED");
-                        switchFindBtnStyle();
-                        break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_START_SUCCESS:
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_BELLING);
-                        switchFindBtnStyle();
-                        break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_STOP_SUCCESS:
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL);
-                        switchFindBtnStyle();
-                        break;
-                    case IntentExtras.RET.RET_DEVICE_READ_RSSI:
-                        LogUtils.d("RET_DEVICE_READ_RSSI");
-                        int rssi = intent.getIntExtra("rssi",0);
+                    case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
                         if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
+                            switchFindBtnStyle();
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_MODE_WORK_FAIL:
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            LogUtils.d("RET_DEVICE_CONNECT_FAILED");
+                            switchFindBtnStyle();
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_ALERT_STARTED:
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(), SPConst.ALET_STATUE.STATUS_BELLING);
+                            switchFindBtnStyle();
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_ALERT_STOPED:
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL);
+                            switchFindBtnStyle();
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_READ_RSSI:
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            LogUtils.d("RET_DEVICE_READ_RSSI");
+                            int rssi = intent.getIntExtra("rssi",0);
                             updateItemRssi(rssi);
                         }
                         break;
-                    case IntentExtras.RET.RET_DEVICE_READ_BATTERY:
-                        LogUtils.d("RET_DEVICE_READ_BATTERY");
-                        String battery = intent.getStringExtra("battery");
+                    case IntentExtras.RET.RET_BLE_READ_BATTERY:
                         if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            LogUtils.d("RET_DEVICE_READ_BATTERY");
+                            String battery = intent.getStringExtra("battery");
                             updateItemBattery(battery);
                         }
                         break;

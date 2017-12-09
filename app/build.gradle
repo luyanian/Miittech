@@ -13,6 +13,7 @@ android {
         versionName config.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.debug
+        multiDexEnabled true
     }
     dexOptions {
         jumboMode true
@@ -112,7 +113,8 @@ dependencies {
     compile files('libs/jcore-android-1.1.7.jar')
     compile files('libs/jpush-android-3.0.9.jar')
     compile project(':mutils')
+    compile project(':FastBleLib')
 //    compile project(':library')
     compile 'org.jetbrains:annotations-java5:15.0'
-    compile 'com.clj.fastble:FastBleLib:2.1.4'
+    compile 'com.android.support:multidex:1.+'
 }

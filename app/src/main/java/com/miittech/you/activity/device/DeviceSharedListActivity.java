@@ -6,40 +6,31 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.RelativeLayout;
-
+import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
-import com.inuker.bluetooth.library.Constants;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.adapter.FriendListAdapter;
 import com.miittech.you.adapter.SharedFriendListAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
-import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
-import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -123,7 +114,7 @@ public class DeviceSharedListActivity extends BaseActivity {
             public void onShare(Platform platform, Platform.ShareParams paramsToShare) {
                 double lat = 0;
                 double lng = 0;
-                if(BLEClientManager.getClient().getConnectStatus(Common.formatDevId2Mac(devinfoBean.getDevid()))== Constants.STATUS_DEVICE_CONNECTED){
+                if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(devinfoBean.getDevid()))){
                     Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
                     if(locinfo!=null){
                         lat = locinfo.getLat();

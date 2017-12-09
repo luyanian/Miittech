@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.text.TextUtils;
+import android.text.method.BaseKeyListener;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -19,10 +20,14 @@ import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleGattCallback;
+import com.clj.fastble.callback.BleIndicateCallback;
+import com.clj.fastble.callback.BleNotifyCallback;
 import com.clj.fastble.callback.BleRssiCallback;
 import com.clj.fastble.callback.BleScanCallback;
+import com.clj.fastble.callback.BleWriteCallback;
 import com.clj.fastble.data.BleConnectState;
 import com.clj.fastble.data.BleDevice;
+import com.clj.fastble.data.BleScanState;
 import com.clj.fastble.exception.BleException;
 import com.clj.fastble.scan.BleScanRuleConfig;
 import com.google.gson.Gson;
@@ -40,20 +45,16 @@ import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
-import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendsResponse;
-import com.miittech.you.net.response.UserInfoResponse;
 import com.ryon.constant.TimeConstants;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
-import com.ryon.mutils.ToastUtils;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,10 +63,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-import java.util.Vector;
-import java.util.function.Predicate;
 
+import cn.sharesdk.framework.PlatformActionListener;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -85,6 +84,9 @@ public  class BleService extends Service {
     private Map<String, Integer> mapRssi = new HashMap<String, Integer>();
     private Map<String,String> mapBattery = new HashMap<>();
     private BDLocation lastLocation;
+    private Map<String,BleDevice> mDeviceMap = new HashMap<>();
+    private Map<String,BleDevice> mBindMap = new HashMap<>();
+    private boolean isBind = false;
 
     @Override  
     public IBinder onBind(Intent intent) {
@@ -96,7 +98,8 @@ public  class BleService extends Service {
         super.onCreate();
         BleManager.getInstance().init(getApplication());
         BleManager.getInstance().setMaxConnectCount(6);
-//        BluetoothContext.set(getApplicationContext());
+        BleManager.getInstance().setOperateTimeout(10000);
+        BleManager.getInstance().enableLog(true);
         mLocationClient = new LocationClient(getApplicationContext());
         mLocationClient.registerLocationListener(myListener);
         LocationClientOption option = new LocationClientOption();
@@ -115,6 +118,7 @@ public  class BleService extends Service {
         filter.addAction(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         getApplicationContext().registerReceiver(cmdReceiver, filter);
         LogUtils.d("BleService-OnCreate()");
+        scanDevice();
     }
       
 
@@ -149,8 +153,19 @@ public  class BleService extends Service {
                     case IntentExtras.CMD.CMD_DEVICE_LIST_ADD:
                         addDeviceList(intent.getStringArrayListExtra("macList"));
                         break;
+                    case IntentExtras.CMD.CMD_DEVICE_BIND_SCAN:
+                        isBind = true;
+                        mBindMap.clear();
+                        break;
+                    case IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR:
+                        String address = intent.getStringExtra("address");
+                        if(mDeviceMap.containsKey(address)){
+                            mDeviceMap.remove(address);
+                        }
+                        break;
                     case IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND:
-                        bindDevice(intent.getStringExtra("address"));
+                        BleDevice bleDevice = mBindMap.get(intent.getStringExtra("address"));
+                        bindDevice(bleDevice);
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_ALERT_START:
                         startAlert(intent.getStringExtra("address"));
@@ -178,6 +193,7 @@ public  class BleService extends Service {
     }
 
     private synchronized void exceTask() {
+        scanDevice();
         exceReportSubmit();
         List<BleDevice> list = BleManager.getInstance().getMultipleBluetoothController().getDeviceList();
         if(list.size()<=0){
@@ -187,16 +203,16 @@ public  class BleService extends Service {
             if(BleManager.getInstance().getConnectState(bleDevice)== BleConnectState.CONNECT_CONNECTED){
                 BleManager.getInstance().readRssi(bleDevice, new BleRssiCallback() {
                     @Override
-                    public void onRssiFailure(BleException exception) {
+                    public void onRssiFailure(BleDevice device,BleException exception) {
 
                     }
 
                     @Override
-                    public void onRssiSuccess(int rssi) {
+                    public void onRssiSuccess(BleDevice device,int rssi) {
                         LogUtils.d("readRssi",bleDevice.getMac()+">>>"+rssi);
                         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                        intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_RSSI);
-                        intent.putExtra("address", bleDevice.getMac());
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_READ_RSSI);
+                        intent.putExtra("address", device.getMac());
                         intent.putExtra("rssi", rssi);
                         sendBroadcast(intent);
                         mapRssi.put(bleDevice.getMac(),rssi);
@@ -234,45 +250,68 @@ public  class BleService extends Service {
 
     public synchronized void addDeviceList(ArrayList<String> macList){
         for(String mac:macList){
-            scanDevice(mac);
+            if(!mDeviceMap.containsKey(mac)) {
+                mDeviceMap.put(mac, null);
+            }
         }
-//        for (String conMac : mConnectedList){
-//            if(!macList.contains(conMac)){
-//                BLEClientManager.getClient().unregisterConnectStatusListener(conMac, new BleConnectStatusListener() {
-//                    @Override
-//                    public void onConnectStatusChanged(String mac, int status) {
-//
-//                    }
-//                });
-//                BLEClientManager.getClient().unnotify(conMac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleUnnotifyResponse() {
-//                    @Override
-//                    public void onResponse(int code) {
-//
-//                    }
-//                });
-//                BLEClientManager.getClient().disconnect(conMac);
-//                mConnectedList.remove(conMac);
-//            }
-//        }
+        Map<String,BleDevice> tempMap = new HashMap<>();
+        tempMap.putAll(mDeviceMap);
+        for (Map.Entry<String, BleDevice> entry : tempMap.entrySet()) {
+            if(!macList.contains(entry.getKey())){
+                mDeviceMap.remove(entry.getKey());
+                BleManager.getInstance().disconnect(entry.getValue());
+            }
+
+        }
     }
 
-    public synchronized  void scanDevice(String mac){
+
+
+    public synchronized  void scanDevice(){
+        if(BleManager.getInstance().getScanSate()== BleScanState.STATE_SCANNING){
+            return;
+        }
         BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
-                .setDeviceName(true,"yoowoo")
-                .setDeviceMac(mac)                  // 只扫描指定mac的设备，可选
-                .setAutoConnect(true)      // 连接时的autoConnect参数，可选，默认false
-                .setScanTimeOut(0)              // 扫描超时时间，可选，默认10秒
+                .setDeviceName(false,"yoowoo")
+                .setAutoConnect(true)
+                .setScanTimeOut(0)
                 .build();
         BleManager.getInstance().initScanRule(scanRuleConfig);
         BleManager.getInstance().scan(new BleScanCallback() {
             @Override
             public void onScanStarted(boolean success) {
-
+                LogUtils.d("bleResponse","贴片扫描开始----->");
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCAN_START);
+                sendBroadcast(intent);
             }
 
             @Override
             public void onScanning(BleDevice result) {
-                connectDevice(result);
+                LogUtils.d("bleResponse","扫描到有效贴片----->"+result.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCANING);
+                intent.putExtra("address",result.getMac());
+                sendBroadcast(intent);
+                if(!mDeviceMap.containsKey((result.getMac()))){
+                    if(isBind&&result.getRssi()>-50){
+                        if(!mBindMap.containsKey(result.getMac())) {
+                            mBindMap.put(result.getMac(), result);
+                            LogUtils.d("bleResponse", "开始绑定贴片----->" + result.getMac());
+                            Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                            intent1.putExtra("ret", IntentExtras.RET.RET_BLE_FIND_BIND_DEVICE);
+                            intent1.putExtra("address", result.getMac());
+                            sendBroadcast(intent1);
+                        }
+                        isBind = false;
+                    }
+                    return;
+                }
+                LogUtils.d("bleResponse","开始连接贴片----->"+result.getMac());
+                mDeviceMap.put(result.getMac(),result);
+                if(!BleManager.getInstance().isConnected(result)){
+                    connectDevice(result);
+                }
             }
 
             @Override
@@ -281,21 +320,85 @@ public  class BleService extends Service {
             }
         });
     }
-    public synchronized void connectDevice(final BleDevice bleDevice){
-        if(BleManager.getInstance().isConnected(bleDevice)){
+    public synchronized void connectDevice(BleDevice bleDevice){
+        if(bleDevice==null){
+            return;
+        }
+        if(BleManager.getInstance().getConnectState(bleDevice)==BleConnectState.CONNECT_CONNECTED
+                ||BleManager.getInstance().getConnectState(bleDevice)==BleConnectState.CONNECT_CONNECTING){
             return;
         }
         BleManager.getInstance().connect(bleDevice, new BleGattCallback() {
             @Override
-            public void onStartConnect() {
-
+            public void onStartConnect(BleDevice device) {
+                LogUtils.d("bleResponse","贴片开始连接----->"+device.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret",IntentExtras.RET.RET_BLE_CONNECT_START);
+                intent.putExtra("address",device.getMac());
+                sendBroadcast(intent);
             }
 
             @Override
-            public void onConnectFail(BleException exception) {
+            public void onConnectFail(BleDevice device,BleException exception) {
+                LogUtils.d("bleResponse","贴片连接失败----->"+device.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret",IntentExtras.RET.RET_BLE_CONNECT_FAILED);
+                intent.putExtra("address",device.getMac());
+                sendBroadcast(intent);
+            }
+
+            @Override
+            public void onConnectSuccess(BleDevice device, BluetoothGatt gatt, int status) {
+                LogUtils.d("bleResponse","贴片连接成功----->"+device.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret",IntentExtras.RET.RET_BLE_CONNECT_SUCCESS);
+                intent.putExtra("address",device.getMac());
+                sendBroadcast(intent);
+                setWorkMode(device);
+            }
+
+            @Override
+            public void onDisConnected(boolean isActiveDisConnected, BleDevice device, BluetoothGatt gatt, int status) {
+                LogUtils.d("bleResponse","贴片连接断开----->"+device.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret",IntentExtras.RET.RET_BLE_DISCONNECT);
+                intent.putExtra("address",device.getMac());
+                sendBroadcast(intent);
+                Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(device.getMac()),Params.EVENT_TYPE.DEVICE_LOSE,null);
+                DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(device.getMac());
+                if(response!=null){
+                    DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                    if(alertinfoBean!=null){
+                        if(alertinfoBean.getIsRepeat()==0||Common.isIgnoreBell()){
+                            return;
+                        }
+                    }
+                    doPlay(response);
+                }
+            }
+        });
+    }
+
+    public synchronized void  bindDevice(BleDevice bleDevice){
+        if(bleDevice==null){
+            return;
+        }
+        BleManager.getInstance().connect(bleDevice,new BleGattCallback() {
+            @Override
+            public void onStartConnect(BleDevice bleDevice) {
+                LogUtils.d("bleResponse","贴片开始连接----->"+bleDevice.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_START);
+                intent.putExtra("address", bleDevice.getMac());
+                sendBroadcast(intent);
+            }
+
+            @Override
+            public void onConnectFail(BleDevice bleDevice,BleException exception) {
                 LogUtils.d("bleResponse","贴片连接失败----->"+bleDevice.getMac());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_FAILED);
+                intent.putExtra("address", bleDevice.getMac());
                 sendBroadcast(intent);
             }
 
@@ -303,266 +406,224 @@ public  class BleService extends Service {
             public void onConnectSuccess(BleDevice bleDevice, BluetoothGatt gatt, int status) {
                 LogUtils.d("bleResponse","贴片连接成功----->"+bleDevice.getMac());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                intent.putExtra("ret",IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_SUCCESS);
+                intent.putExtra("address", bleDevice.getMac());
                 sendBroadcast(intent);
-                setWorkMode(bleDevice.getMac());
+                setBindMode(bleDevice);
             }
 
             @Override
             public void onDisConnected(boolean isActiveDisConnected, BleDevice device, BluetoothGatt gatt, int status) {
-
-            }
-        });
-    }
-
-    public synchronized void bindDevice(final String mac){
-
-        BleConnectOptions options = new BleConnectOptions.Builder()
-                .setConnectRetry(5)   // 连接如果失败重试3次
-                .setConnectTimeout(30000)   // 连接超时30s
-                .setServiceDiscoverRetry(3)  // 发现服务如果失败重试3次
-                .setServiceDiscoverTimeout(20000)  // 发现服务超时20s
-                .build();
-        BLEClientManager.getClient().connect(mac,options, new BleConnectResponse() {
-            @Override
-            public void onResponse(int code, BleGattProfile data) {
+                LogUtils.d("bleResponse","贴片连接断开----->"+device.getMac());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                if(code==Constants.REQUEST_SUCCESS) {
-                    LogUtils.d("bleResponse","贴片连接成功----->"+mac);
-                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS);
-                    sendBroadcast(intent);
-                    setBindMode(mac);
-                }else{
-                    if(mConnectedList.contains(mac)){
-                        mConnectedList.remove(mac);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
+                intent.putExtra("address", device.getMac());
+                sendBroadcast(intent);
+                Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(device.getMac()),Params.EVENT_TYPE.DEVICE_LOSE,null);
+                DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(device.getMac());
+                if(response!=null){
+                    DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                    if(alertinfoBean!=null){
+                        if(alertinfoBean.getIsRepeat()==0||Common.isIgnoreBell()){
+                            return;
+                        }
                     }
-                    LogUtils.d("bleResponse","贴片连接失败----->"+mac);
-                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
-                    sendBroadcast(intent);
+                    doPlay(response);
                 }
             }
         });
     }
 
-    private synchronized void unbindDevice(final String address) {
-        if(BLEClientManager.getClient().getConnectStatus(address)==Constants.STATUS_DEVICE_DISCONNECTED){
-            connectDevice(address);
+    private synchronized void unbindDevice(String address) {
+        BleDevice bleDevice = mDeviceMap.get(address);
+        if(bleDevice==null){
             return;
         }
-        if(BLEClientManager.getClient().getConnectStatus(address)== Constants.STATUS_DEVICE_CONNECTED){
-            byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, App.getInstance().getUserId());
-            BLEClientManager.getClient().write(address, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
-                @Override
-                public void onResponse(int code) {
-                    Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                    if (code == REQUEST_SUCCESS) {
-                        if(mConnectedList.contains(address)){
-                            mConnectedList.remove(address);
-                        }
-                        LogUtils.d("bleResponse","贴片绑定成功----->"+address);
-                        if(mConnectedList.contains(address)){
-                            mConnectedList.remove(address);
-                        }
-                        intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_UNBIND_SUCCESS);
-                        sendBroadcast(intent);
-                    }else{
-                        LogUtils.d("bleResponse","贴片绑定失败----->"+address);
-                    }
-                }
-            });
+        if(!BleManager.getInstance().isConnected(bleDevice)){
+            connectDevice(bleDevice);
+            return;
         }
+        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, App.getInstance().getUserId());
+        BleManager.getInstance().write(bleDevice, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
+            @Override
+            public void onWriteSuccess(BleDevice device) {
+                LogUtils.d("bleResponse","贴片解绑成功----->"+device.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_COMPLETE);
+                intent.putExtra("address", device.getMac());
+                sendBroadcast(intent);
+            }
 
+            @Override
+            public void onWriteFailure(BleDevice device,BleException exception) {
+                LogUtils.d("bleResponse","贴片绑定失败----->"+device.getMac());
+            }
+        });
     }
 
     private synchronized void clearAllConnect(){
-        for(String mac : mConnectedList){
-            BLEClientManager.getClient().unregisterConnectStatusListener(mac, new BleConnectStatusListener() {
-                @Override
-                public void onConnectStatusChanged(String mac, int status) {
-
-                }
-            });
-            BLEClientManager.getClient().unnotify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleUnnotifyResponse() {
-                @Override
-                public void onResponse(int code) {
-
-                }
-            });
-            BLEClientManager.getClient().disconnect(mac);
-            mConnectedList.remove(mac);
-        }
+        BleManager.getInstance().disconnectAllDevice();
     }
 
-    private synchronized void startAlert(final String address) {
-        byte[] options = new byte[]{0x02};
-        int status = BLEClientManager.getClient().getConnectStatus(address);
-        if(status==Constants.STATUS_DEVICE_DISCONNECTED){
-            connectDevice(address);
+    private synchronized void startAlert(String address) {
+        BleDevice bleDevice = mDeviceMap.get(address);
+        if(bleDevice==null){
             return;
         }
-        if(status==Constants.STATUS_DEVICE_CONNECTED){
-            BLEClientManager.getClient().write(address, serviceUUID, characteristicUUID, options, new BleWriteResponse() {
-                @Override
-                public void onResponse(int code) {
-                    Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                    if(code==Constants.REQUEST_SUCCESS) {
-                        LogUtils.d("bleResponse","贴片开始报警----->"+address);
-                        intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_START_SUCCESS);
-                        sendBroadcast(intent);
-                    }
-                }
-            });
+        if(!BleManager.getInstance().isConnected(bleDevice)){
+            connectDevice(bleDevice);
+            return;
         }
-
-    }
-    private synchronized void stopAlert(final String address) {
-            byte[] options = new byte[]{0x00};
-            int status = BLEClientManager.getClient().getConnectStatus(address);
-            if(status==Constants.STATUS_DEVICE_DISCONNECTED){
-                connectDevice(address);
-                return;
-            }
-            if(status==Constants.STATUS_DEVICE_CONNECTED){
-                BLEClientManager.getClient().write(address, serviceUUID, characteristicUUID, options, new BleWriteResponse() {
-                    @Override
-                    public void onResponse(int code) {
-                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                        if(code==Constants.REQUEST_SUCCESS) {
-                            LogUtils.d("bleResponse","贴片结束报警----->"+address);
-                            intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_STOP_SUCCESS);
-                            sendBroadcast(intent);
-                        }
-                    }
-                });
-            }
-
-        }
-
-    public synchronized void setWorkMode(final String mac){
-        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getInstance().getUserId());
-        BLEClientManager.getClient().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteResponse() {
+        byte[] options = new byte[]{0x02};
+        BleManager.getInstance().write(bleDevice, serviceUUID, characteristicUUID, options, new BleWriteCallback() {
             @Override
-            public void onResponse(int code) {
+            public void onWriteSuccess(BleDevice device) {
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                if(code==Constants.REQUEST_SUCCESS) {
-                    LogUtils.d("bleResponse","贴片设置工作模式成功----->"+mac);
-                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_WORK_SUCCESS);
-                    sendBroadcast(intent);
-                    if(SPUtils.getInstance().getBoolean(SPConst.IS_DEVICE_REDISCOVER)) {
-                        Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(mac), Params.EVENT_TYPE.DEVICE_REDISCOVER, null);
-                        final DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
-                        if (response != null) {
-                            DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
-                            if (alertinfoBean != null) {
-                                byte[] data = new byte[1];
-                                if (alertinfoBean.getIsReconnect()==1&&!Common.isIgnoreBell()) {
-                                    new Thread(new Runnable(){
-                                        public void run(){
-                                            try {
-                                                Thread.sleep(3000);
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
-                                           if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
-                                               doPlay(response);
-                                           }
-                                        }
-                                    }).start();
-                                }
-                            }
-                        }
-                    }else{
-                        Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(mac),Params.EVENT_TYPE.DEVICE_CONNECT,null);
-                        SPUtils.getInstance().put(SPConst.IS_DEVICE_REDISCOVER,true);
-                    }
-                    registAndNotify(mac);
-                }else{
-                    if(mConnectedList.contains(mac)){
-                        mConnectedList.remove(mac);
-                    }
-                    LogUtils.d("bleResponse","贴片设置工作模式失败----->"+mac);
-                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_WORK_FAILED);
-                    sendBroadcast(intent);
-                }
+                LogUtils.d("bleResponse","贴片开始报警----->"+device.getMac());
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_ALERT_STARTED);
+                intent.putExtra("address", device.getMac());
+                sendBroadcast(intent);
             }
-        });
-    }
-    public synchronized void registAndNotify(final String mac){
-        BLEClientManager.getClient().registerConnectStatusListener(mac, new BleConnectStatusListener() {
-            long temp=0;
+
             @Override
-            public void onConnectStatusChanged(String mac, int status) {
-                if (status == Constants.STATUS_CONNECTED) {
-                    LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已连接");
-                    if(!mConnectedList.contains(mac)){
-                        mConnectedList.add(mac);
-                    }
-                    temp = TimeUtils.getNowMills();
-                } else if (status == Constants.STATUS_DISCONNECTED) {
-                    LogUtils.d("bleResponse",mac+">>>贴片连接状态改变>>已断开");
-                    BLEClientManager.getClient().disconnect(mac);
-                    DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
-                    if(response!=null){
-                        DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
-                        if(alertinfoBean!=null){
-                            if(alertinfoBean.getIsRepeat()==0||Common.isIgnoreBell()){
-                                return;
-                            }
-                        }
-                        if(temp!=0&&TimeUtils.getTimeSpan(temp,TimeUtils.getNowMills(),TimeConstants.SEC)>20){
-                            doPlay(response);
-                        };
-                    }
-                    Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(mac),Params.EVENT_TYPE.DEVICE_LOSE,null);
-                    if(mConnectedList.contains(mac)){
-                        mConnectedList.remove(mac);
-                    }
-                    Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_FAILED);
-                    intent.putExtra("address", mac);
-                    sendBroadcast(intent);
-                }
+            public void onWriteFailure(BleDevice device,BleException exception) {
+                LogUtils.d("bleResponse","贴片开始报警---->失败了----->"+device.getMac());
             }
         });
 
-        BLEClientManager.getClient().notify(mac, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyResponse() {
+    }
+    private synchronized void stopAlert(String address) {
+        BleDevice bleDevice = mDeviceMap.get(address);
+        if(bleDevice==null){
+            return;
+        }
+        if(!BleManager.getInstance().isConnected(bleDevice)){
+            connectDevice(bleDevice);
+            return;
+        }
+        byte[] options = new byte[]{0x00};
+        BleManager.getInstance().write(bleDevice, serviceUUID, characteristicUUID, options, new BleWriteCallback() {
             @Override
-            public void onNotify(UUID service, UUID character, byte[] value) {
-                LogUtils.d("接收到蓝牙发送广播》》》"+value);
-                if(value[0]==02){
-                    if(Common.isIgnoreBell()){
+            public void onWriteSuccess(BleDevice device) {
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                LogUtils.d("bleResponse","贴片结束报警----->"+device.getMac());
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_ALERT_STOPED);
+                intent.putExtra("address", device.getMac());
+                sendBroadcast(intent);
+            }
+
+            @Override
+            public void onWriteFailure(BleDevice device,BleException exception) {
+                LogUtils.d("bleResponse","贴片结束报警--->失败了----->"+device.getMac());
+            }
+        });
+    }
+
+    public synchronized void setWorkMode(BleDevice bleDevice){
+        if(bleDevice==null){
+            return;
+        }
+        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getInstance().getUserId());
+        BleManager.getInstance().write(bleDevice, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
+            @Override
+            public void onWriteSuccess(final BleDevice device) {
+                LogUtils.d("bleResponse","贴片设置工作模式成功----->"+device.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS);
+                intent.putExtra("address", device.getMac());
+                sendBroadcast(intent);
+                if(SPUtils.getInstance().getBoolean(SPConst.IS_DEVICE_REDISCOVER)) {
+                    Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(device.getMac()), Params.EVENT_TYPE.DEVICE_REDISCOVER, null);
+                    final DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(device.getMac());
+                    if (response != null) {
+                        DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                        if (alertinfoBean != null) {
+                            byte[] data = new byte[1];
+                            if (alertinfoBean.getIsReconnect()==1&&!Common.isIgnoreBell()) {
+                                new Thread(new Runnable(){
+                                    public void run(){
+                                        try {
+                                            Thread.sleep(3000);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                        if(BleManager.getInstance().isConnected(device)){
+                                            doPlay(response);
+                                        }
+                                    }
+                                }).start();
+                            }
+                        }
+                    }
+                }else{
+                    Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(device.getMac()),Params.EVENT_TYPE.DEVICE_CONNECT,null);
+                    SPUtils.getInstance().put(SPConst.IS_DEVICE_REDISCOVER,true);
+                }
+                notfyAlert(device);
+            }
+
+            @Override
+            public void onWriteFailure(BleDevice device,BleException exception) {
+                LogUtils.d("bleResponse","贴片设置工作模式失败----->"+device.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_FAIL);
+                intent.putExtra("address", device.getMac());
+                sendBroadcast(intent);
+            }
+        });
+    }
+    public synchronized void notfyAlert(final BleDevice bleDevice) {
+        BleManager.getInstance().notify(bleDevice, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyCallback() {
+            @Override
+            public void onNotifySuccess() {
+                LogUtils.d("bleResponse", "设置监测贴片按钮事件成功");
+                notifyBattery(bleDevice);
+            }
+
+            @Override
+            public void onNotifyFailure(BleException exception) {
+                LogUtils.d("bleResponse", exception.getDescription());
+            }
+
+            @Override
+            public void onCharacteristicChanged(BleDevice device, byte[] data) {
+                LogUtils.d("bleResponse", "监测到" + device.getMac() + "双击事件("+data[0]+")--->报警广播数据");
+                if (data[0] == 02) {
+                    if (Common.isIgnoreBell()) {
                         LogUtils.d("贴片在勿扰范围内,报警忽略！");
                         return;
                     }
-                    DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(mac);
-                    if(response!=null){
+                    DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(device.getMac());
+                    if (response != null) {
                         doPlay(response);
                     }
 
                 }
             }
-
-            @Override
-            public void onResponse(int code) {
-
-            }
         });
-        BLEClientManager.getClient().notify(mac, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleNotifyResponse() {
+
+    }
+    public synchronized void notifyBattery(final BleDevice bleDevice){
+        BleManager.getInstance().notify(bleDevice, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleNotifyCallback() {
             @Override
-            public void onNotify(UUID service, UUID character, byte[] value) {
-                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_READ_BATTERY);
-                intent.putExtra("address", mac);
-                intent.putExtra("battery", value[0]+"");
-                sendBroadcast(intent);
-                mapBattery.put(mac,value[0]+"");
+            public void onNotifySuccess() {
+                LogUtils.d("bleResponse", "设置监测电量广播成功");
             }
 
             @Override
-            public void onResponse(int code) {
-                if(code==REQUEST_SUCCESS){
+            public void onNotifyFailure(BleException exception) {
+                LogUtils.d("bleResponse", exception.getDescription());
+            }
 
-                }
+            @Override
+            public void onCharacteristicChanged(BleDevice device, byte[] data) {
+                LogUtils.d("bleResponse", "监测到" + device.getMac() + "电池电量" + data[0]+"%");
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_READ_BATTERY);
+                intent.putExtra("address", device.getMac());
+                intent.putExtra("battery", data[0] + "");
+                sendBroadcast(intent);
+                mapBattery.put(device.getMac(), data[0] + "");
             }
         });
     }
@@ -583,26 +644,35 @@ public  class BleService extends Service {
         }
     }
 
-    public synchronized void setBindMode(final String mac){
+    public synchronized void setBindMode(BleDevice bleDevice){
+        if(bleDevice==null){
+            return;
+        }
         byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getInstance().getUserId());
-        BLEClientManager.getClient().write(mac, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, new BleWriteResponse() {
+        BleManager.getInstance().write(bleDevice, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, new BleWriteCallback() {
             @Override
-            public void onResponse(int code) {
+            public void onWriteSuccess(BleDevice device) {
+                LogUtils.d("bleResponse","贴片设置绑定模式成功----->"+device.getMac());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                if(code==Constants.REQUEST_SUCCESS) {
-                    LogUtils.d("bleResponse","贴片设置绑定模式成功----->"+mac);
-                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_BIND_SUCCESS);
-                    intent.putExtra("address", mac);
-                    sendBroadcast(intent);
-                    setWorkMode(mac);
-                }else{
-                    if(mConnectedList.contains(mac)){
-                        mConnectedList.remove(mac);
-                    }
-                    LogUtils.d("bleResponse","贴片设置绑定模式失败----->"+mac);
-                    intent.putExtra("ret", IntentExtras.RET.RET_DEVICE_CONNECT_BIND_FAIL);
-                    sendBroadcast(intent);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_SUCCESS);
+                intent.putExtra("address", device.getMac());
+                sendBroadcast(intent);
+                if(mBindMap.containsKey(device.getMac())){
+                    mBindMap.remove(device.getMac());
                 }
+                if(!mDeviceMap.containsKey(device.getMac())){
+                    mDeviceMap.put(device.getMac(),device);
+                }
+                setWorkMode(device);
+            }
+
+            @Override
+            public void onWriteFailure(BleDevice device,BleException exception) {
+                LogUtils.d("bleResponse","贴片设置绑定模式失败----->"+device.getMac());
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_FAIL);
+                intent.putExtra("address", device.getMac());
+                sendBroadcast(intent);
             }
         });
     }
@@ -655,7 +725,8 @@ public  class BleService extends Service {
                 devItem.put("devstate", 0);
             }else{
                 devItem.put("sourceid", devlistBean.getFriendid());
-                if(BLEClientManager.getClient().getConnectStatus(mac)==Constants.STATUS_DEVICE_CONNECTED){
+                BleDevice bleDevice = mDeviceMap.get(mac);
+                if(BleManager.getInstance().isConnected(bleDevice)){
                     devItem.put("devstate", 1);
                     if (mapBattery.containsKey(mac)){
                         devItem.put("devbattery", mapBattery.get(mac));

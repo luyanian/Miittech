@@ -18,7 +18,7 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
-import com.inuker.bluetooth.library.Constants;
+import com.clj.fastble.BleManager;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
@@ -29,7 +29,6 @@ import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.manager.BLEClientManager;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.UserInfoResponse;
@@ -136,7 +135,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
 
     private void switchFindBtnStyle() {
         String mac = Common.formatDevId2Mac(deviceDetailInfo.getDevid());
-        if(BLEClientManager.getClient().getConnectStatus(mac)== Constants.STATUS_DEVICE_CONNECTED) {
+        if(BleManager.getInstance().isConnected(mac)) {
             if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceDetailInfo.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
                 rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
                 imgFindButten.setImageResource(R.drawable.ic_device_find);
@@ -171,21 +170,32 @@ public class DeviceMapDetailActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
-                int ret = intent.getIntExtra("ret", -1);//获取Extra信息
+                String address = intent.getStringExtra("address");
+                int ret = intent.getIntExtra("ret", -1);
                 switch (ret){
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_SUCCESS:
-                        LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
+                    case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
+                            switchFindBtnStyle();
+                        }
                         break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_FAILED:
-                        LogUtils.d("RET_DEVICE_CONNECT_FAILED");
+                    case IntentExtras.RET.RET_BLE_MODE_WORK_FAIL:
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            LogUtils.d("RET_DEVICE_CONNECT_FAILED");
+                            switchFindBtnStyle();
+                        }
                         break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_START_SUCCESS:
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevid(),SPConst.ALET_STATUE.STATUS_BELLING);
-                        switchFindBtnStyle();
+                    case IntentExtras.RET.RET_BLE_ALERT_STARTED:
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevid(), SPConst.ALET_STATUE.STATUS_BELLING);
+                            switchFindBtnStyle();
+                        }
                         break;
-                    case IntentExtras.RET.RET_DEVICE_CONNECT_ALERT_STOP_SUCCESS:
-                        SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevid(),SPConst.ALET_STATUE.STATUS_UNBELL);
-                        switchFindBtnStyle();
+                    case IntentExtras.RET.RET_BLE_ALERT_STOPED:
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL);
+                            switchFindBtnStyle();
+                        }
                         break;
                 }
             }
