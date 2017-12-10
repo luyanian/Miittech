@@ -171,11 +171,16 @@ public class DeviceDetailActivity extends BaseActivity {
         }
     }
 
-    @OnClick({R.id.rl_bell_status, R.id.btn_option_map, R.id.btn_option_share, R.id.btn_option_setting, R.id.btn_option_delete})
+    @OnClick({R.id.img_device_icon,R.id.rl_bell_status, R.id.btn_option_map, R.id.btn_option_share, R.id.btn_option_setting, R.id.btn_option_delete})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.img_device_icon:
-//                Intent intent = new Intent(this,DeviceSetAttrActivity.class);
+                Intent editIntent = new Intent(this,DeviceSetClassifyActivity.class);
+                editIntent.putExtra(IntentExtras.DEVICE.ID,deviceDetailInfo.getDevid());
+                editIntent.putExtra(IntentExtras.DEVICE.CLASSIFY,deviceDetailInfo.getGroupname());
+                editIntent.putExtra(IntentExtras.DEVICE.IMAGE,deviceDetailInfo.getDevimg());
+                editIntent.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
+                startActivity(editIntent);
                 break;
             case R.id.rl_bell_status:
                 if(deviceDetailInfo==null){
@@ -216,7 +221,7 @@ public class DeviceDetailActivity extends BaseActivity {
                 break;
             case R.id.btn_option_delete:
                 if(!TextUtils.isEmpty(deviceDetailInfo.getOwneruser())&&!"0".equals(deviceDetailInfo.getOwneruser())){
-
+                    ToastUtils.showShort("您不是贴片拥有者，无操作权限");
                     return;
                 }
                 MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(this);
@@ -401,6 +406,9 @@ public class DeviceDetailActivity extends BaseActivity {
                             String battery = intent.getStringExtra("battery");
                             updateItemBattery(battery);
                         }
+                        break;
+                    case IntentExtras.RET.RET_BLE_UNBIND_COMPLETE:
+                        unbindDevice();
                         break;
                 }
 

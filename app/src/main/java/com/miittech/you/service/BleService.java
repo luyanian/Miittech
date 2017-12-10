@@ -263,6 +263,7 @@ public  class BleService extends Service {
             }
 
         }
+        scanDevice();
     }
 
 

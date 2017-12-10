@@ -27,6 +27,7 @@ import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
+import com.ryon.mutils.ActivityUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 
@@ -214,6 +215,8 @@ public class DeviceSelectRingActivity extends BaseActivity{
                             data.putExtra(IntentExtras.SOURND.NAME,sourndlistBean.getName());
                             setResult(RESULT_OK,data);
                             if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
+                                ActivityPools.finishActivity(DeviceSetClassifyActivity.class);
+                                ActivityPools.finishActivity(DeviceSetAttrActivity.class);
                                 finish();
                             }else{
                                 ActivityPools.finishAllExcept(MainActivity.class);

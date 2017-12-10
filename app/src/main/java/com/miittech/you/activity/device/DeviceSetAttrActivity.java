@@ -2,6 +2,7 @@ package com.miittech.you.activity.device;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -83,13 +84,23 @@ public class DeviceSetAttrActivity extends BaseActivity {
                 intent.putExtra(IntentExtras.DEVICE.NAME,tvDeviceName.getText().toString());
                 intent.putExtra(IntentExtras.DEVICE.CLASSIFY,tvDeviceClassify.getText().toString());
                 intent.putExtra(IntentExtras.DEVICE.IMAGE,iconUrl);
+                if(getIntent().hasExtra(IntentExtras.DEVICE.DATA)){
+                    intent.putExtra(IntentExtras.DEVICE.DATA,getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA));
+                }
                 startActivity(intent);
             }
         });
-        address = getIntent().getStringExtra(IntentExtras.DEVICE.ID);
-        classify = getIntent().getStringExtra(IntentExtras.DEVICE.CLASSIFY);
+        Intent data = getIntent();
+        address = data.getStringExtra(IntentExtras.DEVICE.ID);
+        classify = data.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
+        if(data.hasExtra(IntentExtras.DEVICE.IMAGE)){
+            iconUrl = data.getStringExtra(IntentExtras.DEVICE.IMAGE);
+        }
         tvDeviceClassify.setText(classify);
         tvDeviceName.setText(classify);
+        if(!TextUtils.isEmpty(iconUrl)){
+            Glide.with(this).load(iconUrl).into(imgDeviceIcon);
+        }
 
     }
 

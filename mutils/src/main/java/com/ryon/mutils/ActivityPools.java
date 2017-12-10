@@ -87,6 +87,7 @@ public class ActivityPools {
         for (Activity activity : mActivitys) {
             if (activity.getClass().equals(cls)) {
                 finishActivity(activity);
+                return;
             }
         }
     }
