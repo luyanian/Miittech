@@ -2,6 +2,7 @@ package com.miittech.you.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.View;
@@ -12,6 +13,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceAddActivity;
 import com.miittech.you.activity.setting.SettingActivity;
+import com.miittech.you.common.Common;
 import com.miittech.you.fragment.EventsFragment;
 import com.miittech.you.fragment.ListFragment;
 import com.miittech.you.fragment.MapFragment;
@@ -23,9 +25,11 @@ import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -174,8 +178,8 @@ public class MainActivity extends BaseActivity {
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -188,8 +192,12 @@ public class MainActivity extends BaseActivity {
                 .subscribe(new Consumer<UserInfoResponse>() {
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
-                        SPUtils.getInstance().readObject(SPConst.USER_INFO);
-                        SPUtils.getInstance().saveObject(SPConst.USER_INFO,response);
+                        if(response.isSuccessful()) {
+                            SPUtils.getInstance().readObject(SPConst.USER_INFO);
+                            SPUtils.getInstance().saveObject(SPConst.USER_INFO, response);
+                        }else {
+                            response.onError(MainActivity.this);
+                        }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -197,5 +205,29 @@ public class MainActivity extends BaseActivity {
                         throwable.printStackTrace();
                     }
                 });
+    }
+
+    @Override
+    public void onBackPressed() {
+        exit();
+    }
+
+    // 定义一个变量，来标识是否退出
+    private static boolean isExit = false;
+    private void exit() {
+        if (!isExit) {
+            isExit = true;
+            ToastUtils.showShort("再按一次退出程序");
+            // 利用handler延迟发送更改状态信息
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    isExit = false;
+                }
+            },2000);
+        } else {
+            ActivityPools.finishAllActivity();
+            System.exit(0);
+        }
     }
 }

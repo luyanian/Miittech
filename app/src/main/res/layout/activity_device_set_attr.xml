@@ -30,11 +30,13 @@
             android:layout_centerVertical="true"/>
         <com.miittech.you.weight.CircleImageView
             android:id="@+id/img_device_icon"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
             android:layout_toLeftOf="@+id/img_right1"
             android:layout_centerVertical="true"
-            android:src="@drawable/ic_header_img"/>
+            android:adjustViewBounds="true"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_zixingche"/>
     </RelativeLayout>
     <TextView
         android:layout_width="match_parent"

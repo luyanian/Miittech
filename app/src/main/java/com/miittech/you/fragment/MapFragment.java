@@ -41,6 +41,7 @@ import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
+import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MapDeviceUsersListDialog;
 import com.miittech.you.glide.GlideApp;
@@ -177,8 +178,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         Map param = new HashMap();
         param.put("state", 1);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -264,19 +265,24 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                 if(friend.getFriendid().equals(friendInfo.getFriendid())){
                     isContain = true;
                     currentObject = friendInfo;
-                    GlideApp.with(this).asBitmap().centerCrop().override(100,100)
-                            .load(friend.getHeadimg()).transform(new CircleCrop()).into(new SimpleTarget<Bitmap>() {
-                        @Override
-                        public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                            BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
-                            MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL,true, mCurrentMarker,0xAAFFFF88,0xAA00FF00);
-                            mBaiduMap.setMyLocationConfiguration(config);
-                            MyLocationData locData = new MyLocationData.Builder()
-                                    .latitude(friendInfo.getLat())
-                                    .longitude(friendInfo.getLng()).build();
-                            mBaiduMap.setMyLocationData(locData);
-                        }
-                    });
+                    GlideApp.with(this)
+                            .asBitmap()
+                            .centerCrop()
+                            .override(100,100)
+                            .load(friend.getHeadimg())
+                            .transform(new CircleCrop())
+                            .into(new SimpleTarget<Bitmap>() {
+                                @Override
+                                public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+                                    BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
+                                    MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL,true, mCurrentMarker,0xAAFFFF88,0xAA00FF00);
+                                    mBaiduMap.setMyLocationConfiguration(config);
+                                    MyLocationData locData = new MyLocationData.Builder()
+                                            .latitude(friendInfo.getLat())
+                                            .longitude(friendInfo.getLng()).build();
+                                    mBaiduMap.setMyLocationData(locData);
+                                }
+                            });
 
                     LatLng llCircle = new LatLng(friendInfo.getLat(),friendInfo.getLng());
                     MapStatus.Builder builder = new MapStatus.Builder();
@@ -296,20 +302,25 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         if(locInfo==null){
             return;
         }
-        GlideApp.with(this).asBitmap().centerCrop().override(100,100)
-                .load(device.getDevimg()).transform(new CircleCrop()).into(new SimpleTarget<Bitmap>() {
-            @Override
-            public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
-                MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL,true, mCurrentMarker,0xAAFFFF88,0xAA00FF00);
-                mBaiduMap.setMyLocationConfiguration(config);
-                MyLocationData locData = new MyLocationData.Builder()
-                        .latitude(locInfo.getLat())
-                        .longitude(locInfo.getLng()).build();
-                // 设置定位数据
-                mBaiduMap.setMyLocationData(locData);
-            }
-        });
+        GlideApp.with(this)
+                .asBitmap()
+                .centerCrop()
+                .override(100,100)
+                .load(device.getDevimg())
+                .transform(new CircleCrop())
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+                        BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
+                        MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL,true, mCurrentMarker,0xAAFFFF88,0xAA00FF00);
+                        mBaiduMap.setMyLocationConfiguration(config);
+                        MyLocationData locData = new MyLocationData.Builder()
+                                .latitude(locInfo.getLat())
+                                .longitude(locInfo.getLng()).build();
+                        // 设置定位数据
+                        mBaiduMap.setMyLocationData(locData);
+                    }
+                });
 
         LatLng llCircle = new LatLng(locInfo.getLat(),locInfo.getLng());
         MapStatus.Builder builder = new MapStatus.Builder();
@@ -326,8 +337,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         param.put("qrytype", Params.QRY_TYPE.BASE);
         param.put("friendlist", friendlist);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -364,8 +375,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.USED);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

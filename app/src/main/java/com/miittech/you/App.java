@@ -25,7 +25,7 @@ import cn.jpush.android.api.JPushInterface;
  * Created by Administrator on 2017/9/7.
  */
 
-public class App extends MobApplication {
+public class  App extends MobApplication {
     private static App instance;
     @Override
     public void onCreate() {
@@ -46,15 +46,7 @@ public class App extends MobApplication {
     }
 
 
-    public String getTocken(){
-        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_TOCKEN);
-    }
-    public String getUserId(){
-        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_USERID);
-    }
-    public String getUserName(){
-        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_UNAME);
-    }
+
 
 
     private void registerActivityListener() {

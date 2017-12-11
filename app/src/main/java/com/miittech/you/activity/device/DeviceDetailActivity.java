@@ -23,6 +23,7 @@ import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnMsgTipOptions;
@@ -104,6 +105,10 @@ public class DeviceDetailActivity extends BaseActivity {
             }
         });
 
+        IntentFilter filter=new IntentFilter();
+        filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+        this.registerReceiver(cmdResponseReceiver,filter);
+
         typeSelector.setItemText("小贴士", "功能");
         typeSelector.setTypeSelectorChangeLisener(new TypeSelectorChangeLisener() {
             @Override
@@ -120,10 +125,9 @@ public class DeviceDetailActivity extends BaseActivity {
         });
         typeSelector.setSelectItem(0);
         device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-
-        IntentFilter filter=new IntentFilter();
-        filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-        this.registerReceiver(cmdResponseReceiver,filter);
+        if(getIntent().hasExtra("location")){
+            tvDeviceLocation.setText(getIntent().getStringExtra("location"));
+        }
     }
 
     @Override
@@ -154,7 +158,11 @@ public class DeviceDetailActivity extends BaseActivity {
             setTimeText(tvDeviceTime,device.getLasttime());
             tvDeviceLocation.setText(Common.decodeBase64(device.getLocinfo().getAddr()));
         }
-        Glide.with(this).load(device.getDevimg()).into(imgDeviceIcon);
+        GlideApp.with(this)
+                .load(device.getDevimg())
+                .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))
+                .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))
+                .into(imgDeviceIcon);
         switchFindBtnStyle();
     }
 
@@ -177,9 +185,10 @@ public class DeviceDetailActivity extends BaseActivity {
             case R.id.img_device_icon:
                 Intent editIntent = new Intent(this,DeviceSetClassifyActivity.class);
                 editIntent.putExtra(IntentExtras.DEVICE.ID,deviceDetailInfo.getDevid());
-                editIntent.putExtra(IntentExtras.DEVICE.CLASSIFY,deviceDetailInfo.getGroupname());
+                editIntent.putExtra(IntentExtras.DEVICE.CLASSIFY,Common.decodeBase64(deviceDetailInfo.getGroupname()));
                 editIntent.putExtra(IntentExtras.DEVICE.IMAGE,deviceDetailInfo.getDevimg());
                 editIntent.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
+                editIntent.putExtra("isEdit",true);
                 startActivity(editIntent);
                 break;
             case R.id.rl_bell_status:
@@ -297,8 +306,8 @@ public class DeviceDetailActivity extends BaseActivity {
         param.put("devid", device.getDevidX());
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -331,8 +340,8 @@ public class DeviceDetailActivity extends BaseActivity {
         param.put("devid", device.getDevidX());
         param.put("method", Params.METHOD.UNBIND);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

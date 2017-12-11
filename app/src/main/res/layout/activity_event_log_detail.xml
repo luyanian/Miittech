@@ -24,14 +24,12 @@
                 android:id="@+id/tv_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="dasfasdf"
                 android:textSize="16dp"
                 android:textColor="@color/colorPrimary"/>
             <TextView
                 android:id="@+id/tv_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="45646"
                 android:layout_marginTop="5dp"
                 android:textSize="14dp"/>
         </LinearLayout>

@@ -185,8 +185,8 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -199,9 +199,13 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
                 .subscribe(new Consumer<UserInfoResponse>() {
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
-                        initIgnoreConfig(response);
-                        SPUtils.getInstance().readObject(SPConst.USER_INFO);
-                        SPUtils.getInstance().saveObject(SPConst.USER_INFO,response);
+                        if(response.isSuccessful()) {
+                            initIgnoreConfig(response);
+                            SPUtils.getInstance().readObject(SPConst.USER_INFO);
+                            SPUtils.getInstance().saveObject(SPConst.USER_INFO, response);
+                        }else {
+                            response.onError(IgnoreSettingActivity.this);
+                        }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -367,8 +371,8 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         }
 
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

@@ -24,6 +24,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
+import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
@@ -88,10 +89,11 @@ public class ListFragment extends Fragment {
         //创建并设置Adapter
         mDeviceListAdapter = new DeviceListAdapter(getActivity(), new OnListItemClick<DeviceResponse.DevlistBean>() {
             @Override
-            public void onItemClick(DeviceResponse.DevlistBean devlistBean) {
-                super.onItemClick(devlistBean);
+            public void onItemClick(DeviceResponse.DevlistBean devlistBean,String flag) {
+                super.onItemClick(devlistBean,flag);
                 Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
                 intent.putExtra(IntentExtras.DEVICE.DATA, devlistBean);
+                intent.putExtra("location",flag);
                 startActivity(intent);
             }
         });
@@ -202,8 +204,8 @@ public class ListFragment extends Fragment {
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

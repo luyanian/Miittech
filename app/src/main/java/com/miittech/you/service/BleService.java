@@ -295,7 +295,7 @@ public  class BleService extends Service {
                 intent.putExtra("address",result.getMac());
                 sendBroadcast(intent);
                 if(!mDeviceMap.containsKey((result.getMac()))){
-                    if(isBind&&result.getRssi()>-50){
+                    if(isBind&&result.getRssi()>-100){
                         if(!mBindMap.containsKey(result.getMac())) {
                             mBindMap.put(result.getMac(), result);
                             LogUtils.d("bleResponse", "开始绑定贴片----->" + result.getMac());
@@ -444,7 +444,7 @@ public  class BleService extends Service {
             connectDevice(bleDevice);
             return;
         }
-        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, App.getInstance().getUserId());
+        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_UNBIND, Common.getUserId());
         BleManager.getInstance().write(bleDevice, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
             @Override
             public void onWriteSuccess(BleDevice device) {
@@ -464,6 +464,8 @@ public  class BleService extends Service {
 
     private synchronized void clearAllConnect(){
         BleManager.getInstance().disconnectAllDevice();
+        mConnectedList.clear();
+        mBindMap.clear();
     }
 
     private synchronized void startAlert(String address) {
@@ -524,7 +526,7 @@ public  class BleService extends Service {
         if(bleDevice==null){
             return;
         }
-        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, App.getInstance().getUserId());
+        byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, Common.getUserId());
         BleManager.getInstance().write(bleDevice, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
             @Override
             public void onWriteSuccess(final BleDevice device) {
@@ -649,7 +651,7 @@ public  class BleService extends Service {
         if(bleDevice==null){
             return;
         }
-        byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,App.getInstance().getUserId());
+        byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,Common.getUserId());
         BleManager.getInstance().write(bleDevice, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, new BleWriteCallback() {
             @Override
             public void onWriteSuccess(BleDevice device) {
@@ -689,6 +691,11 @@ public  class BleService extends Service {
                 locinfo.setLng(location.getLongitude());
                 SPUtils.getInstance().remove(SPConst.LOC_INFO);
                 SPUtils.getInstance().saveObject(SPConst.LOC_INFO,locinfo);
+
+                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                intent.putExtra("ret", IntentExtras.RET.LOCATION);
+                intent.putExtra("data", locinfo);
+                sendBroadcast(intent);
             }
             LatLng current = new LatLng(location.getLatitude(), location.getLongitude());
             long curMillis = TimeUtils.getNowDate().getTime();
@@ -806,8 +813,11 @@ public  class BleService extends Service {
         param.put("method", method);
         param.put("repdata",jsonArray);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        if(TextUtils.isEmpty(Common.getUserId())||TextUtils.isEmpty(Common.getTocken())){
+            return;
+        }
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -833,6 +843,8 @@ public  class BleService extends Service {
                             }
                             SPUtils.getInstance().remove("reportList");
                             SPUtils.getInstance().put("reportList",reportList);
+                        }else{
+                            response.onError(App.getInstance());
                         }
                     }
                 }, new Consumer<Throwable>() {

@@ -1,16 +1,20 @@
 package com.miittech.you.activity.user;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.google.gson.Gson;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
+import com.miittech.you.common.Common;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
@@ -18,11 +22,13 @@ import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.LoginResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.ActivityPools;
+import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.RegexUtils;
@@ -141,11 +147,22 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME,response.getUsername());
                             JPushInterface.setAlias(LoginActivity.this,0,response.getUserid());
-                            JPushInterface.getRegistrationID(LoginActivity.this);
+
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sendRegistationIdToServer(LoginActivity.this,JPushInterface.getRegistrationID(LoginActivity.this));
+                                }
+                            },1000);
+
                             ToastUtils.showShort(getResources().getString(R.string.msg_user_login_successful));
+
+                            ActivityPools.finishActivity(LoginRegisteActivity.class);
+                            ActivityPools.finishActivity(LoginActivity.class);
+                            ActivityPools.finishActivity(RegisteActivity.class);
+
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
-                            ActivityPools.finishAllExcept(MainActivity.class);
                         } else {
                             response.onError(LoginActivity.this);
                         }
@@ -233,7 +250,14 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN, response.getToken());
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME, response.getUsername());
                             JPushInterface.setAlias(LoginActivity.this, 0, response.getUserid());
-                            JPushInterface.getRegistrationID(LoginActivity.this);
+
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sendRegistationIdToServer(LoginActivity.this,JPushInterface.getRegistrationID(LoginActivity.this));
+                                }
+                            },1000);
+
                             ToastUtils.showShort(getResources().getString(R.string.msg_user_login_successful));
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
@@ -252,6 +276,37 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                             }
                         } else {
                             response.onError(LoginActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+
+    private void sendRegistationIdToServer(final Context context, String regId) {
+        Map param = new HashMap();
+        param.put("regid", regId);
+        param.put("ostype", "android");
+        param.put("ver", AppUtils.getAppVersionName());
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "jpushid/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(context).postNetRequest(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BaseResponse>() {
+                    @Override
+                    public void accept(BaseResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+
                         }
                     }
                 }, new Consumer<Throwable>() {

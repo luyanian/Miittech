@@ -10,6 +10,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
+import com.miittech.you.common.Common;
 import com.ryon.mutils.ActivityPools;
 
 import butterknife.ButterKnife;
@@ -22,12 +23,13 @@ public class LoginRegisteActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_registe);
         ButterKnife.bind(this);
-        if(!TextUtils.isEmpty(App.getInstance().getTocken())){
+        if(!TextUtils.isEmpty(Common.getTocken())){
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     Intent intent = new Intent(LoginRegisteActivity.this, MainActivity.class);
                     startActivity(intent);
+                    finish();
                 }
             },2000);
         }

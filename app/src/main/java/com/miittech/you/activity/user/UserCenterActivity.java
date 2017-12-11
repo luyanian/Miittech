@@ -19,8 +19,11 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.dialog.MsgTipDialog;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
+import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -140,8 +143,8 @@ public class UserCenterActivity extends BaseActivity {
         }
         String json = new Gson().toJson(param);
         LogUtils.d("imgupload", json);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + App.getInstance().getTocken()).toLowerCase();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + Common.getTocken()).toLowerCase();
         LogUtils.d("sign", sign);
         String urlPath = HttpUrl.Api + "imgupload/" + pubParam.toUrlParam(sign) + "&path=" + fileName + "&size=" + size + "&sha=" + sha;
 
@@ -170,7 +173,6 @@ public class UserCenterActivity extends BaseActivity {
     }
 
     public void aysnUserInfo(String imageUrl) {
-
         Map userattr = new HashMap();
         userattr.put("headimg", imageUrl);
         Map param = new HashMap();
@@ -178,8 +180,8 @@ public class UserCenterActivity extends BaseActivity {
         param.put("userattr", userattr);
 
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -207,8 +209,8 @@ public class UserCenterActivity extends BaseActivity {
 //        param.put("sdate", "20170101");
 //        param.put("edate", "20170920");
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -223,7 +225,7 @@ public class UserCenterActivity extends BaseActivity {
                         if (response.isSuccessful()) {
                             initData(response.getUserinfo());
                         } else {
-                            response.getUserinfo();
+                            response.onError(UserCenterActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -259,10 +261,19 @@ public class UserCenterActivity extends BaseActivity {
         } else {
             userQq.setText(userinfo.getIsBindQQ());
         }
+        if(userinfo.getIsShareLocation()==1){
+            userLocationToogle.setChecked(true);
+        }else{
+            userLocationToogle.setChecked(false);
+        }
     }
 
     public void setUserHeadImg(String imgUrl) {
-        Glide.with(this).load(imgUrl).into(userHearderImage);
+        GlideApp.with(this)
+                .load(imgUrl)
+                .error(R.drawable.ic_header_img)
+                .placeholder(R.drawable.ic_header_img)
+                .into(userHearderImage);
     }
 
     @OnClick({R.id.user_hearder_image, R.id.btn_user_nike, R.id.btn_user_password, R.id.btn_user_phone,R.id.btn_user_email, R.id.btn_user_wechat, R.id.btn_user_qq, R.id.btn_user_location,R.id.btn_logout})
@@ -317,6 +328,21 @@ public class UserCenterActivity extends BaseActivity {
                 }
                 break;
             case R.id.btn_user_location:
+                if(userLocationToogle.isChecked()){
+                    MsgTipDialog msgTipDialog = DialogUtils.createMsgTipDialog(this);
+                    msgTipDialog.setTitle("操作确认");
+                    msgTipDialog.setMsg("关闭后，好友将无法查看你的位置，确认关闭吗？");
+                    msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions(){
+                        @Override
+                        public void onSure() {
+                            super.onSure();
+                            updateIsShareLocation(false);
+                        }
+                    });
+                    msgTipDialog.show();
+                }else{
+                    updateIsShareLocation(true);
+                }
                 break;
             case R.id.btn_logout:
                 DialogUtils.getInstance().showLogoutDialog(this).onClickSure(new View.OnClickListener() {
@@ -329,10 +355,41 @@ public class UserCenterActivity extends BaseActivity {
         }
     }
 
+    private void updateIsShareLocation(boolean b) {
+        Map userattr = new HashMap();
+        userattr.put("isShareLocation",b?1:0);
+        Map param = new HashMap();
+        param.put("method", "D");
+        param.put("userattr", userattr);
+
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userattr/" + pubParam.toUrlParam(sign);
+        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postNetRequest(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BaseResponse>() {
+                    @Override
+                    public void accept(BaseResponse response) throws Exception {
+                        if (!response.isSuccessful()) {
+                            ToastUtils.showShort(response.getErrmsg());
+                        }else{
+                            getUserInfo();
+                        }
+                    }
+                });
+    }
+
     private void doLogout() {
 
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -398,8 +455,8 @@ public class UserCenterActivity extends BaseActivity {
         param.put("unionid", unionid);
 
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

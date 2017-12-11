@@ -2,6 +2,7 @@ package com.ryon.mutils;
 
 import android.app.Activity;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -151,6 +152,7 @@ public class ActivityPools {
         }
         for (Activity activity : mActivitys) {
             activity.finish();
+            activity=null;
         }
         mActivitys.clear();
     }
@@ -161,13 +163,17 @@ public class ActivityPools {
         if (mActivitys == null) {
             return;
         }
-        for (Activity activity : mActivitys) {
+        List<Activity> temp = new ArrayList<>();
+        temp.addAll(mActivitys);
+        for (Activity activity : temp) {
             if(!activity.getClass().equals(cls)){
                 activity.finish();
                 activity=null;
+                mActivitys.remove(activity);
             }
         }
-
+        temp.clear();
+        temp=null;
     }
 
 

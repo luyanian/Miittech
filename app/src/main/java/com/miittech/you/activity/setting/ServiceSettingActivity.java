@@ -58,10 +58,6 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
         checkBackground.setOnCheckedChangeListener(this);
     }
 
-    @OnClick(R.id.btn_ok)
-    public void onViewClicked() {
-    }
-
 
     @Override
     public void onCheckedChanged(final CompoundButton compoundButton, boolean b) {
@@ -105,6 +101,12 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
                             Intent intent1 =  new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                             startActivity(intent1);
                         }
+
+                        @Override
+                        public void onCancel() {
+                            super.onCancel();
+                            checkLcoation.setChecked(true);
+                        }
                     });
                     msgTipDialog.show();
                 }
@@ -125,10 +127,15 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
                             Intent intent1 =  new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,packageURI);
                             startActivity(intent1);
                         }
+
+                        @Override
+                        public void onCancel() {
+                            super.onCancel();
+                            checkNotification.setChecked(true);
+                        }
                     });
                     msgTipDialog.show();
                 }
-
                 break;
             case R.id.check_background:
                 break;

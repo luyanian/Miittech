@@ -114,7 +114,6 @@ dependencies {
     compile files('libs/jpush-android-3.0.9.jar')
     compile project(':mutils')
     compile project(':FastBleLib')
-//    compile project(':library')
     compile 'org.jetbrains:annotations-java5:15.0'
     compile 'com.android.support:multidex:1.+'
 }

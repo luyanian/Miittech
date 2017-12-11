@@ -9,6 +9,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.FriendListAdapter;
+import com.miittech.you.common.Common;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
@@ -93,8 +94,8 @@ public class MyFriendsActivity extends BaseActivity {
                 +Params.FRIEND_STATUS.FRIEND_BE_INVITED);
 
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -109,6 +110,8 @@ public class MyFriendsActivity extends BaseActivity {
                     public void accept(FriendsResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             initFriendList(response.getFriendlist());
+                        }else{
+                            response.onError(MyFriendsActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -131,8 +134,8 @@ public class MyFriendsActivity extends BaseActivity {
         param.put("method", Params.METHOD.FRIEND_CONFIRM);
         param.put("friended", friendId);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -147,6 +150,8 @@ public class MyFriendsActivity extends BaseActivity {
                     public void accept(FriendsResponse response) throws Exception {
                         if(response.isSuccessful()){
                             getFrinds();
+                        }else{
+                            response.onError(MyFriendsActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {

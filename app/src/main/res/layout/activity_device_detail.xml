@@ -36,6 +36,8 @@
             android:src="@drawable/ic_header_img"
             app:civ_border_color="@color/white"
             android:layout_marginTop="10dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerInside"
             app:civ_border_width="2dp"/>
         <TextView
             android:id="@+id/tv_device_name"
@@ -44,7 +46,6 @@
             android:layout_below="@+id/img_device_icon"
             android:lines="1"
             android:layout_centerHorizontal="true"
-            android:text="不吃鱼的猫"
             android:layout_marginTop="5dp"
             android:textSize="18dp"
             android:textColor="@color/white"/>
@@ -53,7 +54,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:text="第四大街67号，滨海新区"
             android:layout_below="@+id/tv_device_name"
             android:textSize="16dp"
             android:layout_marginTop="5dp"
@@ -63,7 +63,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:text="5分钟以前"
             android:layout_below="@+id/tv_device_name"
             android:textSize="14dp"
             android:layout_marginTop="5dp"

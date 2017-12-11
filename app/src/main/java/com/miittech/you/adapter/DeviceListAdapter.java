@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.clj.fastble.BleManager;
 import com.miittech.you.R;
 import com.miittech.you.common.Common;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
@@ -66,7 +67,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, final int i) {
         final DeviceResponse.DevlistBean devlistBean = mData.get(i);
-        ViewHolder holder = (ViewHolder) viewHolder;
+        final ViewHolder holder = (ViewHolder) viewHolder;
         holders.put(Common.formatDevId2Mac(devlistBean.getDevidX()),holder);
         holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
         holder.tvIsShared.setVisibility(View.GONE);
@@ -89,12 +90,17 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             setTimeText(holder.itemTime,devlistBean.getLasttime());
         }
         setConnectStatusStyle(Common.formatDevId2Mac(devlistBean.getDevidX()));
-        Glide.with(activity).load(devlistBean.getDevimg()).into(holder.itemIcon);
+        GlideApp.with(activity)
+                .load(devlistBean.getDevimg())
+                .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(devlistBean.getGroupname())))
+                .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(devlistBean.getGroupname())))
+                .into(holder.itemIcon);
         holder.rlItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(onDeviceItemClick!=null){
-                    onDeviceItemClick.onItemClick(devlistBean);
+                    ViewHolder viewHolder = holders.get(Common.formatDevId2Mac(devlistBean.getDevidX()));
+                    onDeviceItemClick.onItemClick(devlistBean,viewHolder.itemLocation.getText().toString());
                 }
             }
         });

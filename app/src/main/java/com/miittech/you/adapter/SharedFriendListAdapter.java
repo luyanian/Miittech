@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.miittech.you.R;
+import com.miittech.you.common.Common;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.BtnTextView;
 import com.miittech.you.weight.CircleImageView;
@@ -40,7 +42,11 @@ public class SharedFriendListAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ViewHolder viewHolder = (ViewHolder) holder;
         final FriendsResponse.FriendlistBean friend = friendlist.get(position);
-        Glide.with(context).load(friend.getHeadimg()).into(viewHolder.itemImage);
+        GlideApp.with(context)
+                .load(friend.getHeadimg())
+                .error(R.drawable.ic_header_img)
+                .placeholder(R.drawable.ic_header_img)
+                .into(viewHolder.itemImage);
         viewHolder.itemName.setText(new String(Base64.decode(friend.getNickname(), Base64.DEFAULT)));
     }
 

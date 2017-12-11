@@ -14,6 +14,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.event.EventLogDetailActivity;
 import com.miittech.you.adapter.EventLogAdapter;
+import com.miittech.you.common.Common;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
@@ -150,8 +151,8 @@ public class EventLogFragment extends Fragment {
         param.put("sdate", simpleDateFormat.format(calendar.getTime()));
 
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -176,6 +177,8 @@ public class EventLogFragment extends Fragment {
                                     eventLogAdapter.loadMoreEventLog(response.getEventlist());
                                 }
                             }
+                        }else{
+                            response.onError(getActivity());
                         }
                     }
                 }, new Consumer<Throwable>() {

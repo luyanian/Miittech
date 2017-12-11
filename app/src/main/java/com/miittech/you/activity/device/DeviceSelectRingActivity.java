@@ -15,6 +15,7 @@ import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
 import com.miittech.you.adapter.SelectRingAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.PubParam;
@@ -88,6 +89,9 @@ public class DeviceSelectRingActivity extends BaseActivity{
             @Override
             public void onComplete() {
                 super.onComplete();
+                if(sourndlistBean==null){
+                    return;
+                }
                 setDeviceAlertinfo();
             }
         });
@@ -97,12 +101,29 @@ public class DeviceSelectRingActivity extends BaseActivity{
 
     private void initViews() {
         intent = getIntent();
-        if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
+        if(intent.getBooleanExtra("isEdit",false)){
+            deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
+            devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
+            String devName = intent.getStringExtra(IntentExtras.DEVICE.NAME);
+            String iconUrl = intent.getStringExtra(IntentExtras.DEVICE.IMAGE);
+            String devClassfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
+            tvDeviceName.setText(devName);
+            tvDeviceLocation.setText(devClassfy);
+            GlideApp.with(this)
+                    .load(iconUrl)
+                    .error(Common.getDefaultDevImgResouceId(devClassfy))
+                    .placeholder(Common.getDefaultDevImgResouceId(devClassfy))
+                    .into(imgDeviceIcon);
+        }else if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
             deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
             this.devId = deviceInfo.getDevid();
             tvDeviceName.setText(Common.decodeBase64(deviceInfo.getDevname()));
             tvDeviceLocation.setText(Common.decodeBase64(deviceInfo.getGroupname()));
-            Glide.with(this).load(deviceInfo.getDevimg()).into(imgDeviceIcon);
+            GlideApp.with(this)
+                    .load(deviceInfo.getDevimg())
+                    .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceInfo.getGroupname())))
+                    .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceInfo.getGroupname())))
+                    .into(imgDeviceIcon);
         }else{
             devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
             String devName = intent.getStringExtra(IntentExtras.DEVICE.NAME);
@@ -110,7 +131,11 @@ public class DeviceSelectRingActivity extends BaseActivity{
             String devClassfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
             tvDeviceName.setText(devName);
             tvDeviceLocation.setText(devClassfy);
-            Glide.with(this).load(iconUrl).into(imgDeviceIcon);
+            GlideApp.with(this)
+                    .load(iconUrl)
+                    .error(Common.getDefaultDevImgResouceId(devClassfy))
+                    .placeholder(Common.getDefaultDevImgResouceId(devClassfy))
+                    .into(imgDeviceIcon);
         }
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         recyclerview.setLayoutManager(mLayoutManager);
@@ -141,8 +166,8 @@ public class DeviceSelectRingActivity extends BaseActivity{
 
 
     public void getSoundList(){
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -196,8 +221,8 @@ public class DeviceSelectRingActivity extends BaseActivity{
         param.put("method", "G");
         param.put("devattr",devattr);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

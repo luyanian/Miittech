@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.miittech.you.R;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.Params;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.FriendsResponse;
@@ -60,7 +61,11 @@ public class FriendListAdapter extends BaseAdapter {
             holder = (ViewHolder) view.getTag();
         }
         final FriendsResponse.FriendlistBean friend = friendlist.get(i);
-        Glide.with(context).load(friend.getHeadimg()).into(holder.itemImage);
+        GlideApp.with(context)
+                .load(friend.getHeadimg())
+                .error(R.drawable.ic_header_img)
+                .placeholder(R.drawable.ic_header_img)
+                .into(holder.itemImage);
         holder.itemName.setText(new String(Base64.decode(friend.getNickname(), Base64.DEFAULT)));
         //1：已添加 2：申请中 4：被邀请 8：已被对方删除 16：已拒绝
         switch (friend.getState()) {

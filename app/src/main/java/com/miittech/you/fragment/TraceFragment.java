@@ -17,6 +17,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.event.EventTraceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
+import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
@@ -87,11 +88,12 @@ public class TraceFragment extends Fragment {
         recyclerview.setHasFixedSize(true);
         mDeviceListAdapter = new DeviceListAdapter(getActivity(),new OnListItemClick(){
             @Override
-            public void onItemClick(Object o) {
+            public void onItemClick(Object o,String flag) {
                 super.onItemClick(o);
                 DeviceResponse.DevlistBean devlistBean = (DeviceResponse.DevlistBean) o;
                 Intent intent = new Intent(getActivity(), EventTraceDetailActivity.class);
                 intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
+                intent.putExtra("location",flag);
                 startActivity(intent);
             }
         });
@@ -118,8 +120,8 @@ public class TraceFragment extends Fragment {
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

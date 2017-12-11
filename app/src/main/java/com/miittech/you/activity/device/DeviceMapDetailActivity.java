@@ -19,19 +19,14 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 import com.clj.fastble.BleManager;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.activity.device.DeviceDetailActivity;
-import com.miittech.you.activity.setting.IgnoreAddPointActivity;
-import com.miittech.you.adapter.PoiResultAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
-import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.LogUtils;
@@ -72,6 +67,10 @@ public class DeviceMapDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
         deviceDetailInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         initView(deviceDetailInfo);
+        switchFindBtnStyle();
+        IntentFilter filter=new IntentFilter();
+        filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+        this.registerReceiver(cmdResponseReceiver,filter);
     }
 
     private void initView(DeviceInfoResponse.UserinfoBean.DevinfoBean devlistBean) {
@@ -84,13 +83,11 @@ public class DeviceMapDetailActivity extends BaseActivity {
                 finish();
             }
         });
-        tvTime.setText(TimeUtils.getFriendlyTimeSpanByNow(devlistBean.getLasttime(), new SimpleDateFormat("yyyyMMddhhmmss")));
-        tvTitle.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
-        updateMapLocalView();
-
-        IntentFilter filter=new IntentFilter();
-        filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-        this.registerReceiver(cmdResponseReceiver,filter);
+        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+            updateMapLocalView((Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO));
+        }else{
+            updateMapLocalView(null);
+        }
     }
 
     @Override
@@ -148,13 +145,20 @@ public class DeviceMapDetailActivity extends BaseActivity {
             imgFindButten.setImageResource(R.drawable.ic_device_find);
         }
     }
-    public void updateMapLocalView(){
+    public void updateMapLocalView(Locinfo locinfo){
+
         mBaiduMap = mapView.getMap();
         mBaiduMap.setMyLocationEnabled(true);
         MapView.setMapCustomEnable(true);
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
-
-        LatLng latLng = new LatLng(deviceDetailInfo.getLocinfo().getLat(),deviceDetailInfo.getLocinfo().getLng());
+        LatLng latLng;
+        if(locinfo==null) {
+            latLng = new LatLng(deviceDetailInfo.getLocinfo().getLat(), deviceDetailInfo.getLocinfo().getLng());
+        }else{
+            latLng = new LatLng(locinfo.getLat(),locinfo.getLng());
+            tvTime.setText("现在");
+            tvTitle.setText(locinfo.getAddr());
+        }
         MyLocationData locData = new MyLocationData.Builder()
                 .accuracy(200)
                 .latitude(latLng.latitude)
@@ -195,6 +199,12 @@ public class DeviceMapDetailActivity extends BaseActivity {
                         if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
                             SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL);
                             switchFindBtnStyle();
+                        }
+                        break;
+                    case IntentExtras.RET.LOCATION:
+                        Locinfo locinfo = (Locinfo) intent.getSerializableExtra("data");
+                        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                            updateMapLocalView(locinfo);
                         }
                         break;
                 }

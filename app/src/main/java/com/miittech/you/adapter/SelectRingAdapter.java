@@ -85,22 +85,20 @@ public class SelectRingAdapter extends RecyclerView.Adapter {
     }
 
     public void initSelectAlerName(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo) {
-        if(deviceInfo==null||deviceInfo.getAlertinfo()==null){
-            showCurrentItem(0);
-            if (onListItemClick != null) {
-                onListItemClick.onItemClick(mData.get(0));
-            }
-            return;
-        }
-        boolean isSelect=false;
-        for(int i=0;i<mData.size();i++){
-            if(mData.get(i).getId()==deviceInfo.getAlertinfo().getId()){
-                showCurrentItem(i);
-                isSelect=true;
+        if(deviceInfo!=null&&deviceInfo.getAlertinfo()!=null){
+            for(int i=0;i<mData.size();i++){
+                if(mData.get(i).getId()==deviceInfo.getAlertinfo().getId()){
+                    showCurrentItem(i);
+                    if (onListItemClick != null) {
+                        onListItemClick.onItemClick(mData.get(i));
+                    }
+                    return;
+                }
             }
         }
-        if(!isSelect){
-            showCurrentItem(0);
+        showCurrentItem(0);
+        if (onListItemClick != null) {
+            onListItemClick.onItemClick(mData.get(0));
         }
     }
 

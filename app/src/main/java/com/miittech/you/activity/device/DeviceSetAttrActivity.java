@@ -14,6 +14,8 @@ import com.luck.picture.lib.entity.LocalMedia;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.common.Common;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
@@ -23,6 +25,7 @@ import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
@@ -84,6 +87,7 @@ public class DeviceSetAttrActivity extends BaseActivity {
                 intent.putExtra(IntentExtras.DEVICE.NAME,tvDeviceName.getText().toString());
                 intent.putExtra(IntentExtras.DEVICE.CLASSIFY,tvDeviceClassify.getText().toString());
                 intent.putExtra(IntentExtras.DEVICE.IMAGE,iconUrl);
+                intent.putExtra("isEdit",getIntent().getBooleanExtra("isEdit",false));
                 if(getIntent().hasExtra(IntentExtras.DEVICE.DATA)){
                     intent.putExtra(IntentExtras.DEVICE.DATA,getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA));
                 }
@@ -98,9 +102,12 @@ public class DeviceSetAttrActivity extends BaseActivity {
         }
         tvDeviceClassify.setText(classify);
         tvDeviceName.setText(classify);
-        if(!TextUtils.isEmpty(iconUrl)){
-            Glide.with(this).load(iconUrl).into(imgDeviceIcon);
-        }
+        GlideApp.with(this)
+                    .load(iconUrl)
+                    .error(Common.getDefaultDevImgResouceId(classify))
+                    .placeholder(Common.getDefaultDevImgResouceId(classify))
+                    .into(imgDeviceIcon);
+
 
     }
 
@@ -160,8 +167,8 @@ public class DeviceSetAttrActivity extends BaseActivity {
         }
         String json = new Gson().toJson(param);
         LogUtils.d("imgupload", json);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + App.getInstance().getTocken()).toLowerCase();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + Common.getTocken()).toLowerCase();
         LogUtils.d("sign", sign);
         String urlPath = HttpUrl.Api + "imgupload/" + pubParam.toUrlParam(sign) + "&path=" + fileName + "&size=" + size + "&sha=" + sha;
 
@@ -197,8 +204,8 @@ public class DeviceSetAttrActivity extends BaseActivity {
         param.put("method", "C");
         param.put("devattr", devattrMap);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -212,7 +219,13 @@ public class DeviceSetAttrActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if(response.isSuccessful()){
-                            Glide.with(DeviceSetAttrActivity.this).load(iconUrl).into(imgDeviceIcon);
+                            GlideApp.with(DeviceSetAttrActivity.this)
+                                    .load(iconUrl)
+                                    .error(Common.getDefaultDevImgResouceId(classify))
+                                    .placeholder(Common.getDefaultDevImgResouceId(classify))
+                                    .into(imgDeviceIcon);
+                        }else{
+                            response.onError(DeviceSetAttrActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {

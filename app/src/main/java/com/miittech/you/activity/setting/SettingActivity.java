@@ -13,6 +13,8 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.user.MyFriendsActivity;
 import com.miittech.you.activity.user.UserCenterActivity;
+import com.miittech.you.common.Common;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
@@ -114,8 +116,8 @@ public class SettingActivity extends BaseActivity {
 //        param.put("sdate", "20170101");
 //        param.put("edate", "20170920");
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -130,7 +132,7 @@ public class SettingActivity extends BaseActivity {
                         if(response.isSuccessful()){
                             initData(response.getUserinfo());
                         }else{
-                            response.getUserinfo();
+                            response.onError(SettingActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -143,7 +145,11 @@ public class SettingActivity extends BaseActivity {
 
     private void initData(UserInfoResponse.UserinfoBean userinfo) {
         if(!TextUtils.isEmpty(userinfo.getHeadimg())){
-            Glide.with(this).load(userinfo.getHeadimg()).into(userHeaderImage);
+            GlideApp.with(this)
+                    .load(userinfo.getHeadimg())
+                    .error(R.drawable.ic_header_img)
+                    .placeholder(R.drawable.ic_header_img)
+                    .into(userHeaderImage);
         }
 
         if(!TextUtils.isEmpty(userinfo.getNickname())){

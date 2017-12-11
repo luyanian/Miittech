@@ -18,14 +18,14 @@ public class DialogUtils {
     }
     static LogoutDialog logoutDialog;
     public static LogoutDialog showLogoutDialog(Context context){
-        if(logoutDialog==null){
-            logoutDialog = new LogoutDialog(context);
-            logoutDialog.show();
-        }else{
+        if(logoutDialog!=null){
             if(logoutDialog.isShowing()){
                 logoutDialog.dismiss();
             }
+            logoutDialog=null;
         }
+        logoutDialog = new LogoutDialog(context);
+        logoutDialog.show();
         return logoutDialog;
     }
     static MsgTipDialog msgTipDialog;
@@ -77,14 +77,14 @@ public class DialogUtils {
     }
     static SoundCloseDialog soundCloseDialog;
     public static SoundCloseDialog showSoundCloseDialog(Context context) {
-        if(soundCloseDialog==null){
-            soundCloseDialog = new SoundCloseDialog(context);
-            soundCloseDialog.show();
-        }else{
+        if(soundCloseDialog!=null){
             if(!soundCloseDialog.isShowing()){
-                soundCloseDialog.show();
+                soundCloseDialog.dismiss();
             }
+            soundCloseDialog=null;
         }
+        soundCloseDialog = new SoundCloseDialog(context);
+        soundCloseDialog.show();
         return soundCloseDialog;
     }
 

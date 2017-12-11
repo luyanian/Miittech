@@ -14,6 +14,7 @@ import com.miittech.you.R;
 import com.miittech.you.entity.Detailinfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.entity.Repdata;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
@@ -86,7 +87,7 @@ public class Common {
                     }
                 });
     }
-    public synchronized static void doCommitEvents(Context context,String devId, int eventType,Detailinfo detailinfo){
+    public synchronized static void doCommitEvents(final Context context, String devId, int eventType, Detailinfo detailinfo){
         Map param = new HashMap();
         param.put("devid", devId);
         param.put("eventtime", Common.getCurrentTime());
@@ -103,8 +104,8 @@ public class Common {
             param.put("detailinfo", detailinfo);
         }
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -116,10 +117,8 @@ public class Common {
                 .subscribe(new Consumer<DeviceResponse>() {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
-                        if(response.isSuccessful()) {
-
-                        }else{
-
+                        if(!response.isSuccessful()) {
+                            response.onError(context);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -134,8 +133,8 @@ public class Common {
         param.put("eventid", eventId);
         param.put("method", method);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -147,9 +146,7 @@ public class Common {
                 .subscribe(new Consumer<BaseResponse>() {
                     @Override
                     public void accept(BaseResponse response) throws Exception {
-                        if(response.isSuccessful()) {
-
-                        }else{
+                        if(!response.isSuccessful()) {
                             response.onError(context);
                         }
                     }
@@ -165,8 +162,8 @@ public class Common {
         param.put("method", method);
         param.put("friended", friendId);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);
@@ -179,9 +176,7 @@ public class Common {
                 .subscribe(new Consumer<FriendsResponse>() {
                     @Override
                     public void accept(FriendsResponse response) throws Exception {
-                        if(response.isSuccessful()){
-
-                        }else{
+                        if(!response.isSuccessful()){
                             response.onError(context);
                         }
                     }
@@ -365,5 +360,65 @@ public class Common {
             }
         }
         return false;
+    }
+
+    public static int getDefaultDevImgResouceId(String classfy){
+        if("钥匙".equals(classfy)) {
+            return R.drawable.ic_yaoshi;
+        }
+        if("钱包".equals(classfy)) {
+            return R.drawable.ic_qianbao;
+        }
+        if("手提包".equals(classfy)) {
+            return R.drawable.ic_shoutibao;
+        }
+        if("电脑".equals(classfy)) {
+            return R.drawable.ic_diannao;
+        }
+        if("自行车".equals(classfy)) {
+            return R.drawable.ic_zixingche;
+        }
+        if("汽车".equals(classfy)) {
+            return R.drawable.ic_qiche;
+        }
+        if("相机".equals(classfy)) {
+            return R.drawable.ic_xiangji;
+        }
+        if("雨伞".equals(classfy)) {
+            return R.drawable.ic_yusan;
+        }
+        if("衣服".equals(classfy)) {
+            return R.drawable.ic_yifu;
+        }
+        if("身份证".equals(classfy)) {
+            return R.drawable.ic_shenfenzheng;
+        }
+        if("护照".equals(classfy)) {
+            return R.drawable.ic_huzhao;
+        }
+        if("行李箱".equals(classfy)) {
+            return R.drawable.ic_xinglixiang;
+        }
+        if("背包".equals(classfy)) {
+            return R.drawable.ic_shubao;
+        }
+        if("手提箱".equals(classfy)) {
+            return R.drawable.ic_shoutixiang;
+        }
+        if("其他".equals(classfy)) {
+            return R.drawable.ic_qita;
+        }
+        return R.drawable.ic_qita;
+    }
+
+
+    public static String getTocken(){
+        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_TOCKEN);
+    }
+    public static String getUserId(){
+        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_USERID);
+    }
+    public static String getUserName(){
+        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_UNAME);
     }
 }

@@ -8,6 +8,8 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.miittech.you.R;
+import com.miittech.you.common.Common;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendsResponse;
@@ -48,11 +50,19 @@ public class MapDeviceUsersListAdapter extends RecyclerView.Adapter {
         final Object object = mData.get(position);
         if(object instanceof FriendsResponse.FriendlistBean) {
             FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) object;
-            Glide.with(context).load(friend.getHeadimg()).into(viewHolder.itemIcon);
+            GlideApp.with(context)
+                    .load(friend.getHeadimg())
+                    .error(R.drawable.ic_header_img)
+                    .placeholder(R.drawable.ic_header_img)
+                    .into(viewHolder.itemIcon);
         }
         if(object instanceof DeviceResponse.DevlistBean){
             DeviceResponse.DevlistBean device = (DeviceResponse.DevlistBean) object;
-            Glide.with(context).load(device.getDevimg()).into(viewHolder.itemIcon);
+            GlideApp.with(context)
+                    .load(device.getDevimg())
+                    .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))
+                    .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))
+                    .into(viewHolder.itemIcon);
         }
         viewHolder.itemIcon.setOnClickListener(new View.OnClickListener() {
             @Override

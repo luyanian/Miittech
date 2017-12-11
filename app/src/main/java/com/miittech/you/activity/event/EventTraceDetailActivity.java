@@ -31,6 +31,7 @@ import com.miittech.you.activity.setting.SettingActivity;
 import com.miittech.you.adapter.TraceDalySelectAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.entity.Locinfo;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
@@ -185,8 +186,17 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         if (!BleManager.getInstance().isConnected(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
             itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
             setTimeText(itemTime, devlistBean.getLasttime());
+        }else{
+            itemTime.setText("现在");
+            if(getIntent().hasExtra("location")){
+                itemLocation.setText(getIntent().getStringExtra("location"));
+            }
         }
-        Glide.with(this).load(devlistBean.getDevimg()).into(itemIcon);
+        GlideApp.with(this)
+                .load(devlistBean.getDevimg())
+                .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(devlistBean.getGroupname())))
+                .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(devlistBean.getGroupname())))
+                .into(itemIcon);
     }
 
     private void getPoints(Date date) {
@@ -197,8 +207,8 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         param.put("sdate", daly);
         param.put("edate", daly);
         String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(App.getInstance().getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + App.getInstance().getTocken();
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

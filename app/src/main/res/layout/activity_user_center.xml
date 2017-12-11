@@ -260,32 +260,46 @@
                     android:textSize="16dp"
                     android:text="@string/text_unbind"/>
             </RelativeLayout>
-            <RelativeLayout
-                android:id="@+id/btn_user_location"
+            <LinearLayout
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:background="@color/white"
-                android:layout_marginTop="10dp"
-                android:layout_height="50dp">
+                android:orientation="vertical"
+                android:paddingBottom="10dp">
+                <RelativeLayout
+                    android:id="@+id/btn_user_location"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="10dp"
+                    android:layout_height="50dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_user_location"
+                        android:layout_centerVertical="true"
+                        android:textSize="18dp"
+                        android:textColor="@color/black"
+                        android:layout_marginLeft="30dp"/>
+                    <CheckBox
+                        android:id="@+id/user_location_toogle"
+                        android:layout_width="53dp"
+                        android:layout_height="32dp"
+                        android:layout_marginRight="20dp"
+                        android:button="@null"
+                        android:background="@drawable/sl_switch"
+                        android:checked="true"
+                        android:clickable="false"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="22dp" />
+                </RelativeLayout>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/text_user_location"
-                    android:layout_centerVertical="true"
-                    android:textSize="18dp"
-                    android:textColor="@color/black"
-                    android:layout_marginLeft="30dp"/>
-                <CheckBox
-                    android:id="@+id/user_location_toogle"
-                    android:layout_width="53dp"
-                    android:layout_height="32dp"
-                    android:layout_marginRight="20dp"
-                    android:button="@null"
-                    android:background="@drawable/sl_switch"
-                    android:checked="true"
-                    android:layout_centerVertical="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="22dp" />
-            </RelativeLayout>
+                    android:layout_marginLeft="30dp"
+                    android:textSize="14dp"
+                    android:textColor="@color/colorPrimary"
+                    android:text="关闭后，好友将无法查看你的位置"/>
+            </LinearLayout>
             <TextView
                 android:id="@+id/btn_logout"
                 android:layout_width="match_parent"
