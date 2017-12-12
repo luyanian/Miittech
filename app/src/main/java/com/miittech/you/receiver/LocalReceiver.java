@@ -36,7 +36,7 @@ public class LocalReceiver extends BroadcastReceiver {
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG){
             Activity activity = ActivityPools.getTopActivity();
             if(activity!=null){
-                DialogUtils.showSoundCloseDialog(activity).setSoundId(soundId);
+                DialogUtils.getInstance().showSoundCloseDialog(activity).setSoundId(soundId);
             }
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_TASK_SEND){
             if(!ServiceUtils.isServiceRunning("BleService")){

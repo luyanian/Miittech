@@ -180,7 +180,7 @@ public class MyReceiver extends BroadcastReceiver {
 			Gson gson = new Gson();
 			if("addfriend".equals(contentType)) {
 				final JpushFriend jpushFriend = gson.fromJson(message, JpushFriend.class);
-				MsgTipDialog msgTipDialog = DialogUtils.createMsgTipDialog(activity);
+				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
 				msgTipDialog.setTitle(jpushFriend.getTitle());
 				msgTipDialog.setMsg(jpushFriend.getMsg_content());
 				int state = jpushFriend.getExtras().getState();
@@ -208,7 +208,7 @@ public class MyReceiver extends BroadcastReceiver {
 			}else if("shared".equals(contentType)){
 				final JpushShared jpushShared = gson.fromJson(message,JpushShared.class);
 				int state = jpushShared.getExtras().getState();
-				MsgTipDialog msgTipDialog = DialogUtils.createMsgTipDialog(activity);
+				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
 				msgTipDialog.setTitle(jpushShared.getTitle());
 				msgTipDialog.setMsg(jpushShared.getMsg_content());
 				if(state==0) {

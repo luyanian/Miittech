@@ -14,8 +14,11 @@ import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.utils.BleLog;
 import com.clj.fastble.utils.HexUtil;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -25,8 +28,8 @@ public abstract class BleScanPresenter implements BluetoothAdapter.LeScanCallbac
     private String mDeviceMac = null;
     private boolean mFuzzy = false;
     private boolean mNeedConnect = false;
+    private Timer timer = new Timer();
     private List<BleDevice> mBleDeviceList = new ArrayList<>();
-    private Handler mHandler = new Handler();
     private long mScanTimeout = BleManager.DEFAULT_SCAN_TIME;
 
     public BleScanPresenter(String[] names, String mac, boolean fuzzy, boolean needConnect, long timeOut) {
@@ -99,28 +102,22 @@ public abstract class BleScanPresenter implements BluetoothAdapter.LeScanCallbac
 
     public final void notifyScanStarted(boolean success) {
         mBleDeviceList.clear();
-
-        removeHandlerMsg();
-
+        timer.cancel();
         if (success && mScanTimeout > 0) {
-            mHandler.postDelayed(new Runnable() {
+            timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     BleManager.getInstance().getBleScanner().stopLeScan();
                 }
-            }, mScanTimeout);
+            },mScanTimeout);
         }
 
         onScanStarted(success);
     }
 
     public final void notifyScanStopped() {
-        removeHandlerMsg();
+        timer.cancel();
         onScanFinished(mBleDeviceList);
-    }
-
-    public final void removeHandlerMsg() {
-        mHandler.removeCallbacksAndMessages(null);
     }
 
     public abstract void onScanStarted(boolean success);

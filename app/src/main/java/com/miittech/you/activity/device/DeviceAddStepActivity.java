@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -53,7 +54,7 @@ import okhttp3.RequestBody;
  * Created by Administrator on 2017/10/17.
  */
 
-public class DeviceAddStepActivity extends BaseActivity{
+public class DeviceAddStepActivity extends BaseActivity implements Handler.Callback{
     @BindView(R.id.step1)
     TextView step1;
     @BindView(R.id.progressbar)
@@ -72,6 +73,7 @@ public class DeviceAddStepActivity extends BaseActivity{
     TextView tvConnectMsg;
     @BindView(R.id.step3)
     RelativeLayout step3;
+    private Handler handler = new Handler(this);
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -210,6 +212,10 @@ public class DeviceAddStepActivity extends BaseActivity{
                             startActivity(intent);
                         }else{
                             outBindError();
+                            Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
+                            intent.putExtra("address",mac);
+                            sendBroadcast(intent);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -234,6 +240,12 @@ public class DeviceAddStepActivity extends BaseActivity{
         return false;
     }
 
+    @Override
+    public boolean handleMessage(Message msg) {
+        outBindError();
+        return false;
+    }
+
     private class CmdResponseReceiver extends BroadcastReceiver {
         private String bindMac;
         @Override
@@ -243,6 +255,7 @@ public class DeviceAddStepActivity extends BaseActivity{
                 String address = intent.getStringExtra("address");
                 switch (ret){
                     case IntentExtras.RET.RET_BLE_FIND_BIND_DEVICE:
+                        LogUtils.d("RET_BLE_FIND_BIND_DEVICE");
                         bindMac = address;
                         step1.setVisibility(View.GONE);
                         step3.setVisibility(View.GONE);
@@ -253,28 +266,34 @@ public class DeviceAddStepActivity extends BaseActivity{
                         break;
                     case IntentExtras.RET.RET_BLE_CONNECT_START:
                         if(address.equals(bindMac)) {
+                            LogUtils.d("RET_BLE_CONNECT_START");
                             progressbar.setProgress(31);
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_CONNECT_FAILED:
                         if(address.equals(bindMac)) {
-                            outBindError();
+                            LogUtils.d("RET_BLE_CONNECT_FAILED");
+                            handler.sendEmptyMessage(3000);
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_CONNECT_SUCCESS:
                         if(address.equals(bindMac)) {
+                            LogUtils.d("RET_BLE_CONNECT_SUCCESS");
                             progressbar.setProgress(46);
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_MODE_BIND_SUCCESS:
                         if(address.equals(bindMac)) {
+                            LogUtils.d("RET_BLE_MODE_BIND_SUCCESS");
+                            handler.removeCallbacksAndMessages(null);
                             progressbar.setProgress(59);
                             bindDevice(address);
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_MODE_BIND_FAIL:
                         if(address.equals(bindMac)) {
-                            outBindError();
+                            LogUtils.d("RET_BLE_MODE_BIND_FAIL");
+                            handler.sendEmptyMessage(3000);
                         }
                         break;
                 }

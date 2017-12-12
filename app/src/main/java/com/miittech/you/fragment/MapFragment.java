@@ -195,8 +195,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                     public void accept(FriendsResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             if(response.getFriendlist()!=null&&response.getFriendlist().size()>0) {
-                                final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance
-                                        ().createDevicesUsersDialog(getActivity());
+                                final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance().createDevicesUsersDialog(getActivity());
                                 mapDialog.initData(response.getFriendlist(),new OnListItemClick(){
                                     @Override
                                     public void onItemClick(Object o) {

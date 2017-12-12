@@ -7,17 +7,17 @@ import android.content.Context;
  */
 
 public class DialogUtils {
-    private static DialogUtils dialogUtils;
-    public static DialogUtils getInstance(){
+    public static DialogUtils dialogUtils;
+    public synchronized static DialogUtils getInstance(){
         if(dialogUtils==null){
-            synchronized (DialogUtils.class) {
-                dialogUtils = new DialogUtils();
+            synchronized (DialogUtils.class){
+                dialogUtils=new DialogUtils();
             }
         }
         return dialogUtils;
     }
-    static LogoutDialog logoutDialog;
-    public static LogoutDialog showLogoutDialog(Context context){
+    LogoutDialog logoutDialog;
+    public LogoutDialog showLogoutDialog(Context context){
         if(logoutDialog!=null){
             if(logoutDialog.isShowing()){
                 logoutDialog.dismiss();
@@ -28,55 +28,53 @@ public class DialogUtils {
         logoutDialog.show();
         return logoutDialog;
     }
-    static MsgTipDialog msgTipDialog;
-    public static MsgTipDialog createMsgTipDialog(Context context){
-        if(msgTipDialog==null){
-            msgTipDialog = new MsgTipDialog(context);
-        }else{
+    MsgTipDialog msgTipDialog;
+    public MsgTipDialog createMsgTipDialog(Context context){
+        if(msgTipDialog!=null){
             if(msgTipDialog.isShowing()){
                 msgTipDialog.dismiss();
             }
+            msgTipDialog=null;
         }
+        msgTipDialog = new MsgTipDialog(context);
         return msgTipDialog;
     }
 
-    static IgnoreAddDialog ignoreAddDialog;
-    public static IgnoreAddDialog showIgnoreAddDialog(Context context){
-        if(ignoreAddDialog==null){
-            ignoreAddDialog = new IgnoreAddDialog(context);
-            ignoreAddDialog.show();
-        }else{
+    IgnoreAddDialog ignoreAddDialog;
+    public IgnoreAddDialog showIgnoreAddDialog(Context context){
+        if(ignoreAddDialog!=null){
             if(ignoreAddDialog.isShowing()){
                 ignoreAddDialog.dismiss();
             }
+            ignoreAddDialog=null;
         }
+        ignoreAddDialog = new IgnoreAddDialog(context);
+        ignoreAddDialog.show();
         return ignoreAddDialog;
     }
-    static SelectTimeDialog selectDialog;
-    public static SelectTimeDialog createSelectDialog(Context context){
-        if(selectDialog==null){
-            selectDialog = new SelectTimeDialog(context);
-        }else{
+    SelectTimeDialog selectDialog;
+    public SelectTimeDialog createSelectDialog(Context context){
+        if(selectDialog!=null){
             if(selectDialog.isShowing()){
                 selectDialog.dismiss();
             }
         }
+        selectDialog = new SelectTimeDialog(context);
         return selectDialog;
     }
 
-    static MapDeviceUsersListDialog mapDialog;
-    public static MapDeviceUsersListDialog createDevicesUsersDialog(Context context){
-        if(mapDialog==null){
-            mapDialog = new MapDeviceUsersListDialog(context);
-        }else{
+    MapDeviceUsersListDialog mapDialog;
+    public MapDeviceUsersListDialog createDevicesUsersDialog(Context context){
+        if(mapDialog!=null){
             if(mapDialog.isShowing()){
                 mapDialog.dismiss();
             }
         }
+        mapDialog = new MapDeviceUsersListDialog(context);
         return mapDialog;
     }
-    static SoundCloseDialog soundCloseDialog;
-    public static SoundCloseDialog showSoundCloseDialog(Context context) {
+    SoundCloseDialog soundCloseDialog;
+    public synchronized SoundCloseDialog showSoundCloseDialog(Context context) {
         if(soundCloseDialog!=null){
             if(!soundCloseDialog.isShowing()){
                 soundCloseDialog.dismiss();

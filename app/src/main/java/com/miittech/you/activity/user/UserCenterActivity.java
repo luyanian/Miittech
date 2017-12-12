@@ -329,7 +329,7 @@ public class UserCenterActivity extends BaseActivity {
                 break;
             case R.id.btn_user_location:
                 if(userLocationToogle.isChecked()){
-                    MsgTipDialog msgTipDialog = DialogUtils.createMsgTipDialog(this);
+                    MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(this);
                     msgTipDialog.setTitle("操作确认");
                     msgTipDialog.setMsg("关闭后，好友将无法查看你的位置，确认关闭吗？");
                     msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions(){

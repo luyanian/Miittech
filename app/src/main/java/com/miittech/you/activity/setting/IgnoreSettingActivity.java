@@ -161,7 +161,7 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             return;
         }
         if(typeSelector.getSelectItem()==0){
-            DialogUtils.showIgnoreAddDialog(this).setIgnoreAddOptions(new OnIgnoreAddOptions() {
+            DialogUtils.getInstance().showIgnoreAddDialog(this).setIgnoreAddOptions(new OnIgnoreAddOptions() {
                 @Override
                 public void addPointIgnore() {
                     Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddPointActivity.class);

@@ -99,12 +99,11 @@ public class ListFragment extends Fragment {
         });
         recyclerView.setAdapter(mDeviceListAdapter);
         getDeviceList();
-        initServiceState();
+        initServiceStateListening();
+        initState();
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
+    public void initState(){
         if(!BleManager.getInstance().isBlueEnable()){
             llBluetoothDisabled.setVisibility(View.VISIBLE);
         }else{
@@ -139,7 +138,7 @@ public class ListFragment extends Fragment {
 //        });
     }
 
-    private void initServiceState() {
+    private void initServiceStateListening() {
         IntentFilter statusFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         getActivity().registerReceiver(new BroadcastReceiver() {
             @Override
@@ -170,10 +169,9 @@ public class ListFragment extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            //相当于Fragment的onResume
+            initState();
             getDeviceList();
         } else {
-            //相当于Fragment的onPause
         }
     }
 
@@ -183,6 +181,7 @@ public class ListFragment extends Fragment {
         if (hidden) {
 
         } else {
+            initState();
             getDeviceList();
         }
     }
@@ -190,6 +189,7 @@ public class ListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        initState();
         getDeviceList();
     }
 

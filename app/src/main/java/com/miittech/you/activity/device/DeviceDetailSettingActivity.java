@@ -109,7 +109,7 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                 startActivityForResult(intent,0);
                 break;
             case R.id.rl_disconnect_reminder_time:
-                final SelectTimeDialog selectDialog = DialogUtils.createSelectDialog(this);
+                final SelectTimeDialog selectDialog = DialogUtils.getInstance().createSelectDialog(this);
                 selectDialog.setTitle("请选择时间");
                 selectDialog.setOnListItemClick(new OnListItemClick<String>() {
                     @Override
