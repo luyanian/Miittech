@@ -311,7 +311,6 @@ public  class BleService extends Service {
                     }
                     return;
                 }
-                LogUtils.d("bleService","开始连接贴片----->"+result.getMac());
                 mDeviceMap.put(result.getMac(),result);
                 connectDevice(result);
             }
