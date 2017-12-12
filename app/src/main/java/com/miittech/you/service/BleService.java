@@ -323,7 +323,7 @@ public  class BleService extends Service {
     }
     long lastConnectTime =0;
     public synchronized void connectDevice(BleDevice bleDevice){
-        if(bleDevice==null||!mDeviceMap.containsKey(bleDevice.getMac())||mConnectMac.contains(bleDevice.getMac())){
+        if(bleDevice==null||!mDeviceMap.containsKey(bleDevice.getMac())){
             return;
         }
         if(BleManager.getInstance().getConnectState(bleDevice)==BleConnectState.CONNECT_IDLE
