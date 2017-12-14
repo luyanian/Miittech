@@ -80,7 +80,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_add_step);
         ButterKnife.bind(this);
-        initMyTitleBar(titlebar, R.string.text_logo);
+        initMyTitleBar(titlebar);
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override
@@ -273,7 +273,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                     case IntentExtras.RET.RET_BLE_CONNECT_FAILED:
                         if(address.equals(bindMac)) {
                             LogUtils.d("RET_BLE_CONNECT_FAILED");
-                            handler.sendEmptyMessage(3000);
+                            handler.sendEmptyMessageDelayed(0,3000);
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_CONNECT_SUCCESS:
@@ -293,7 +293,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                     case IntentExtras.RET.RET_BLE_MODE_BIND_FAIL:
                         if(address.equals(bindMac)) {
                             LogUtils.d("RET_BLE_MODE_BIND_FAIL");
-                            handler.sendEmptyMessage(3000);
+                            handler.sendEmptyMessageDelayed(0,3000);
                         }
                         break;
                 }

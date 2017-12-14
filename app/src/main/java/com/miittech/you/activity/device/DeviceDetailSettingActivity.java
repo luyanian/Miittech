@@ -3,30 +3,38 @@ package com.miittech.you.activity.device;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
+import com.luck.picture.lib.PictureSelector;
+import com.luck.picture.lib.config.PictureConfig;
+import com.luck.picture.lib.config.PictureMimeType;
+import com.luck.picture.lib.entity.LocalMedia;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
-import com.miittech.you.dialog.DialogUtils;
-import com.miittech.you.dialog.SelectTimeDialog;
+import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.PubParam;
-import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
+import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.TimeUtils;
 
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -36,41 +44,39 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 
 /**
- * Created by Administrator on 2017/11/6.
+ * Created by Administrator on 2017/12/13.
  */
 
-public class DeviceDetailSettingActivity extends BaseActivity implements CompoundButton.OnCheckedChangeListener {
+public class DeviceDetailSettingActivity extends BaseActivity {
     @BindView(R.id.titlebar)
     Titlebar titlebar;
-    @BindView(R.id.tv_bell)
-    TextView tvBell;
-    @BindView(R.id.check_vibrate)
-    CheckBox checkVibrate;
-    @BindView(R.id.tv_disconnect_reminder_time)
-    TextView tvDisconnectReminderTime;
-    @BindView(R.id.check_disconnect_repeated_remind)
-    CheckBox checkDisconnectRepeatedRemind;
-    @BindView(R.id.check_repeated_remind)
-    CheckBox checkRepeatedRemind;
-    @BindView(R.id.tv_info1)
-    TextView tvInfo1;
-    @BindView(R.id.tv_info2)
-    TextView tvInfo2;
-    @BindView(R.id.tv_info3)
-    TextView tvInfo3;
+    @BindView(R.id.tv_device_name)
+    TextView tvDeviceName;
+    @BindView(R.id.img_device_icon)
+    CircleImageView imgDeviceIcon;
+    @BindView(R.id.tv_device_classify)
+    TextView tvDeviceClassify;
+    @BindView(R.id.tv_device_time_active)
+    TextView tvDeviceTimeActive;
+    @BindView(R.id.tv_device_id)
+    TextView tvDeviceId;
+    @BindView(R.id.tv_device_vertion)
+    TextView tvDeviceVertion;
 
-
-    private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo;
+    private static final int REQUEST_DEVICE_NAME=0x01;
+    private static final int REQUEST_DEVICE_CLASSFY=0x02;
+    DeviceInfoResponse.UserinfoBean.DevinfoBean deviceDetailInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_detail_setting);
         ButterKnife.bind(this);
-        initMyTitleBar(titlebar,"手机提醒设置");
+        initMyTitleBar(titlebar,"设置");
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
             @Override
@@ -79,115 +85,117 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                 finish();
             }
         });
-        deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        initViews(deviceInfo);
-        checkDisconnectRepeatedRemind.setOnCheckedChangeListener(this);
-        checkRepeatedRemind.setOnCheckedChangeListener(this);
-        checkVibrate.setOnCheckedChangeListener(this);
+        deviceDetailInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        initData(deviceDetailInfo);
     }
 
-    private void initViews(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo) {
-        tvBell.setText(this.deviceInfo.getAlertinfo().getName());
-        checkVibrate.setChecked((this.deviceInfo.getAlertinfo().getIsShake()==1)?true:false);
-        tvDisconnectReminderTime.setText(this.deviceInfo.getAlertinfo().getDuration()+"s");
-        checkDisconnectRepeatedRemind.setChecked((this.deviceInfo.getAlertinfo().getIsReconnect()==1)?true:false);
-        checkRepeatedRemind.setChecked((this.deviceInfo.getAlertinfo().getIsRepeat()==1)?true:false);
-        String info1 ="手机与“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”断开连接时响铃时长";
-        String info2 = "锁屏时手机和“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”断开连接后多次提醒，解锁手机或打开APP即可停止提醒";
-        String info3 = "手机与“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”重新连接时手机提醒";
-        tvInfo1.setText(info1);
-        tvInfo2.setText(info2);
-        tvInfo3.setText(info3);
-    }
-
-    @OnClick({R.id.rl_bell, R.id.rl_disconnect_reminder_time})
-    public void onViewClicked(View view) {
-        switch (view.getId()) {
-            case R.id.rl_bell:
-                Intent intent = new Intent(DeviceDetailSettingActivity.this,DeviceSelectRingActivity.class);
-                intent.putExtra(IntentExtras.DEVICE.DATA,this.deviceInfo);
-                startActivityForResult(intent,0);
-                break;
-            case R.id.rl_disconnect_reminder_time:
-                final SelectTimeDialog selectDialog = DialogUtils.getInstance().createSelectDialog(this);
-                selectDialog.setTitle("请选择时间");
-                selectDialog.setOnListItemClick(new OnListItemClick<String>() {
-                    @Override
-                    public void onItemClick(String s) {
-                        tvDisconnectReminderTime.setText(s);
-                        setDeviceAlertinfo();
-                        if(selectDialog!=null&&selectDialog.isShowing()) {
-                            selectDialog.dismiss();
-                        }
-                    }
-                });
-                selectDialog.initData();
-                selectDialog.show();
-                break;
-        }
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        switch (buttonView.getId()){
-            case R.id.check_disconnect_repeated_remind:
-                setDeviceAlertinfo();
-                break;
-            case R.id.check_repeated_remind:
-                setDeviceAlertinfo();
-                break;
-            case R.id.check_vibrate:
-                setDeviceAlertinfo();
-                break;
-        }
+    private void initData(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceDetailInfo) {
+        tvDeviceName.setText(Common.decodeBase64(deviceDetailInfo.getDevname()));
+        tvDeviceClassify.setText(Common.decodeBase64(deviceDetailInfo.getGroupname()));
+        tvDeviceId.setText(deviceDetailInfo.getDevid());
+        DateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 a hh:mm");
+        Date date = TimeUtils.string2Date(deviceDetailInfo.getBindtime(),new SimpleDateFormat("yyyyMMddhhmmss"));
+        tvDeviceTimeActive.setText(TimeUtils.date2String(date,dateFormat));
+        tvDeviceVertion.setText("v1.0");
+        GlideApp.with(this)
+            .load(deviceDetailInfo.getDevimg())
+            .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
+            .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
+            .into(imgDeviceIcon);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (data!=null){
-            this.deviceInfo.getAlertinfo().setId(data.getIntExtra(IntentExtras.SOURND.ID,1));
-            this.deviceInfo.getAlertinfo().setName(data.getStringExtra(IntentExtras.SOURND.NAME));
-            tvBell.setText(data.getStringExtra(IntentExtras.SOURND.NAME));
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case PictureConfig.CHOOSE_REQUEST:
+                    // 图片选择结果回调
+                    List<LocalMedia> selectList = PictureSelector.obtainMultipleResult(data);
+                    LocalMedia localMedia = selectList.remove(0);
+                    // 例如 LocalMedia 里面返回三种path
+                    // 1.media.getPath(); 为原图path
+                    // 2.media.getCutPath();为裁剪后path，需判断media.isCut();是否为true
+                    // 3.media.getCompressPath();为压缩后path，需判断media.isCompressed();是否为true
+                    // 如果裁剪并压缩了，以取压缩路径为准，因为是先裁剪后压缩的
+                    String path = localMedia.getPath();
+                    uploadImage(path);
+                    break;
+                case REQUEST_DEVICE_NAME:
+                    tvDeviceName.setText(data.getStringExtra(IntentExtras.DEVICE.NAME));
+                    break;
+                case REQUEST_DEVICE_CLASSFY:
+                    tvDeviceClassify.setText(data.getStringExtra(IntentExtras.DEVICE.CLASSIFY));
+                    break;
+
+            }
         }
     }
 
-    private void setDeviceAlertinfo() {
-        Map alertinfo = new HashMap();
-        alertinfo.put("vol",31);//音量
-        this.deviceInfo.getAlertinfo().setVol(31);
-        alertinfo.put("isShake",checkVibrate.isChecked()?1:0);//是否振东
-        this.deviceInfo.getAlertinfo().setIsShake(checkVibrate.isChecked()?1:0);
-        alertinfo.put("isRepeat",checkRepeatedRemind.isChecked()?1:0);//是否重复提醒，选填
-        this.deviceInfo.getAlertinfo().setIsRepeat(checkRepeatedRemind.isChecked()?1:0);
-        alertinfo.put("isReconnect",checkDisconnectRepeatedRemind.isChecked()?1:0);//是否重连提醒，选填
-        this.deviceInfo.getAlertinfo().setIsReconnect(checkDisconnectRepeatedRemind.isChecked()?1:0);
-        int duration = Integer.valueOf(tvDisconnectReminderTime.getText().toString().replaceAll("s",""));
-        alertinfo.put("duration",duration);//响铃时长
-        this.deviceInfo.getAlertinfo().setDuration(duration);
-        alertinfo.put("id",deviceInfo.getAlertinfo().getId());//铃声ID,缺省1，铃音编号
-        alertinfo.put("name",deviceInfo.getAlertinfo().getName());//铃声名称
-        Map devattr = new HashMap();
-        devattr.put("alertinfo",alertinfo);
+    @OnClick({R.id.rl_device_name, R.id.rl_device_img, R.id.rl_device_classify, R.id.rl_device_alert, R.id.rl_device_update})
+    public void onViewClicked(View view) {
+        Intent intent;
+        switch (view.getId()) {
+            case R.id.rl_device_name:
+                intent = new Intent(this,DeviceEditNameActivity.class);
+                intent.putExtra(IntentExtras.DEVICE.ID,deviceDetailInfo.getDevid());
+                startActivityForResult(intent,REQUEST_DEVICE_NAME);
+                break;
+            case R.id.rl_device_img:
+                PictureSelector.create(this)
+                        .openGallery(PictureMimeType.ofImage())
+                        .selectionMode(PictureConfig.SINGLE)
+                        .isCamera(true)
+                        .forResult(PictureConfig.CHOOSE_REQUEST);
+                break;
+            case R.id.rl_device_classify:
+                intent = new Intent(this,DeviceSetClassifyActivity.class);
+                intent.putExtra(IntentExtras.DEVICE.ID,deviceDetailInfo.getDevid());
+                intent.putExtra(IntentExtras.FROM,"DEVICESETTING");
+                startActivityForResult(intent,REQUEST_DEVICE_CLASSFY);
+                break;
+            case R.id.rl_device_alert:
+                intent = new Intent(this,DevicePhoneAlertSettingActivity.class);
+                intent.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
+                startActivity(intent);
+                break;
+            case R.id.rl_device_update:
+                break;
+        }
+    }
+    private void uploadImage(String path) {
+        File file = new File(path);
         Map param = new HashMap();
-        param.put("devid", deviceInfo.getDevid());
-        param.put("method", "G");
-        param.put("devattr",devattr);
+        String fileName = file.getName();
+        long size = FileUtils.getFileLength(file);
+        param.put("path", file.getName());
+        param.put("size", size);
+        String sha = "";
+        try {
+            sha = FileUtils.getSha1(file).toLowerCase();
+            param.put("sha", sha);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         String json = new Gson().toJson(param);
+        LogUtils.d("imgupload", json);
         PubParam pubParam = new PubParam(Common.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "deviceattr/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
+        String sign = EncryptUtils.encryptSHA1ToString(pubParam.toValueString() + fileName + size + sha + Common.getTocken()).toLowerCase();
+        LogUtils.d("sign", sign);
+        String urlPath = HttpUrl.Api + "imgupload/" + pubParam.toUrlParam(sign) + "&path=" + fileName + "&size=" + size + "&sha=" + sha;
+
+        RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("image", file.getName(), requestFile);
+
+        ApiServiceManager.getInstance().buildApiService(this).uploadImage(urlPath, body)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<BaseResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
-                        if (!response.isSuccessful()) {
+                    public void accept(BaseResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            doDeviceIconEditAttr(response.getUrl());
+                        } else {
                             response.onError(DeviceDetailSettingActivity.this);
                         }
                     }
@@ -198,4 +206,45 @@ public class DeviceDetailSettingActivity extends BaseActivity implements Compoun
                     }
                 });
     }
+    private void doDeviceIconEditAttr(final String iconUrl) {
+        final Map devattrMap = new HashMap();
+        devattrMap.put("devimg",iconUrl);
+        Map param = new HashMap();
+        param.put("devid", deviceDetailInfo.getDevid());
+        param.put("method", "C");
+        param.put("devattr", devattrMap);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "deviceattr/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceResponse>() {
+                    @Override
+                    public void accept(DeviceResponse response) throws Exception {
+                        if(response.isSuccessful()){
+                            GlideApp.with(DeviceDetailSettingActivity.this)
+                                    .load(iconUrl)
+                                    .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
+                                    .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
+                                    .into(imgDeviceIcon);
+                        }else{
+                            response.onError(DeviceDetailSettingActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+
+    }
+
 }

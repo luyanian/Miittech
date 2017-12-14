@@ -7,7 +7,6 @@ package com.miittech.you.global;
 public class SPConst{
     public static final String LOC_INFO="locInfo";
     public static final String USER_INFO="userInfo";
-    public static final String IS_DEVICE_REDISCOVER="isfirst_after_login";
     public static class USER{
         public static final String SP_NAME="session";
         public static final String KEY_TOCKEN="tocken";

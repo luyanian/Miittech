@@ -101,20 +101,7 @@ public class DeviceSelectRingActivity extends BaseActivity{
 
     private void initViews() {
         intent = getIntent();
-        if(intent.getBooleanExtra("isEdit",false)){
-            deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
-            devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
-            String devName = intent.getStringExtra(IntentExtras.DEVICE.NAME);
-            String iconUrl = intent.getStringExtra(IntentExtras.DEVICE.IMAGE);
-            String devClassfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
-            tvDeviceName.setText(devName);
-            tvDeviceLocation.setText(devClassfy);
-            GlideApp.with(this)
-                    .load(iconUrl)
-                    .error(Common.getDefaultDevImgResouceId(devClassfy))
-                    .placeholder(Common.getDefaultDevImgResouceId(devClassfy))
-                    .into(imgDeviceIcon);
-        }else if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
+        if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
             deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
             this.devId = deviceInfo.getDevid();
             tvDeviceName.setText(Common.decodeBase64(deviceInfo.getDevname()));

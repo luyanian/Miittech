@@ -87,10 +87,6 @@ public class DeviceSetAttrActivity extends BaseActivity {
                 intent.putExtra(IntentExtras.DEVICE.NAME,tvDeviceName.getText().toString());
                 intent.putExtra(IntentExtras.DEVICE.CLASSIFY,tvDeviceClassify.getText().toString());
                 intent.putExtra(IntentExtras.DEVICE.IMAGE,iconUrl);
-                intent.putExtra("isEdit",getIntent().getBooleanExtra("isEdit",false));
-                if(getIntent().hasExtra(IntentExtras.DEVICE.DATA)){
-                    intent.putExtra(IntentExtras.DEVICE.DATA,getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA));
-                }
                 startActivity(intent);
             }
         });

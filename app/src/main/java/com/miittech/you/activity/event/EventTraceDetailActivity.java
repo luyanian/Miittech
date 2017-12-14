@@ -111,9 +111,10 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         setContentView(R.layout.activity_event_trace_detail);
         ButterKnife.bind(this);
         devlistBean = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        initMyTitleBar(titlebar, "LOGO");
+        initMyTitleBar(titlebar);
         titlebar.showBackOption();
         titlebar.showSettingOption();
+
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override
             public void onBack() {

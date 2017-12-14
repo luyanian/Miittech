@@ -1,6 +1,7 @@
 package com.miittech.you.weight;
 
 import android.content.Context;
+import android.media.Image;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +23,7 @@ public class Titlebar extends RelativeLayout implements View.OnClickListener {
     private ImageView mBackBtn;
     private ImageView mAddBtn;
     private ImageView mSettingBtn;
+    private ImageView mImgLogo;
     private TextView mCancel;
     private TextView mComplete;
     private TextView mTitle;
@@ -56,6 +58,7 @@ public class Titlebar extends RelativeLayout implements View.OnClickListener {
         mCancel = (TextView) view.findViewById(R.id.btn_cancel);
         mComplete = (TextView) view.findViewById(R.id.btn_complete);
         mTitle = (TextView) view.findViewById(R.id.title);
+        mImgLogo = (ImageView) view.findViewById(R.id.img_logo);
         mBackBtn.setOnClickListener(this);
         mAddBtn.setOnClickListener(this);
         mSettingBtn.setOnClickListener(this);
@@ -63,10 +66,25 @@ public class Titlebar extends RelativeLayout implements View.OnClickListener {
         mComplete.setOnClickListener(this);
     }
 
-    public void setTitle(String title) {
+    public Titlebar setTitle(String title) {
+        if(mImgLogo!=null){
+            mImgLogo.setVisibility(GONE);
+        }
         if (mTitle != null) {
+            mTitle.setVisibility(VISIBLE);
             mTitle.setText(title);
         }
+        return this;
+    }
+    public Titlebar setLogo(int logoResourceId){
+        if(mTitle!=null){
+            mTitle.setVisibility(GONE);
+        }
+        if(mImgLogo!=null){
+            mImgLogo.setVisibility(VISIBLE);
+            mImgLogo.setImageResource(logoResourceId);
+        }
+        return this;
     }
 
     public void setTopPadding(int padding) {

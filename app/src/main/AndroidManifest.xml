@@ -46,7 +46,7 @@
         android:name=".App"
         android:allowBackup="true"
         android:hardwareAccelerated="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/icon"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -254,6 +254,7 @@
         <activity android:name=".activity.device.DeviceSharedAddActivity"/>
         <activity android:name=".activity.device.DeviceMapDetailActivity"/>
         <activity android:name=".activity.device.DeviceDetailSettingActivity"/>
+        <activity android:name=".activity.device.DevicePhoneAlertSettingActivity"/>
         <activity android:name=".activity.event.EventLogDetailActivity"/>
         <activity android:name=".activity.event.EventTraceDetailActivity"/>
 
@@ -264,11 +265,6 @@
                 <action android:name="com.mittech.you.task.send" />
             </intent-filter>
         </receiver>
-
-        <service
-            android:name="com.inuker.bluetooth.library.BluetoothService"
-            android:exported="true"
-            android:label="有物蓝牙进程"/>
 
         <service
             android:name="com.miittech.you.service.BleService"

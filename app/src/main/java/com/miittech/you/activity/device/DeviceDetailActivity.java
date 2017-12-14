@@ -13,11 +13,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.clj.fastble.BleManager;
-import com.clj.fastble.data.BleDevice;
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
@@ -38,7 +35,6 @@ import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
-import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
@@ -47,7 +43,6 @@ import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -179,18 +174,9 @@ public class DeviceDetailActivity extends BaseActivity {
         }
     }
 
-    @OnClick({R.id.img_device_icon,R.id.rl_bell_status, R.id.btn_option_map, R.id.btn_option_share, R.id.btn_option_setting, R.id.btn_option_delete})
+    @OnClick({R.id.rl_bell_status, R.id.btn_option_map, R.id.btn_option_share, R.id.btn_option_setting, R.id.btn_option_delete})
     public void onViewClicked(View view) {
         switch (view.getId()) {
-            case R.id.img_device_icon:
-                Intent editIntent = new Intent(this,DeviceSetClassifyActivity.class);
-                editIntent.putExtra(IntentExtras.DEVICE.ID,deviceDetailInfo.getDevid());
-                editIntent.putExtra(IntentExtras.DEVICE.CLASSIFY,Common.decodeBase64(deviceDetailInfo.getGroupname()));
-                editIntent.putExtra(IntentExtras.DEVICE.IMAGE,deviceDetailInfo.getDevimg());
-                editIntent.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
-                editIntent.putExtra("isEdit",true);
-                startActivity(editIntent);
-                break;
             case R.id.rl_bell_status:
                 if(deviceDetailInfo==null){
                     return;
@@ -202,6 +188,9 @@ public class DeviceDetailActivity extends BaseActivity {
                 }
                 break;
             case R.id.btn_option_map:
+                if(deviceDetailInfo==null) {
+                    return;
+                }
                 if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
                     Intent map = new Intent(this, DeviceMapDetailActivity.class);
                     map.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
@@ -211,6 +200,9 @@ public class DeviceDetailActivity extends BaseActivity {
                 }
                 break;
             case R.id.btn_option_share:
+                if(deviceDetailInfo==null) {
+                    return;
+                }
                 if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
                     Intent toshareIntent = new Intent(this, DeviceSharedListActivity.class);
                     toshareIntent.putExtra(IntentExtras.DEVICE.DATA, deviceDetailInfo);
@@ -220,6 +212,9 @@ public class DeviceDetailActivity extends BaseActivity {
                 }
                 break;
             case R.id.btn_option_setting:
+                if(deviceDetailInfo==null) {
+                    return;
+                }
                 if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
                     Intent intent = new Intent(this, DeviceDetailSettingActivity.class);
                     intent.putExtra(IntentExtras.DEVICE.DATA, this.deviceDetailInfo);
@@ -229,6 +224,9 @@ public class DeviceDetailActivity extends BaseActivity {
                 }
                 break;
             case R.id.btn_option_delete:
+                if(deviceDetailInfo==null) {
+                    return;
+                }
                 if(!TextUtils.isEmpty(deviceDetailInfo.getOwneruser())&&!"0".equals(deviceDetailInfo.getOwneruser())){
                     ToastUtils.showShort("您不是贴片拥有者，无操作权限");
                     return;

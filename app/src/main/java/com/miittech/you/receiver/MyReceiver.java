@@ -170,7 +170,7 @@ public class MyReceiver extends BroadcastReceiver {
 	
 	//send msg to MainActivity
 	private void processCustomMessage(final Context context, Bundle bundle) {
-		final Activity activity = ActivityPools.getTopActivity();
+		final Activity activity = ActivityPools.findActivity(BaseActivity.class);
 		if(activity!=null){
 			String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
 //			String extras = bundle.getString(JPushInterface.EXTRA_EXTRA);

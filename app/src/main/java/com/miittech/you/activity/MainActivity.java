@@ -66,7 +66,7 @@ public class MainActivity extends BaseActivity {
         setContentView(R.layout.activity_main);
         fragmentManager = getSupportFragmentManager();
         ButterKnife.bind(this);
-        initMyTitleBar(titlebar,"LOGO");
+        initMyTitleBar(titlebar);
         titlebar.showAddOption();
         titlebar.showSettingOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){

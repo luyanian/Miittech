@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.multidex.MultiDex;
 
 import com.baidu.mapapi.SDKInitializer;
+import com.miittech.you.common.BingGoPlayUtils;
 import com.miittech.you.common.SoundPlayUtils;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.service.BleService;
@@ -38,6 +39,7 @@ public class  App extends MobApplication {
         registerActivityListener();
         startService(new Intent(this,BleService.class));
         SoundPlayUtils.init(getApplicationContext());
+        BingGoPlayUtils.init(App.getInstance());
     }
 
 

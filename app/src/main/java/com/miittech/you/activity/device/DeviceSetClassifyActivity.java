@@ -111,16 +111,23 @@ public class DeviceSetClassifyActivity extends BaseActivity {
 
     private void setDeviceClassfy(final Intent intent) {
         String devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
-        String classfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
+        final String classfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
         Map devattrMap = new LinkedHashMap();
-        devattrMap.put("groupid", "1");
-        devattrMap.put("groupname", Common.encodeBase64(classfy));
-        devattrMap.put("devname", Common.encodeBase64(classfy));
         Map param = new LinkedHashMap();
-        param.put("devid", devId);
-        param.put("method", "AD");
-        param.put("devattr", devattrMap);
-
+        if(getIntent().hasExtra(IntentExtras.FROM)&&"DEVICESETTING".equals(getIntent().getStringExtra(IntentExtras.FROM))){
+            devattrMap.put("groupid", "1");
+            devattrMap.put("groupname", Common.encodeBase64(classfy));
+            param.put("devid", devId);
+            param.put("method", "D");
+            param.put("devattr", devattrMap);
+        }else {
+            devattrMap.put("groupid", "1");
+            devattrMap.put("groupname", Common.encodeBase64(classfy));
+            devattrMap.put("devname", Common.encodeBase64(classfy));
+            param.put("devid", devId);
+            param.put("method", "AD");
+            param.put("devattr", devattrMap);
+        }
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
@@ -137,7 +144,14 @@ public class DeviceSetClassifyActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            startActivity(intent);
+                            if(getIntent().hasExtra(IntentExtras.FROM)&&"DEVICESETTING".equals(getIntent().getStringExtra(IntentExtras.FROM))){
+                                Intent data = new Intent();
+                                data.putExtra(IntentExtras.DEVICE.CLASSIFY,classfy);
+                                setResult(RESULT_OK,data);
+                                DeviceSetClassifyActivity.this.finish();
+                            }else {
+                                startActivity(intent);
+                            }
                         }else {
                             response.onError(DeviceSetClassifyActivity.this);
                         }

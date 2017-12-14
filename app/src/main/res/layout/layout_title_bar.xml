@@ -51,6 +51,14 @@
             android:textSize="16dp"
             android:lines="1"/>
         <ImageView
+            android:id="@+id/img_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:layout_centerInParent="true"
+            android:src="@drawable/logo"/>
+        <ImageView
             android:id="@+id/btn_setting"
             android:layout_width="30dp"
             android:layout_height="30dp"

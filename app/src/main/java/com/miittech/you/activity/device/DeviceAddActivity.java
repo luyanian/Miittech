@@ -28,7 +28,7 @@ public class DeviceAddActivity extends BaseActivity {
         setContentView(R.layout.activity_device_add);
         ButterKnife.bind(this);
 
-        initMyTitleBar(titlebar, R.string.text_logo);
+        initMyTitleBar(titlebar);
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
             @Override

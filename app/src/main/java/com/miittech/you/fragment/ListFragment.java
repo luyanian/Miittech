@@ -98,7 +98,7 @@ public class ListFragment extends Fragment {
             }
         });
         recyclerView.setAdapter(mDeviceListAdapter);
-        getDeviceList();
+//        getDeviceList();
         initServiceStateListening();
         initState();
     }

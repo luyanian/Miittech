@@ -5,6 +5,7 @@ package com.miittech.you.global;
  */
 
 public class IntentExtras {
+    public static final String FROM="from";
     public static class DEVICE{
         public static final String DATA="data";
         public static final String CLASSIFY="classify";

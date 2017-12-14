@@ -16,8 +16,8 @@ public class DialogUtils {
         }
         return dialogUtils;
     }
-    LogoutDialog logoutDialog;
-    public LogoutDialog showLogoutDialog(Context context){
+    static LogoutDialog logoutDialog;
+    public synchronized LogoutDialog showLogoutDialog(Context context){
         if(logoutDialog!=null){
             if(logoutDialog.isShowing()){
                 logoutDialog.dismiss();
@@ -28,8 +28,8 @@ public class DialogUtils {
         logoutDialog.show();
         return logoutDialog;
     }
-    MsgTipDialog msgTipDialog;
-    public MsgTipDialog createMsgTipDialog(Context context){
+    static MsgTipDialog msgTipDialog;
+    public synchronized MsgTipDialog createMsgTipDialog(Context context){
         if(msgTipDialog!=null){
             if(msgTipDialog.isShowing()){
                 msgTipDialog.dismiss();
@@ -40,8 +40,8 @@ public class DialogUtils {
         return msgTipDialog;
     }
 
-    IgnoreAddDialog ignoreAddDialog;
-    public IgnoreAddDialog showIgnoreAddDialog(Context context){
+    static IgnoreAddDialog ignoreAddDialog;
+    public synchronized IgnoreAddDialog showIgnoreAddDialog(Context context){
         if(ignoreAddDialog!=null){
             if(ignoreAddDialog.isShowing()){
                 ignoreAddDialog.dismiss();
@@ -52,8 +52,8 @@ public class DialogUtils {
         ignoreAddDialog.show();
         return ignoreAddDialog;
     }
-    SelectTimeDialog selectDialog;
-    public SelectTimeDialog createSelectDialog(Context context){
+    static SelectTimeDialog selectDialog;
+    public synchronized SelectTimeDialog createSelectDialog(Context context){
         if(selectDialog!=null){
             if(selectDialog.isShowing()){
                 selectDialog.dismiss();
@@ -63,8 +63,8 @@ public class DialogUtils {
         return selectDialog;
     }
 
-    MapDeviceUsersListDialog mapDialog;
-    public MapDeviceUsersListDialog createDevicesUsersDialog(Context context){
+    static MapDeviceUsersListDialog mapDialog;
+    public synchronized MapDeviceUsersListDialog createDevicesUsersDialog(Context context){
         if(mapDialog!=null){
             if(mapDialog.isShowing()){
                 mapDialog.dismiss();
@@ -73,7 +73,7 @@ public class DialogUtils {
         mapDialog = new MapDeviceUsersListDialog(context);
         return mapDialog;
     }
-    SoundCloseDialog soundCloseDialog;
+    static SoundCloseDialog soundCloseDialog;
     public synchronized SoundCloseDialog showSoundCloseDialog(Context context) {
         if(soundCloseDialog!=null){
             if(!soundCloseDialog.isShowing()){
