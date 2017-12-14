@@ -156,13 +156,12 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                             },1000);
 
                             ToastUtils.showShort(getResources().getString(R.string.msg_user_login_successful));
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            startActivity(intent);
 
                             ActivityPools.finishActivity(LoginRegisteActivity.class);
                             ActivityPools.finishActivity(LoginActivity.class);
                             ActivityPools.finishActivity(RegisteActivity.class);
-
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            startActivity(intent);
                         } else {
                             response.onError(LoginActivity.this);
                         }
@@ -246,10 +245,10 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                     @Override
                     public void accept(LoginResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID, response.getUserid());
-                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN, response.getToken());
-                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME, response.getUsername());
-                            JPushInterface.setAlias(LoginActivity.this, 0, response.getUserid());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID,response.getUserid());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
+                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME,response.getUsername());
+                            JPushInterface.setAlias(LoginActivity.this,0,response.getUserid());
 
                             new Handler().postDelayed(new Runnable() {
                                 @Override
@@ -261,7 +260,10 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                             ToastUtils.showShort(getResources().getString(R.string.msg_user_login_successful));
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
-                            ActivityPools.finishAllExcept(MainActivity.class);
+
+                            ActivityPools.finishActivity(LoginRegisteActivity.class);
+                            ActivityPools.finishActivity(LoginActivity.class);
+                            ActivityPools.finishActivity(RegisteActivity.class);
                         }else if(response.unExsitUser()){
                             Intent intent = new Intent(LoginActivity.this,RegisteActivity.class);
                             if (Wechat.NAME.equals(platform.getName())) {

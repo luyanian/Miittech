@@ -4,12 +4,19 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowManager;
 import com.miittech.you.R;
 import com.miittech.you.adapter.MapDeviceUsersListAdapter;
+import com.miittech.you.common.Common;
 import com.miittech.you.impl.OnListItemClick;
+import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.FriendsResponse;
+
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -55,8 +62,30 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
         recyclerview.setAdapter(mapAdapter);
     }
 
-    public void initData(List<Object> list,OnListItemClick onListItemClick){
-        mapAdapter.setOnListItemClick(onListItemClick);
-        mapAdapter.setData(list);
+    public void initData(String type,List<Object> list,OnListItemClick onListItemClick){
+        if(list!=null) {
+            if("device".equals(type)&&list.size()>0){
+                Collections.sort(list, new Comparator<Object>() {
+                    @Override
+                    public int compare(Object o1, Object o2) {
+                        if (o1 instanceof DeviceResponse.DevlistBean) {
+                            if (TextUtils.isEmpty(((DeviceResponse.DevlistBean) o1).getFriendname())) {
+                                return -1;
+                            }
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    }
+                });
+            }else if("friend".equals(type)){
+                FriendsResponse.FriendlistBean friendlistBean = new FriendsResponse.FriendlistBean();
+                friendlistBean.setFriendid(Common.getUserId());
+                friendlistBean.setHeadimg(Common.getUserHeadImage());
+                list.add(0,friendlistBean);
+            }
+            mapAdapter.setOnListItemClick(onListItemClick);
+            mapAdapter.setData(list);
+        }
     }
 }

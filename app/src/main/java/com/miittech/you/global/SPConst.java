@@ -12,6 +12,7 @@ public class SPConst{
         public static final String KEY_TOCKEN="tocken";
         public static final String KEY_USERID="userId";
         public static final String KEY_UNAME="uname";
+        public static final String KEY_IMAGE="image";
     }
 
 

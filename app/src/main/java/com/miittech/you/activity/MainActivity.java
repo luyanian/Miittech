@@ -75,16 +75,15 @@ public class MainActivity extends BaseActivity {
                 Intent intent = new Intent(MainActivity.this, DeviceAddActivity.class);
                 startActivity(intent);
             }
-
             @Override
             public void onSetting() {
                 Intent intent = new Intent(MainActivity.this, SettingActivity.class);
                 startActivity(intent);
             }
         });
-
         tabMap.setSelected(true);
         onViewClicked(tabList);
+        Common.getUserInfoAfterLogin(this);
         getIgnoreSetting();
     }
 
