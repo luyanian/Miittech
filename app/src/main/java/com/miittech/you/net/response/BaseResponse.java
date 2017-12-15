@@ -8,6 +8,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.user.LoginRegisteActivity;
 import com.miittech.you.activity.user.UserCenterActivity;
+import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.net.code.ResponseCode;
@@ -106,11 +107,13 @@ public class BaseResponse implements Serializable{
                 ToastUtils.showShort(R.string.msg_account_already_bind);
                 break;
             case ResponseCode.invalid_sign://签名错误，请重新登录
-                ToastUtils.showShort("登录信息已失效，请重新登录");
+                Common.ValidToken(context);
+                break;
+            case ResponseCode.invalid_token:
+                ToastUtils.showShort("异地登陆执行退出");
                 Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                 cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
                 context.sendBroadcast(cmd);
-
                 SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
                 Intent intent = new Intent(context,LoginRegisteActivity.class);
                 context.startActivity(intent);

@@ -1,5 +1,6 @@
 package com.miittech.you.net.response;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ public class FriendsResponse extends BaseResponse {
         this.friendlist = friendlist;
     }
 
-    public static class FriendlistBean {
+    public static class FriendlistBean implements Serializable{
         /**
          * friendid : 16
          * nickname : ZmZzZA==

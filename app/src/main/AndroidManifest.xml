@@ -257,6 +257,7 @@
         <activity android:name=".activity.device.DevicePhoneAlertSettingActivity"/>
         <activity android:name=".activity.event.EventLogDetailActivity"/>
         <activity android:name=".activity.event.EventTraceDetailActivity"/>
+        <activity android:name=".activity.event.FriendTraceDetailActivity"/>
 
         <receiver android:name=".receiver.LocalReceiver">
             <intent-filter>

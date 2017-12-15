@@ -8,37 +8,26 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.miittech.you.App;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
-import com.miittech.you.entity.JpushFriend;
-import com.miittech.you.entity.JpushShared;
+import com.miittech.you.entity.JpushMsg;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceInfoResponse;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.NetworkUtils;
-import com.ryon.mutils.SPUtils;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
 import cn.jpush.android.api.JPushInterface;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -173,17 +162,13 @@ public class MyReceiver extends BroadcastReceiver {
 		final Activity activity = ActivityPools.findActivity(BaseActivity.class);
 		if(activity!=null){
 			String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
-//			String extras = bundle.getString(JPushInterface.EXTRA_EXTRA);
-//			String title = bundle.getString(JPushInterface.EXTRA_TITLE);
-			JsonObject object = new JsonParser().parse(message).getAsJsonObject();
-			String contentType = object.get("content_type").getAsString();
 			Gson gson = new Gson();
-			if("addfriend".equals(contentType)) {
-				final JpushFriend jpushFriend = gson.fromJson(message, JpushFriend.class);
+			final JpushMsg jpushMsg = gson.fromJson(message,JpushMsg.class);
+			if("addfriend".equals(jpushMsg.getContent_type())) {
 				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
-				msgTipDialog.setTitle(jpushFriend.getTitle());
-				msgTipDialog.setMsg(jpushFriend.getMsg_content());
-				int state = jpushFriend.getExtras().getState();
+				msgTipDialog.setTitle(jpushMsg.getTitle());
+				msgTipDialog.setMsg(jpushMsg.getMsg_content());
+				int state = jpushMsg.getExtras().getState();
 				if(state==0) {
 					msgTipDialog.setLeftBtnText("拒绝");
 					msgTipDialog.setRightBtnText("同意");
@@ -191,13 +176,13 @@ public class MyReceiver extends BroadcastReceiver {
 						@Override
 						public void onSure() {
 							super.onSure();
-							Common.AddFriendConfirm(context, jpushFriend.getExtras().getSourceid(), Params.METHOD.FRIEND_CONFIRM);
+							Common.AddFriendConfirm(context, jpushMsg.getExtras().getSourceid(), Params.METHOD.FRIEND_CONFIRM);
 						}
 
 						@Override
 						public void onCancel() {
 							super.onCancel();
-							Common.AddFriendConfirm(context, jpushFriend.getExtras().getSourceid(), Params.METHOD.FRIEND_REFUSE);
+							Common.AddFriendConfirm(context, jpushMsg.getExtras().getSourceid(), Params.METHOD.FRIEND_REFUSE);
 						}
 					});
 				}else{
@@ -205,12 +190,11 @@ public class MyReceiver extends BroadcastReceiver {
 					msgTipDialog.setRightBtnText("知道了");
 				}
 				msgTipDialog.show();
-			}else if("shared".equals(contentType)){
-				final JpushShared jpushShared = gson.fromJson(message,JpushShared.class);
-				int state = jpushShared.getExtras().getState();
+			}else if("shared".equals(jpushMsg.getContent_type())){
+				int state = jpushMsg.getExtras().getState();
 				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
-				msgTipDialog.setTitle(jpushShared.getTitle());
-				msgTipDialog.setMsg(jpushShared.getMsg_content());
+				msgTipDialog.setTitle(jpushMsg.getTitle());
+				msgTipDialog.setMsg(jpushMsg.getMsg_content());
 				if(state==0) {
 					msgTipDialog.setLeftBtnText("拒绝");
 					msgTipDialog.setRightBtnText("同意");
@@ -218,19 +202,32 @@ public class MyReceiver extends BroadcastReceiver {
 						@Override
 						public void onSure() {
 							super.onSure();
-							Common.eventConfirm(activity, jpushShared.getExtras().getEventid(), Params.METHOD.CONFIRM_YES);
+							Common.eventConfirm(activity, jpushMsg.getExtras().getEventid(), Params.METHOD.CONFIRM_YES);
 						}
 
 						@Override
 						public void onCancel() {
 							super.onCancel();
-							Common.eventConfirm(activity, jpushShared.getExtras().getEventid(), Params.METHOD.CONFIRM_NO);
+							Common.eventConfirm(activity, jpushMsg.getExtras().getEventid(), Params.METHOD.CONFIRM_NO);
 						}
 					});
 				}else {
 					msgTipDialog.hideLeftBtn();
 					msgTipDialog.setRightBtnText("知道了");
 				}
+				msgTipDialog.show();
+			}else if("login".equals(jpushMsg.getContent_type())){
+				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
+				msgTipDialog.setTitle(jpushMsg.getTitle());
+				msgTipDialog.setMsg(jpushMsg.getMsg_content());
+				msgTipDialog.hideLeftBtn();
+				msgTipDialog.setRightBtnText("知道了");
+				msgTipDialog.show();
+			}else if("normal".equals(jpushMsg.getContent_type())){
+				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
+				msgTipDialog.setTitle(jpushMsg.getTitle());
+				msgTipDialog.setMsg(jpushMsg.getMsg_content());msgTipDialog.hideLeftBtn();
+				msgTipDialog.setRightBtnText("知道了");
 				msgTipDialog.show();
 			}
 		}

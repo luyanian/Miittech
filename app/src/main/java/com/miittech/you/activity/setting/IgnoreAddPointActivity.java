@@ -111,6 +111,7 @@ public class IgnoreAddPointActivity extends BaseActivity {
                 Intent intent = new Intent(IgnoreAddPointActivity.this,IgnoreNameEditActivity.class);
                 intent.putExtra("lat",poiInfo.location.latitude);
                 intent.putExtra("lng",poiInfo.location.longitude);
+                intent.putExtra("addr",poiInfo.address);
                 intent.putExtra("progress",progress);
                 startActivity(intent);
             }

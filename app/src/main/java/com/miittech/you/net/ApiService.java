@@ -4,6 +4,7 @@ import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceInfoResponse;
 import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendLocInfoResponse;
+import com.miittech.you.net.response.FriendTraceResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.LoginResponse;
 import com.miittech.you.net.response.RegisteCodeResponse;
@@ -42,6 +43,9 @@ public interface ApiService {
 
     @POST()
     Observable<DeviceInfoResponse> postDeviceInfoOption(@Url String url, @Body RequestBody body);
+
+    @POST()
+    Observable<FriendTraceResponse> postGetFriendTraceList(@Url String url, @Body RequestBody body);
 
     @POST()
     Observable<JsonObject> postNetRequestObject(@Url String url, @Body RequestBody body);

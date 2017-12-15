@@ -203,7 +203,7 @@ public final class NetworkUtils {
     public static String getSsidOfConnectWifi(){
         WifiManager wifiManager = (WifiManager)Utils.getContext().getApplicationContext().getSystemService(WIFI_SERVICE);
         if(wifiManager!=null&&wifiManager.getConnectionInfo()!=null){
-            return wifiManager.getConnectionInfo().getSSID();
+            return wifiManager.getConnectionInfo().getSSID().replace("\"","");
         }else{
             return "";
         }

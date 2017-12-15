@@ -219,6 +219,34 @@ public class Common {
                     }
                 });
     }
+    public static void ValidToken(final Context context) {
+        String json = "";
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "tokenstate/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+        ApiServiceManager.getInstance().buildApiService(context).postNetRequest(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BaseResponse>() {
+                    @Override
+                    public void accept(BaseResponse response) throws Exception {
+                        if(response.isSuccessful()){
+                            ToastUtils.showShort("系统异常，请稍后重试");
+                        }else{
+                            response.onError(context);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
     public static String formatMac2DevId(String address){
         String[] temp = address.toUpperCase().split(":");
         StringBuilder builder = new StringBuilder();
@@ -350,7 +378,7 @@ public class Common {
     public static boolean isAreaIgnore(List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist){
         if(arealist!=null&&arealist.size()>0){
             for (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean : arealist){
-                if(arealistBean!=null&&!TextUtils.isEmpty(arealistBean.getSsid())&&arealistBean.getSsid().equals(NetworkUtils.getSsidOfConnectWifi())){
+                if(arealistBean!=null&&!TextUtils.isEmpty(arealistBean.getSsid())&&Common.decodeBase64(arealistBean.getSsid()).equals(NetworkUtils.getSsidOfConnectWifi())){
                     return true;
                 }
                 UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean.AreaBean areaBean = arealistBean.getArea();

@@ -75,10 +75,12 @@ public class IgnoreNameEditActivity extends BaseActivity {
         }
         double lat = getIntent().getDoubleExtra("lat",0);
         double lng = getIntent().getDoubleExtra("lng",0);
+        String addr = getIntent().getStringExtra("addr");
         int progress = getIntent().getIntExtra("progress",0);
         Map area = new HashMap();
         area.put("lat",lat);
         area.put("lng",lng);
+        area.put("addr",Common.encodeBase64(addr));
         area.put("R",progress);
         Map areadef = new HashMap();
         areadef.put("id",0);

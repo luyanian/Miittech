@@ -11,6 +11,7 @@ import android.support.v4.app.NotificationCompat;
 
 import com.miittech.you.App;
 import com.miittech.you.R;
+import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.common.SoundPlayUtils;
 import com.miittech.you.dialog.DialogUtils;
@@ -34,7 +35,7 @@ public class LocalReceiver extends BroadcastReceiver {
             NotificationManager notificationManager = (NotificationManager) App.getInstance().getSystemService(NOTIFICATION_SERVICE);
             notificationManager.cancel(1);
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG){
-            Activity activity = ActivityPools.getTopActivity();
+            Activity activity = ActivityPools.findActivity(BaseActivity.class);
             if(activity!=null){
                 DialogUtils.getInstance().showSoundCloseDialog(activity).setSoundId(soundId);
             }

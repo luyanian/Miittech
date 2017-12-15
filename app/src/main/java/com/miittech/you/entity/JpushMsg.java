@@ -3,10 +3,10 @@ package com.miittech.you.entity;
 import java.io.Serializable;
 
 /**
- * Created by Administrator on 2017/12/5.
+ * Created by Administrator on 2017/12/15.
  */
 
-public class JpushFriend implements Serializable {
+public class JpushMsg implements Serializable {
     private String msg_content;
     private String title;
     private String content_type;
@@ -45,19 +45,25 @@ public class JpushFriend implements Serializable {
     }
 
     public class Extras implements Serializable {
-        private String nsgid;
+        private String msgid;
         private String eventid;
         private String sourceid;
         private String targetid;
+        private String logintime;
+        private String devid;
+        private String sharetime;
         private String addtime;
-        private int state;//0/1/-1 分别是等待确认/已分享/已拒绝或取消
+        private String validstr;
+        private String validtime;
+        private Locinfo locinfo;
+        private int state;
 
-        public String getNsgid() {
-            return nsgid;
+        public String getMsgid() {
+            return msgid;
         }
 
-        public void setNsgid(String nsgid) {
-            this.nsgid = nsgid;
+        public void setMsgid(String msgid) {
+            this.msgid = msgid;
         }
 
         public String getEventid() {
@@ -84,12 +90,60 @@ public class JpushFriend implements Serializable {
             this.targetid = targetid;
         }
 
+        public String getLogintime() {
+            return logintime;
+        }
+
+        public void setLogintime(String logintime) {
+            this.logintime = logintime;
+        }
+
+        public String getDevid() {
+            return devid;
+        }
+
+        public void setDevid(String devid) {
+            this.devid = devid;
+        }
+
+        public String getSharetime() {
+            return sharetime;
+        }
+
+        public void setSharetime(String sharetime) {
+            this.sharetime = sharetime;
+        }
+
         public String getAddtime() {
             return addtime;
         }
 
         public void setAddtime(String addtime) {
             this.addtime = addtime;
+        }
+
+        public String getValidstr() {
+            return validstr;
+        }
+
+        public void setValidstr(String validstr) {
+            this.validstr = validstr;
+        }
+
+        public String getValidtime() {
+            return validtime;
+        }
+
+        public void setValidtime(String validtime) {
+            this.validtime = validtime;
+        }
+
+        public Locinfo getLocinfo() {
+            return locinfo;
+        }
+
+        public void setLocinfo(Locinfo locinfo) {
+            this.locinfo = locinfo;
         }
 
         public int getState() {

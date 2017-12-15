@@ -1,46 +1,42 @@
 package com.miittech.you.fragment;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
-
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
-import com.baidu.mapapi.map.CircleOptions;
+import com.baidu.mapapi.map.InfoWindow;
 import com.baidu.mapapi.map.MapStatus;
+import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
-import com.baidu.mapapi.map.OverlayOptions;
-import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.model.LatLng;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.bitmap.CircleCrop;
-import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.gson.Gson;
 import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
+import com.miittech.you.activity.event.FriendTraceDetailActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MapDeviceUsersListDialog;
@@ -58,13 +54,11 @@ import com.miittech.you.net.response.FriendsResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.ToastUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -155,8 +149,9 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     private BDAbstractLocationListener listener = new BDAbstractLocationListener() {
         @Override
         public void onReceiveLocation(BDLocation location){
+            radius = location.getRadius();
             MyLocationData locData = new MyLocationData.Builder()
-                    .accuracy(location.getRadius())
+                    .accuracy(radius)
                     .direction(0).latitude(location.getLatitude())
                     .longitude(location.getLongitude()).build();
 
@@ -252,7 +247,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                 });
         mBaiduMap.setOnMyLocationClickListener(this);
     }
-    private void initMapView(FriendsResponse.FriendlistBean friend, List<FriendLocInfoResponse.FriendInfo> friendInfos) {
+    private void initMapView(final FriendsResponse.FriendlistBean friend, List<FriendLocInfoResponse.FriendInfo> friendInfos) {
         boolean isContain = false;
         if(friendInfos!=null&&friendInfos.size()>0){
             for (final FriendLocInfoResponse.FriendInfo friendInfo : friendInfos){
@@ -268,21 +263,36 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                             .into(new SimpleTarget<Bitmap>() {
                                 @Override
                                 public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                                LatLng llCircle = new LatLng(friendInfo.getLat(),friendInfo.getLng());
-                                MapStatus.Builder builder = new MapStatus.Builder();
-                                builder.target(llCircle).zoom(18.0f);
-                                mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+                                    final BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
+                                    final LatLng llCircle = new LatLng(friendInfo.getLat(),friendInfo.getLng());
+                                    MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
+                                    Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
+                                    MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
+                                    mBaiduMap.setMapStatus(u);
 
-                                BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
-                                MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL,true, mCurrentMarker,0xFFC1DAED,0xFF4A90E2);
-                                mBaiduMap.setMyLocationConfiguration(config);
-
-                                MyLocationData locData = new MyLocationData.Builder()
-                                    .accuracy(radius)
-                                    .direction(0)
-                                    .latitude(friendInfo.getLat())
-                                    .longitude(friendInfo.getLng()).build();
-                                mBaiduMap.setMyLocationData(locData);
+                                    mBaiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+                                        @Override
+                                        public boolean onMarkerClick(Marker marker) {
+                                            Button button = new Button(App.getInstance().getApplicationContext());
+                                            button.setBackgroundResource(R.drawable.popup);
+                                            button.setText(Common.decodeBase64(friend.getNickname()));
+                                            button.setTextColor(Color.BLACK);
+                                            button.setWidth(300);
+                                            InfoWindow.OnInfoWindowClickListener listener = new InfoWindow.OnInfoWindowClickListener() {
+                                                public void onInfoWindowClick() {
+                                                    if(!Common.getUserId().equals(friendInfo.getFriendid())) {
+                                                        Intent intent = new Intent(getActivity(),FriendTraceDetailActivity.class);
+                                                        intent.putExtra(IntentExtras.DEVICE.DATA, friend);
+                                                        startActivity(intent);
+                                                        mBaiduMap.hideInfoWindow();
+                                                    }
+                                                }
+                                            };
+                                            InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -47, listener);
+                                            mBaiduMap.showInfoWindow(mInfoWindow);
+                                            return false;
+                                        }
+                                    });
                                 }
                             });
 
@@ -295,7 +305,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         }
     }
 
-    private void initMapView(DeviceResponse.DevlistBean device){
+    private void initMapView(final DeviceResponse.DevlistBean device){
         final DeviceResponse.DevlistBean.LocinfoBean locInfo = device.getLocinfo();
         currentObject = device;
         if(locInfo==null){
@@ -304,29 +314,47 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         GlideApp.with(this)
             .asBitmap()
             .centerCrop()
-            .override(60,60)
+            .override(100,100)
             .load(device.getDevimg())
             .transform(new CircleCrop())
             .into(new SimpleTarget<Bitmap>() {
                 @Override
                 public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+//                    MyLocationData locData = new MyLocationData.Builder()
+//                            .accuracy(radius)
+//                            .direction(0)
+//                            .latitude(locInfo.getLat())
+//                            .longitude(locInfo.getLng()).build();
+//                    mBaiduMap.setMyLocationData(locData);
 
-                    LatLng llCircle = new LatLng(locInfo.getLat(),locInfo.getLng());
-                    MapStatus.Builder builder = new MapStatus.Builder();
-                    builder.target(llCircle).zoom(18.0f);
-                    mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
+                    final BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
+                    final LatLng llCircle = new LatLng(locInfo.getLat(),locInfo.getLng());
+                    MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
+                    Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
+                    MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
+                    mBaiduMap.setMapStatus(u);
 
-                    BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
-                    MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL,true, mCurrentMarker,0xFFC1DAED,0xFF4A90E2);
-                    mBaiduMap.setMyLocationConfiguration(config);
-
-                    MyLocationData locData = new MyLocationData.Builder()
-                            .accuracy(radius)
-                            .direction(0)
-                            .latitude(locInfo.getLat())
-                            .longitude(locInfo.getLng()).build();
-                    // 设置定位数据
-                    mBaiduMap.setMyLocationData(locData);
+                    mBaiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+                        @Override
+                        public boolean onMarkerClick(Marker marker) {
+                            Button button = new Button(App.getInstance().getApplicationContext());
+                            button.setBackgroundResource(R.drawable.popup);
+                            button.setText(Common.decodeBase64(device.getDevname()));
+                            button.setTextColor(Color.BLACK);
+                            button.setWidth(300);
+                            InfoWindow.OnInfoWindowClickListener listener = new InfoWindow.OnInfoWindowClickListener() {
+                                public void onInfoWindowClick() {
+                                    Intent intent = new Intent(getActivity(),DeviceDetailActivity.class);
+                                    intent.putExtra(IntentExtras.DEVICE.DATA,device);
+                                    startActivity(intent);
+                                    mBaiduMap.hideInfoWindow();
+                                }
+                            };
+                            InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -47, listener);
+                            mBaiduMap.showInfoWindow(mInfoWindow);
+                            return false;
+                        }
+                    });
                 }
             });
 

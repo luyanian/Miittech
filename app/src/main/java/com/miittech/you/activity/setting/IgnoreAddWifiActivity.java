@@ -104,7 +104,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
     }
 
     private void updateSSID() {
-        ssid = NetworkUtils.getSsidOfConnectWifi().replace("\"","");
+        ssid = NetworkUtils.getSsidOfConnectWifi();
         tvSsid.setText("当前连接WIFI : "+ssid);
     }
 
@@ -122,7 +122,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
         areadef.put("id",0);
         areadef.put("title", Common.encodeBase64(name));
         areadef.put("inout",1);
-        areadef.put("ssid",ssid);
+        areadef.put("ssid",Common.encodeBase64(ssid));
         Map donotdisturb = new HashMap();
         donotdisturb.put("areadef",areadef);
         Map config = new HashMap();

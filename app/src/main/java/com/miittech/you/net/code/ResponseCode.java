@@ -9,6 +9,9 @@ public class ResponseCode {
     public static final int invalid_request=-999998;//  请求报文重复
     public static final int invalid_sign=-70001; //签名错误
     public static final int invalid_postdata=-70002; //上传参数有误
+    public static final int invalid_repost_or_timestate_error=-999998; //重复请求或timestamp问题
+    public static final int invalid_token=-70100; //token无效
+    public static final int invalid_sign_data=-70101; //sign计算问题
 
     public static final int server_error=-20001;//服务器错误
     public static final int user_notregister_userid=-20002;
