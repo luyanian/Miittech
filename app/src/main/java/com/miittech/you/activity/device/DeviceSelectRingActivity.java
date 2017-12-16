@@ -199,8 +199,7 @@ public class DeviceSelectRingActivity extends BaseActivity{
             alertinfo.put("id",this.sourndlistBean.getId());//铃声ID,缺省1，铃音编号
             alertinfo.put("name",this.sourndlistBean.getName());//铃声名称
         }
-
-
+        
         Map devattr = new HashMap();
         devattr.put("alertinfo",alertinfo);
         Map param = new HashMap();

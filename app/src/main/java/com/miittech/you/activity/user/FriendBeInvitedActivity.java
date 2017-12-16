@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.daimajia.swipe.util.Attributes;
@@ -15,10 +15,12 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.MyFriendsAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
+import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.FriendsResponse;
@@ -42,18 +44,18 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
 /**
- * Created by Administrator on 2017/9/25.
+ * Created by ryon on 2017/12/15.
  */
 
-public class MyFriendsActivity extends BaseActivity {
+public class FriendBeInvitedActivity extends BaseActivity{
     @BindView(R.id.titlebar)
     Titlebar titlebar;
     @BindView(R.id.recyclerview)
     RecyclerView recyclerView;
-    @BindView(R.id.tv_point)
-    TextView tvPoint;
     @BindView(R.id.refreshLayout)
     SmartRefreshLayout refreshLayout;
+    @BindView(R.id.rl_new_friends)
+    RelativeLayout rlNewFriend;
     private MyFriendsAdapter mAdapter;
     private FriendsResponse response;
 
@@ -62,6 +64,7 @@ public class MyFriendsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_friends);
         ButterKnife.bind(this);
+        rlNewFriend.setVisibility(View.GONE);
         initMyTitleBar(titlebar, getResources().getString(R.string.text_setting_myfriends));
         titlebar.showBackOption()
                 .showSettingOption()
@@ -76,7 +79,7 @@ public class MyFriendsActivity extends BaseActivity {
                     @Override
                     public void onSetting() {
                         super.onSetting();
-                        Intent intent = new Intent(MyFriendsActivity.this, FriendAddActivity.class);
+                        Intent intent = new Intent(FriendBeInvitedActivity.this, FriendAddActivity.class);
                         startActivity(intent);
                     }
                 });
@@ -93,8 +96,26 @@ public class MyFriendsActivity extends BaseActivity {
             @Override
             public void onItemFlagClick(Object o) {
                 super.onItemFlagClick(o);
-                FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) o;
-                doPassApply(friend.getFriendid());
+                final FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) o;
+                DialogUtils.getInstance().createMsgTipDialog(FriendBeInvitedActivity.this)
+                        .setLeftBtnText("拒绝")
+                        .setRightBtnText("同意")
+                        .setTitle("好友添加申请")
+                        .setMsg("是否接受好友添加请求？")
+                        .setOnMsgTipOptions(new OnMsgTipOptions(){
+                            @Override
+                            public void onSure() {
+                                super.onSure();
+                                doFriendOption(friend.getFriendid(),Params.METHOD.FRIEND_CONFIRM);
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                super.onCancel();
+                                doFriendOption(friend.getFriendid(),Params.METHOD.FRIEND_REFUSE);
+                            }
+                        });
+
             }
         });
         mAdapter.setMode(Attributes.Mode.Single);
@@ -109,10 +130,7 @@ public class MyFriendsActivity extends BaseActivity {
 
     private void getFrinds() {
         Map param = new HashMap();
-        param.put("state", Params.FRIEND_STATUS.FRIEND_APPLYING
-                + Params.FRIEND_STATUS.FRIEND_REFUSED
-                + Params.FRIEND_STATUS.FRIEND_AREADY_ADD
-                + Params.FRIEND_STATUS.FRIEND_BE_INVITED);
+        param.put("state",Params.FRIEND_STATUS.FRIEND_BE_INVITED);
 
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
@@ -132,7 +150,7 @@ public class MyFriendsActivity extends BaseActivity {
                         if (response.isSuccessful()) {
                             initFriendList(response.getFriendlist());
                         } else {
-                            response.onError(MyFriendsActivity.this);
+                            response.onError(FriendBeInvitedActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -149,23 +167,12 @@ public class MyFriendsActivity extends BaseActivity {
             return;
         }
         mAdapter.notifyData(friendlist);
-        int count = 0;
-        for (FriendsResponse.FriendlistBean friendlistBean : friendlist) {
-            if (friendlistBean.getState() == Params.FRIEND_STATUS.FRIEND_BE_INVITED) {
-                count++;
-            }
-        }
-        if(count>0) {
-            tvPoint.setVisibility(View.VISIBLE);
-            tvPoint.setText(count);
-        }else{
-            tvPoint.setVisibility(View.GONE);
-        }
+
     }
 
-    private void doPassApply(String friendId) {
+    private void doFriendOption(String friendId,String method) {
         Map param = new HashMap();
-        param.put("method", Params.METHOD.FRIEND_CONFIRM);
+        param.put("method",method);
         param.put("friended", friendId);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
@@ -185,7 +192,7 @@ public class MyFriendsActivity extends BaseActivity {
                         if (response.isSuccessful()) {
                             getFrinds();
                         } else {
-                            response.onError(MyFriendsActivity.this);
+                            response.onError(FriendBeInvitedActivity.this);
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -194,11 +201,5 @@ public class MyFriendsActivity extends BaseActivity {
                         throwable.printStackTrace();
                     }
                 });
-    }
-
-    @OnClick(R.id.rl_new_friends)
-    public void onViewClicked() {
-        Intent intent = new Intent(this,FriendBeInvitedActivity.class);
-        startActivity(intent);
     }
 }

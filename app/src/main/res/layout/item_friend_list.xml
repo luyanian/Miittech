@@ -5,38 +5,68 @@
     android:layout_height="match_parent"
     android:background="@color/white"
     android:padding="16dp">
-    <com.miittech.you.weight.CircleImageView
-        android:id="@+id/item_image"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        app:civ_border_color="@color/white"
-        app:civ_border_width="2dp"
-        android:src="@drawable/ic_header_img"
+    <com.daimajia.swipe.SwipeLayout xmlns:swipe="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/swipe"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        swipe:leftEdgeSwipeOffset="0dp"
+        swipe:rightEdgeSwipeOffset="0dp">
+        <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:background="#FF5534"
+            android:gravity="center"
+            android:tag="Bottom3"
+            android:weightSum="10">
+            <ImageView
+                android:id="@+id/item_delete"
+                android:layout_width="27dp"
+                android:layout_height="30dp"
+                android:layout_weight="1"
+                android:src="@drawable/trash" />
+        </LinearLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white">
+            <com.miittech.you.weight.CircleImageView
+                android:id="@+id/item_image"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:civ_border_color="@color/white"
+                app:civ_border_width="2dp"
+                android:src="@drawable/ic_header_img"
+                android:layout_centerVertical="true"/>
+            <TextView
+                android:id="@+id/item_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:text="@string/app_name"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@+id/item_image"
+                android:layout_marginLeft="12dp"
+                android:textSize="18dp"
+                android:textColor="@color/black"/>
 
-        android:layout_centerVertical="true"/>
-    <TextView
-        android:id="@+id/item_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:lines="1"
-        android:text="@string/app_name"
-        android:layout_centerVertical="true"
-        android:layout_toRightOf="@+id/item_image"
-        android:layout_marginLeft="12dp"
-        android:textSize="18dp"
-        android:textColor="@color/black"/>
+            <com.miittech.you.weight.BtnTextView
+                android:id="@+id/item_flag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                app:cornerRadius="10dp"
+                app:followTextColor="true"/>
+        </RelativeLayout>
 
-    <com.miittech.you.weight.BtnTextView
-        android:id="@+id/item_flag"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:lines="1"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        app:cornerRadius="10dp"
-        app:followTextColor="true"/>
+
+    </com.daimajia.swipe.SwipeLayout>
+
+
 </RelativeLayout>

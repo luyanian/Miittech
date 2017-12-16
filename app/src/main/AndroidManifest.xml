@@ -230,6 +230,7 @@
         <activity android:name=".activity.user.BindPhoneActivity"/>
         <activity android:name=".activity.user.BindEmailActivity"/>
         <activity android:name=".activity.user.MyFriendsActivity"/>
+        <activity android:name=".activity.user.FriendBeInvitedActivity"/>
         <activity android:name=".activity.user.FriendAddActivity"/>
         <activity android:name=".activity.setting.ServiceSettingActivity"/>
         <activity android:name=".activity.setting.IgnoreSettingActivity"/>
