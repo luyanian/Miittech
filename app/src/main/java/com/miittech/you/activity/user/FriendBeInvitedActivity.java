@@ -13,6 +13,7 @@ import com.daimajia.swipe.util.Attributes;
 import com.google.gson.Gson;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.adapter.FriendsBeInvitedAdapter;
 import com.miittech.you.adapter.MyFriendsAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
@@ -56,7 +57,7 @@ public class FriendBeInvitedActivity extends BaseActivity{
     SmartRefreshLayout refreshLayout;
     @BindView(R.id.rl_new_friends)
     RelativeLayout rlNewFriend;
-    private MyFriendsAdapter mAdapter;
+    private FriendsBeInvitedAdapter mAdapter;
     private FriendsResponse response;
 
     @Override
@@ -92,7 +93,7 @@ public class FriendBeInvitedActivity extends BaseActivity{
         dividerItemDecoration.setDrawable(getResources().getDrawable(R.drawable.shape_divider));
         recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setItemAnimator(new FadeInLeftAnimator());
-        mAdapter = new MyFriendsAdapter(this,new OnListItemClick() {
+        mAdapter = new FriendsBeInvitedAdapter(this,new OnListItemClick() {
             @Override
             public void onItemFlagClick(Object o) {
                 super.onItemFlagClick(o);
@@ -118,7 +119,6 @@ public class FriendBeInvitedActivity extends BaseActivity{
 
             }
         });
-        mAdapter.setMode(Attributes.Mode.Single);
         recyclerView.setAdapter(mAdapter);
     }
 

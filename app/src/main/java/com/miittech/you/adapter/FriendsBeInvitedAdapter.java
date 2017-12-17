@@ -27,7 +27,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class FriendsBeInvitedAdapter extends RecyclerSwipeAdapter<FriendsBeInvitedAdapter.SimpleViewHolder> {
+public class FriendsBeInvitedAdapter extends RecyclerView.Adapter {
 
     private Context mContext;
     private List<FriendsResponse.FriendlistBean> friendlist = new ArrayList<>();
@@ -39,15 +39,16 @@ public class FriendsBeInvitedAdapter extends RecyclerSwipeAdapter<FriendsBeInvit
     }
 
     @Override
-    public SimpleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = View.inflate(mContext,R.layout.item_friend_list,null);
-        SimpleViewHolder viewHolder = new SimpleViewHolder(view);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = View.inflate(mContext,R.layout.item_friend_be_invated_list,null);
+        ViewHolder viewHolder = new ViewHolder(view);
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(final SimpleViewHolder viewHolder, final int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         final FriendsResponse.FriendlistBean friend = friendlist.get(position);
+        ViewHolder viewHolder = (ViewHolder)holder;
         GlideApp.with(mContext)
                 .load(friend.getHeadimg())
                 .error(R.drawable.ic_header_img)
@@ -75,30 +76,7 @@ public class FriendsBeInvitedAdapter extends RecyclerSwipeAdapter<FriendsBeInvit
                 viewHolder.itemFlag.setTextColor(ContextCompat.getColor(mContext, R.color.text_friend_state16));
                 break;
         }
-        viewHolder.swipeLayout.setShowMode(SwipeLayout.ShowMode.LayDown);
-        viewHolder.swipeLayout.addSwipeListener(new SimpleSwipeListener() {
-            @Override
-            public void onOpen(SwipeLayout layout) {
-//                YoYo.with(Techniques.Tada).duration(500).delay(100).playOn(layout.findViewById(R.id.trash));
-            }
-        });
-        viewHolder.swipeLayout.setOnDoubleClickListener(new SwipeLayout.DoubleClickListener() {
-            @Override
-            public void onDoubleClick(SwipeLayout layout, boolean surface) {
-                Toast.makeText(mContext, "DoubleClick", Toast.LENGTH_SHORT).show();
-            }
-        });
-        viewHolder.itemDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mItemManger.removeShownLayouts(viewHolder.swipeLayout);
-                friendlist.remove(position);
-                notifyItemRemoved(position);
-                notifyItemRangeChanged(position, friendlist.size());
-                mItemManger.closeAllItems();
-                Toast.makeText(view.getContext(), "Deleted item " +  position + "!", Toast.LENGTH_SHORT).show();
-            }
-        });
+
         viewHolder.itemFlag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -109,17 +87,11 @@ public class FriendsBeInvitedAdapter extends RecyclerSwipeAdapter<FriendsBeInvit
                 }
             }
         });
-        mItemManger.bindView(viewHolder.itemView, position);
     }
 
     @Override
     public int getItemCount() {
         return friendlist.size();
-    }
-
-    @Override
-    public int getSwipeLayoutResourceId(int position) {
-        return R.id.swipe;
     }
 
     public void notifyData(List<FriendsResponse.FriendlistBean> friendlist) {
@@ -128,18 +100,14 @@ public class FriendsBeInvitedAdapter extends RecyclerSwipeAdapter<FriendsBeInvit
         notifyDataSetChanged();
     }
 
-    public static class SimpleViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.item_delete)
-        ImageView itemDelete;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.item_image)
         CircleImageView itemImage;
         @BindView(R.id.item_name)
         TextView itemName;
         @BindView(R.id.item_flag)
         BtnTextView itemFlag;
-        @BindView(R.id.swipe)
-        SwipeLayout swipeLayout;
-        public SimpleViewHolder(View itemView) {
+        public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
