@@ -29,6 +29,9 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
+import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import java.util.HashMap;
 import java.util.List;
@@ -84,6 +87,15 @@ public class FriendBeInvitedActivity extends BaseActivity{
                         startActivity(intent);
                     }
                 });
+        refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+            @Override
+            public void onRefresh(RefreshLayout refreshlayout) {
+                synchronized (this) {
+                    refreshlayout.finishRefresh(2000);
+                    getFrinds();
+                }
+            }
+        });
         // Layout Managers:
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(linearLayoutManager.VERTICAL);
@@ -99,10 +111,10 @@ public class FriendBeInvitedActivity extends BaseActivity{
                 super.onItemFlagClick(o);
                 final FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) o;
                 DialogUtils.getInstance().createMsgTipDialog(FriendBeInvitedActivity.this)
+                        .setTitle("好友申请")
+                        .setMsg("是否同意添加该好友？")
                         .setLeftBtnText("拒绝")
                         .setRightBtnText("同意")
-                        .setTitle("好友添加申请")
-                        .setMsg("是否接受好友添加请求？")
                         .setOnMsgTipOptions(new OnMsgTipOptions(){
                             @Override
                             public void onSure() {
@@ -115,7 +127,7 @@ public class FriendBeInvitedActivity extends BaseActivity{
                                 super.onCancel();
                                 doFriendOption(friend.getFriendid(),Params.METHOD.FRIEND_REFUSE);
                             }
-                        });
+                        }).show();
 
             }
         });
@@ -130,7 +142,10 @@ public class FriendBeInvitedActivity extends BaseActivity{
 
     private void getFrinds() {
         Map param = new HashMap();
-        param.put("state",Params.FRIEND_STATUS.FRIEND_BE_INVITED);
+        param.put("state",Params.FRIEND_STATUS.FRIEND_AREADY_ADD
+                +Params.FRIEND_STATUS.FRIEND_APPLYING
+                +Params.FRIEND_STATUS.FRIEND_BE_INVITED
+                +Params.FRIEND_STATUS.FRIEND_REFUSED);
 
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());

@@ -153,7 +153,7 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                                 public void run() {
                                     sendRegistationIdToServer(LoginActivity.this,JPushInterface.getRegistrationID(LoginActivity.this));
                                 }
-                            },1000);
+                            },500);
 
                             ToastUtils.showShort(getResources().getString(R.string.msg_user_login_successful));
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);

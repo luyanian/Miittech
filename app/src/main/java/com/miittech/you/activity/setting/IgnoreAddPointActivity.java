@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -93,6 +95,7 @@ public class IgnoreAddPointActivity extends BaseActivity {
         setContentView(R.layout.activity_ignore_point_add);
         ButterKnife.bind(this);
         initMyTitleBar(titlebar,"设置位置勿扰区域");
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE|WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         titlebar.showBackOption();
         titlebar.showCompleteOption("下一步");
         titlebar.setTitleBarOptions(new TitleBarOptions(){
@@ -106,6 +109,7 @@ public class IgnoreAddPointActivity extends BaseActivity {
             public void onComplete() {
                 super.onComplete();
                 if(IgnoreAddPointActivity.this.poiInfo==null){
+                    ToastUtils.showShort("没有获取到合法的位置");
                     return;
                 }
                 Intent intent = new Intent(IgnoreAddPointActivity.this,IgnoreNameEditActivity.class);
@@ -120,15 +124,14 @@ public class IgnoreAddPointActivity extends BaseActivity {
         recyclerView.setLayoutManager(mLayoutManager);
         //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
         recyclerView.setHasFixedSize(true);
-
-        mPoiSearch = PoiSearch.newInstance();
-        mBaiduMap = mMapView.getMap();
-        mBaiduMap.setMyLocationEnabled(true);
-        MapView.setMapCustomEnable(true);
         poiResultAdapter = new PoiResultAdapter(this);
         recyclerView.setAdapter(poiResultAdapter);
-        //普通地图
+
+        mBaiduMap = mMapView.getMap();
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+        mBaiduMap.setMyLocationEnabled(true);
+        MapView.setMapCustomEnable(true);
+        mPoiSearch = PoiSearch.newInstance();
         mPoiSearch.setOnGetPoiSearchResultListener(poiListener);
         poiResultAdapter.setOnItemClick(new OnListItemClick(){
 
@@ -218,6 +221,13 @@ public class IgnoreAddPointActivity extends BaseActivity {
                                 .pageNum(6));
                     }
                 });
+                String temp = etSerchText.getText().toString().trim();
+                if(!TextUtils.isEmpty(temp)) {
+                    mPoiSearch.searchInCity((new PoiCitySearchOption())
+                            .city(bdLocation.getCity())
+                            .keyword(temp)
+                            .pageNum(6));
+                }
             }
         });
     }

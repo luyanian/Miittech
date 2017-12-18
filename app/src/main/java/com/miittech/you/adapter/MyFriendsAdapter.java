@@ -1,37 +1,51 @@
 package com.miittech.you.adapter;
 
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.daimajia.swipe.SimpleSwipeListener;
 import com.daimajia.swipe.SwipeLayout;
 import com.daimajia.swipe.adapters.RecyclerSwipeAdapter;
+import com.google.gson.Gson;
 import com.miittech.you.R;
+import com.miittech.you.activity.user.MyFriendsActivity;
+import com.miittech.you.common.Common;
+import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.glide.GlideApp;
+import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
+import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
+import com.miittech.you.impl.OnMsgTipOptions;
+import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.BtnTextView;
 import com.miittech.you.weight.CircleImageView;
+import com.ryon.mutils.EncryptUtils;
+import com.ryon.mutils.LogUtils;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 public class MyFriendsAdapter extends RecyclerSwipeAdapter<MyFriendsAdapter.SimpleViewHolder> {
 
     private Context mContext;
     private List<FriendsResponse.FriendlistBean> friendlist = new ArrayList<>();
     private OnListItemClick onListItemClick;
-
-    //protected SwipeItemRecyclerMangerImpl mItemManger = new SwipeItemRecyclerMangerImpl(this);
 
     public MyFriendsAdapter(Context context, OnListItemClick onListItemClick) {
         this.mContext = context;
@@ -55,26 +69,7 @@ public class MyFriendsAdapter extends RecyclerSwipeAdapter<MyFriendsAdapter.Simp
                 .into(viewHolder.itemImage);
         viewHolder.itemName.setText(new String(Base64.decode(friend.getNickname(), Base64.DEFAULT)));
         //1：已添加 2：申请中 4：被邀请 8：已被对方删除 16：已拒绝
-        switch (friend.getState()) {
-            case Params.FRIEND_STATUS.FRIEND_AREADY_ADD:
-                viewHolder.itemFlag.setText(mContext.getResources().getString(R.string.text_friend_aready_add));
-                viewHolder.itemFlag.setTextColor(ContextCompat.getColor(mContext, R.color.text_friend_state1));
-                break;
-            case Params.FRIEND_STATUS.FRIEND_APPLYING:
-                viewHolder.itemFlag.setText(mContext.getResources().getString(R.string.text_friend_applying));
-                viewHolder.itemFlag.setTextColor(ContextCompat.getColor(mContext, R.color.text_friend_state2));
-                break;
-            case Params.FRIEND_STATUS.FRIEND_BE_INVITED:
-                viewHolder.itemFlag.setText(mContext.getResources().getString(R.string.text_friend_be_invitation));
-                viewHolder.itemFlag.setTextColor(ContextCompat.getColor(mContext, R.color.text_friend_state4));
-                break;
-            case Params.FRIEND_STATUS.FRIEND_BE_DELETE:
-                break;
-            case Params.FRIEND_STATUS.FRIEND_REFUSED:
-                viewHolder.itemFlag.setText(mContext.getResources().getString(R.string.text_friend_refuse));
-                viewHolder.itemFlag.setTextColor(ContextCompat.getColor(mContext, R.color.text_friend_state16));
-                break;
-        }
+        viewHolder.itemFlag.setVisibility(View.GONE);
         viewHolder.swipeLayout.setShowMode(SwipeLayout.ShowMode.LayDown);
         viewHolder.swipeLayout.addSwipeListener(new SimpleSwipeListener() {
             @Override
@@ -85,12 +80,25 @@ public class MyFriendsAdapter extends RecyclerSwipeAdapter<MyFriendsAdapter.Simp
         viewHolder.itemDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mItemManger.removeShownLayouts(viewHolder.swipeLayout);
-                friendlist.remove(position);
-                notifyItemRemoved(position);
-                notifyItemRangeChanged(position, friendlist.size());
-                mItemManger.closeAllItems();
-                Toast.makeText(view.getContext(), "Deleted item " +  position + "!", Toast.LENGTH_SHORT).show();
+                DialogUtils.getInstance().createMsgTipDialog(mContext)
+                        .setTitle("删除好友")
+                        .setMsg("是否删除该好友？")
+                        .setLeftBtnText("取消")
+                        .setRightBtnText("删除")
+                        .setOnMsgTipOptions(new OnMsgTipOptions(){
+                            @Override
+                            public void onSure() {
+                                super.onSure();
+                                doFriendDelete(position,friend,viewHolder);
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                super.onCancel();
+                                mItemManger.closeAllItems();
+                            }
+                        }).show();
+
             }
         });
         viewHolder.itemFlag.setOnClickListener(new View.OnClickListener() {
@@ -139,4 +147,42 @@ public class MyFriendsAdapter extends RecyclerSwipeAdapter<MyFriendsAdapter.Simp
         }
     }
 
+    private void doFriendDelete(final int position , final FriendsResponse.FriendlistBean friend, final SimpleViewHolder viewHolder) {
+        Map param = new HashMap();
+        param.put("method", Params.METHOD.FRIEND_DELETE);
+        param.put("friended", friend.getFriendid());
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "friend/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(mContext).postToGetFriendList(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<FriendsResponse>() {
+                    @Override
+                    public void accept(FriendsResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            mItemManger.removeShownLayouts(viewHolder.swipeLayout);
+                            friendlist.remove(position);
+                            notifyDataSetChanged();
+                            mItemManger.closeAllItems();
+                            if (onListItemClick != null) {
+                                onListItemClick.onItemRemoved(friend);
+                            }
+                        } else {
+                            response.onError(mContext);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
 }

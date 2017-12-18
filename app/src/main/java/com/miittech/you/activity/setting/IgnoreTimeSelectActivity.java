@@ -88,11 +88,11 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
                 TimePickerView pvStartTime = new TimePickerView.Builder(this, new TimePickerView.OnTimeSelectListener() {
                     @Override
                     public void onTimeSelect(Date date, View v) {//选中事件回调
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss");
-                        startTime = TimeUtils.date2String(date,simpleDateFormat);
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+                        startTime = TimeUtils.date2String(date,simpleDateFormat)+":00";
                         tvStartTime.setText(startTime);
                     }
-                }).setType(new boolean[]{false, false, false, true, true, true})// 默认全部显示
+                }).setType(new boolean[]{false, false, false, true, true, false})// 默认全部显示
                         .setCancelText("取消")//取消按钮文字
                         .setSubmitText("确定")//确认按钮文字
                         .setContentSize(15)//滚轮文字大小
@@ -111,11 +111,11 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
                 TimePickerView pvEndTime = new TimePickerView.Builder(this, new TimePickerView.OnTimeSelectListener() {
                     @Override
                     public void onTimeSelect(Date date, View v) {//选中事件回调
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss");
-                        endTime = TimeUtils.date2String(date,simpleDateFormat);
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+                        endTime = TimeUtils.date2String(date,simpleDateFormat)+":00";
                         tvEndTime.setText(endTime);
                     }
-                }).setType(new boolean[]{false, false, false, true, true, true})// 默认全部显示
+                }).setType(new boolean[]{false, false, false, true, true, false})// 默认全部显示
                 .setCancelText("取消")//取消按钮文字
                 .setSubmitText("确定")//确认按钮文字
                 .setContentSize(15)//滚轮文字大小

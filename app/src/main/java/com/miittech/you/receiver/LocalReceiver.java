@@ -35,7 +35,7 @@ public class LocalReceiver extends BroadcastReceiver {
             NotificationManager notificationManager = (NotificationManager) App.getInstance().getSystemService(NOTIFICATION_SERVICE);
             notificationManager.cancel(1);
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG){
-            Activity activity = ActivityPools.findActivity(BaseActivity.class);
+            Activity activity = ActivityPools.getTopActivity();
             if(activity!=null){
                 DialogUtils.getInstance().showSoundCloseDialog(activity).setSoundId(soundId);
             }

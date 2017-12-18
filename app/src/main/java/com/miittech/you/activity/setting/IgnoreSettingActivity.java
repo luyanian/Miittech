@@ -119,6 +119,11 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         typeSelector.setItemText(R.string.text_setting_ignore, R.string.text_setting_ignore_time);
         typeSelector.setTypeSelectorChangeLisener(this);
         typeSelector.setSelectItem(0);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         getIgnoreSetting();
     }
 

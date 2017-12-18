@@ -84,7 +84,7 @@ public class EventLogAdapter extends RecyclerView.Adapter {
                 break;
         }
         holder.itemTitle.setText("您的" + Common.decodeBase64(eventlistBean.getDevname()) + eventStr);
-        holder.itemTime.setText(TimeUtils.getFriendlyTimeSpanByNow(eventlistBean.getEtime(), new SimpleDateFormat("yyyyMMddhhmmss")));
+        holder.itemTime.setText(TimeUtils.getFriendlyTimeSpanByNow(eventlistBean.getEtime(), new SimpleDateFormat("yyyyMMddHHmmss")));
         if (eventlistBean.getLocinfo() != null) {
             holder.itemAddress.setText(Common.decodeBase64(eventlistBean.getLocinfo().getAddr()));
             String imgUrl = "http://api.map.baidu.com/staticimage/v2?ak=eA32DSeForR8YOTkvDM6LhUcFaHwrwVR" +

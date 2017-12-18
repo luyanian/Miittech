@@ -72,10 +72,13 @@ public class BindPhoneActivity extends BaseActivity {
                 String phone = etUserPhone.getText().toString().trim();
                 Common.getMsgCode(this, phone, new OnGetVerCodeComplete() {
                     @Override
-                    public void onSuccessful(String cliendid) {
-                        BindPhoneActivity.this.cliendid = cliendid;
+                    public void onRequestStart() {
                         CountDownTimerUtils mCountDownTimerUtils = new CountDownTimerUtils(btnGetCode, 60000, 1000);
                         mCountDownTimerUtils.start();
+                    }
+                    @Override
+                    public void onSuccessful(String cliendid) {
+                        BindPhoneActivity.this.cliendid = cliendid;
                     }
                 });
                 break;

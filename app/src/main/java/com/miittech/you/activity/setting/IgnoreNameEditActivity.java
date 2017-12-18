@@ -45,6 +45,8 @@ public class IgnoreNameEditActivity extends BaseActivity {
     @BindView(R.id.et_name)
     EditText etName;
 
+    private boolean isSubmitting=false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,11 +70,15 @@ public class IgnoreNameEditActivity extends BaseActivity {
         });
     }
     public void updateIgnoreSetting(){
+        if(isSubmitting){
+            return;
+        }
         String name = etName.getText().toString().trim();
         if(TextUtils.isEmpty(name)){
             ToastUtils.showShort("请填写名称");
             return;
         }
+        isSubmitting=true;
         double lat = getIntent().getDoubleExtra("lat",0);
         double lng = getIntent().getDoubleExtra("lng",0);
         String addr = getIntent().getStringExtra("addr");
@@ -109,6 +115,7 @@ public class IgnoreNameEditActivity extends BaseActivity {
                 .subscribe(new Consumer<BaseResponse>() {
                     @Override
                     public void accept(BaseResponse response) throws Exception {
+                        isSubmitting=false;
                         if(response.isSuccessful()){
                             ToastUtils.showShort("添加勿扰设置成功");
                             finish();
@@ -119,6 +126,7 @@ public class IgnoreNameEditActivity extends BaseActivity {
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
+                        isSubmitting=false;
                         throwable.printStackTrace();
                     }
                 });

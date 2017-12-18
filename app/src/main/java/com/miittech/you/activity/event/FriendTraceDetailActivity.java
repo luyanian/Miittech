@@ -241,7 +241,7 @@ public class FriendTraceDetailActivity extends BaseActivity {
             return;
         }
         DateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 a hh:mm");
-        Date date = TimeUtils.string2Date(lasttime,new SimpleDateFormat("yyyyMMddhhmmss"));
+        Date date = TimeUtils.string2Date(lasttime,new SimpleDateFormat("yyyyMMddHHmmss"));
         itemTime.setText(TimeUtils.date2String(date,dateFormat));
     }
 }

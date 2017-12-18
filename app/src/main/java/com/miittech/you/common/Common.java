@@ -59,11 +59,14 @@ import okhttp3.RequestBody;
  */
 
 public class Common {
-    public synchronized static void getMsgCode(Context context, String phone, final OnGetVerCodeComplete onGetVerCodeComplete) {
+    public synchronized static void getMsgCode(final Context context, String phone, final OnGetVerCodeComplete onGetVerCodeComplete) {
 
         if(!RegexUtils.isMobileSimple(phone)){
             ToastUtils.showShort(R.string.tip_ver_phone_faild);
             return;
+        }
+        if(onGetVerCodeComplete!=null) {
+            onGetVerCodeComplete.onRequestStart();
         }
         Map param = new HashMap();
         param.put("vtype", Params.VTYPE.PHONELOGIN);
@@ -83,7 +86,11 @@ public class Common {
                     @Override
                     public void accept(BaseResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            onGetVerCodeComplete.onSuccessful(response.getClientid());
+                            if(onGetVerCodeComplete!=null) {
+                                onGetVerCodeComplete.onSuccessful(response.getClientid());
+                            }
+                        }else{
+                            response.onError(context);
                         }
                     }
                 });
@@ -410,7 +417,7 @@ public class Common {
             Date date = new Date();
 
             String ymd = simpleDateFormat.format(date);
-            SimpleDateFormat format = new SimpleDateFormat("yyyyMMddhhmmss");
+            SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
             long stime = TimeUtils.string2Millis(ymd+timelistBean.getStime(),format);
             long etime = TimeUtils.string2Millis(ymd+timelistBean.getEtime(),format);
             long curTime = TimeUtils.getNowMills();

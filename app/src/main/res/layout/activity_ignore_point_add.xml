@@ -75,6 +75,10 @@
         android:gravity="center"
         android:textColor="@color/colorPrimary"
         android:text="当前半径200米"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/bg_lines"/>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -103,8 +107,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="true"
-                android:maxHeight="4.0dip"
-                android:minHeight="4.0dip"
+                android:maxHeight="2.0dip"
+                android:minHeight="2.0dip"
                 android:paddingLeft="16.0dip"
                 android:paddingRight="16.0dip"
                 android:layout_centerVertical="true"
@@ -121,7 +125,6 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"/>
+            android:layout_height="wrap_content"/>
     </RelativeLayout>
 </LinearLayout>

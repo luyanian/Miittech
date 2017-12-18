@@ -93,8 +93,8 @@ public class DeviceDetailSettingActivity extends BaseActivity {
         tvDeviceName.setText(Common.decodeBase64(deviceDetailInfo.getDevname()));
         tvDeviceClassify.setText(Common.decodeBase64(deviceDetailInfo.getGroupname()));
         tvDeviceId.setText(deviceDetailInfo.getDevid());
-        DateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 a hh:mm");
-        Date date = TimeUtils.string2Date(deviceDetailInfo.getBindtime(),new SimpleDateFormat("yyyyMMddhhmmss"));
+        DateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 a HH:mm");
+        Date date = TimeUtils.string2Date(deviceDetailInfo.getBindtime(),new SimpleDateFormat("yyyyMMddHHmmss"));
         tvDeviceTimeActive.setText(TimeUtils.date2String(date,dateFormat));
         tvDeviceVertion.setText("v1.0");
         GlideApp.with(this)

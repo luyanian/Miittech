@@ -31,7 +31,7 @@ public class LoginRegisteActivity extends BaseActivity {
                     startActivity(intent);
                     finish();
                 }
-            },2000);
+            },200);
         }
     }
 

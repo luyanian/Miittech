@@ -15,10 +15,12 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.MyFriendsAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
+import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.FriendsResponse;
@@ -26,7 +28,11 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
+import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +86,16 @@ public class MyFriendsActivity extends BaseActivity {
                         startActivity(intent);
                     }
                 });
+        refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+            @Override
+            public void onRefresh(RefreshLayout refreshlayout) {
+                synchronized (this) {
+                    refreshlayout.finishRefresh(2000);
+                    getFrinds();
+                }
+            }
+        });
+
         // Layout Managers:
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(linearLayoutManager.VERTICAL);
@@ -93,8 +109,13 @@ public class MyFriendsActivity extends BaseActivity {
             @Override
             public void onItemFlagClick(Object o) {
                 super.onItemFlagClick(o);
-                FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) o;
-                doPassApply(friend.getFriendid());
+            }
+
+            @Override
+            public void onItemRemoved(Object o) {
+                super.onItemRemoved(o);
+
+
             }
         });
         mAdapter.setMode(Attributes.Mode.Single);
@@ -109,11 +130,7 @@ public class MyFriendsActivity extends BaseActivity {
 
     private void getFrinds() {
         Map param = new HashMap();
-        param.put("state", Params.FRIEND_STATUS.FRIEND_APPLYING
-                + Params.FRIEND_STATUS.FRIEND_REFUSED
-                + Params.FRIEND_STATUS.FRIEND_AREADY_ADD
-                + Params.FRIEND_STATUS.FRIEND_BE_INVITED);
-
+        param.put("state", Params.FRIEND_STATUS.FRIEND_BE_INVITED+Params.FRIEND_STATUS.FRIEND_AREADY_ADD);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
@@ -148,54 +165,24 @@ public class MyFriendsActivity extends BaseActivity {
         if(friendlist==null){
             return;
         }
-        mAdapter.notifyData(friendlist);
+        List<FriendsResponse.FriendlistBean> tempData = new ArrayList<>();
         int count = 0;
         for (FriendsResponse.FriendlistBean friendlistBean : friendlist) {
             if (friendlistBean.getState() == Params.FRIEND_STATUS.FRIEND_BE_INVITED) {
                 count++;
             }
+            if(friendlistBean.getState() == Params.FRIEND_STATUS.FRIEND_AREADY_ADD){
+                tempData.add(friendlistBean);
+            }
         }
+        mAdapter.notifyData(tempData);
         if(count>0) {
             tvPoint.setVisibility(View.VISIBLE);
-            tvPoint.setText(count);
+            tvPoint.setText(count+"");
         }else{
             tvPoint.setVisibility(View.GONE);
         }
     }
-
-    private void doPassApply(String friendId) {
-        Map param = new HashMap();
-        param.put("method", Params.METHOD.FRIEND_CONFIRM);
-        param.put("friended", friendId);
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(Common.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "friend/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-
-        ApiServiceManager.getInstance().buildApiService(this).postToGetFriendList(path, requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<FriendsResponse>() {
-                    @Override
-                    public void accept(FriendsResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            getFrinds();
-                        } else {
-                            response.onError(MyFriendsActivity.this);
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
-
     @OnClick(R.id.rl_new_friends)
     public void onViewClicked() {
         Intent intent = new Intent(this,FriendBeInvitedActivity.class);

@@ -254,12 +254,12 @@ public class UserCenterActivity extends BaseActivity {
         if (userinfo.getIsBindWx() == 0) {
             userWechat.setText(getResources().getString(R.string.text_unbind));
         } else {
-            userWechat.setText(userinfo.getIsBindWx());
+            userWechat.setText("已绑定");
         }
         if (userinfo.getIsBindQQ() == 0) {
             userQq.setText(getResources().getString(R.string.text_unbind));
         } else {
-            userQq.setText(userinfo.getIsBindQQ());
+            userQq.setText("已绑定");
         }
         if(userinfo.getIsShareLocation()==1){
             userLocationToogle.setChecked(true);

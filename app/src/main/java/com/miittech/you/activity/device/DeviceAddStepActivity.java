@@ -161,7 +161,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                     public void accept(Throwable throwable) throws Exception {
                         outBindError();
                         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-                        intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
+                        intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
                         intent.putExtra("address",mac);
                         sendBroadcast(intent);
                     }

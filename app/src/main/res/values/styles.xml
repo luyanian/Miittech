@@ -4,6 +4,10 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
 
     </style>
+    <style name="Theme.AppStartLoadTranslucent" parent="AppTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
     <style name="DialogStyle">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowFrame">@null</item>

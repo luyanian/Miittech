@@ -104,10 +104,14 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
                 String phone = etUserPhone.getText().toString().trim();
                 Common.getMsgCode(this,phone,new OnGetVerCodeComplete(){
                     @Override
-                    public void onSuccessful(String cliendid) {
-                        RegisteActivity.this.cliendid = cliendid;
+                    public void onRequestStart() {
                         CountDownTimerUtils mCountDownTimerUtils = new CountDownTimerUtils(btnGetCode, 60000, 1000);
                         mCountDownTimerUtils.start();
+                    }
+
+                    @Override
+                    public void onSuccessful(String cliendid) {
+                        RegisteActivity.this.cliendid = cliendid;
                     }
                 });
                 break;
@@ -189,6 +193,8 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
                             Intent intent = new Intent(RegisteActivity.this, MainActivity.class);
                             startActivity(intent);
                             ActivityPools.finishAllExcept(RegisteActivity.class);
+                        }else {
+                            response.onError(RegisteActivity.this);
                         }
                     }
                 });

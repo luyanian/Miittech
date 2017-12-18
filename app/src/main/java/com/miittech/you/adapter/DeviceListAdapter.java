@@ -228,7 +228,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         if(itemTime==null){
             return;
         }
-        SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddhhmmss");
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmss");
         String timeSpan = TimeUtils.getFriendlyTimeSpanByNow(lasttime,sdf);
         itemTime.setText(timeSpan);
     }

@@ -105,8 +105,8 @@ public class EditNikeOrPWDActivity extends BaseActivity {
         }
 
         Map param = new HashMap();
-        param.put("oldpasswd", oldpwd);
-        param.put("newpasswd", newpwd);
+        param.put("oldpasswd", EncryptUtils.encryptSHA1ToString(oldpwd).toLowerCase());
+        param.put("newpasswd", EncryptUtils.encryptSHA1ToString(newpwd).toLowerCase());
 
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());

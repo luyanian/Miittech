@@ -287,7 +287,7 @@ public class DeviceDetailActivity extends BaseActivity {
         if(itemTime==null){
             return;
         }
-        SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddhhmmss");
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmss");
         String timeSpan = TimeUtils.getFriendlyTimeSpanByNow(lasttime,sdf);
         itemTime.setText(timeSpan);
     }

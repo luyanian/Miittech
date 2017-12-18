@@ -5,5 +5,6 @@ package com.miittech.you.common;
  */
 
 public abstract class OnGetVerCodeComplete {
+    public abstract void onRequestStart();
     public abstract void onSuccessful(String cliendid);
 }

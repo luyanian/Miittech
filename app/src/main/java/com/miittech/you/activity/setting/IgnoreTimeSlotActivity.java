@@ -58,6 +58,8 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
     private final static int REQUEST_CODE_TIME=0x01;
     private final static int REQUEST_CODE_REPEAT=0x02;
 
+    private boolean isSubmitting = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,6 +122,9 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
     }
 
     private void doComplete() {
+        if(isSubmitting){
+            return;
+        }
         String title = etName.getText().toString().trim();
         if(TextUtils.isEmpty(title)){
             ToastUtils.showShort("请填写名称！");
@@ -133,6 +138,7 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
             ToastUtils.showShort("请选择时间！");
             return;
         }
+        isSubmitting=true;
         Map timedef = new HashMap();
         timedef.put("id","0");
         timedef.put("title", Common.encodeBase64(title));
@@ -161,6 +167,7 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
                 .subscribe(new Consumer<BaseResponse>() {
                     @Override
                     public void accept(BaseResponse response) throws Exception {
+                        isSubmitting=false;
                         if(response.isSuccessful()){
                             ToastUtils.showShort("勿扰设置添加成功！");
                             finish();
@@ -171,6 +178,7 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
+                        isSubmitting=false;
                         throwable.printStackTrace();
                     }
                 });

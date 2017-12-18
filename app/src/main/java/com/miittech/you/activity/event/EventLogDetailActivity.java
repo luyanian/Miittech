@@ -74,7 +74,7 @@ public class EventLogDetailActivity extends BaseActivity {
                 finish();
             }
         });
-        tvTime.setText(TimeUtils.getFriendlyTimeSpanByNow(devlistBean.getEtime(), new SimpleDateFormat("yyyyMMddhhmmss")));
+        tvTime.setText(TimeUtils.getFriendlyTimeSpanByNow(devlistBean.getEtime(), new SimpleDateFormat("yyyyMMddHHmmss")));
         tvTitle.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
         updateMapLocalView();
         switchFindBtnStyle();

@@ -55,6 +55,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
     TextView tvSsid;
 
     private String ssid="";
+    private boolean isSubmitting=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +110,9 @@ public class IgnoreAddWifiActivity extends BaseActivity {
     }
 
     private void doComplete() {
+        if(isSubmitting){
+            return;
+        }
         String name = etName.getText().toString().trim();
         if(TextUtils.isEmpty(name)){
             ToastUtils.showShort("请输入名称");
@@ -118,6 +122,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
             ToastUtils.showShort("未获取到您的ssid,请wifi网络是否正常");
             return;
         }
+        isSubmitting=true;
         Map areadef = new HashMap();
         areadef.put("id",0);
         areadef.put("title", Common.encodeBase64(name));
@@ -145,6 +150,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
                 .subscribe(new Consumer<BaseResponse>() {
                     @Override
                     public void accept(BaseResponse response) throws Exception {
+                        isSubmitting=false;
                         if(response.isSuccessful()){
                             ToastUtils.showShort("添加勿扰设置成功");
                             finish();
@@ -155,6 +161,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
+                        isSubmitting=false;
                         throwable.printStackTrace();
                     }
                 });

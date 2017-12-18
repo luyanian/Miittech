@@ -9,13 +9,17 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.activity.user.LoginRegisteActivity;
+import com.miittech.you.activity.user.UserCenterActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
 import com.miittech.you.entity.JpushMsg;
 import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
@@ -23,6 +27,8 @@ import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.SPUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.HashMap;
@@ -159,7 +165,7 @@ public class MyReceiver extends BroadcastReceiver {
 	
 	//send msg to MainActivity
 	private void processCustomMessage(final Context context, Bundle bundle) {
-		final Activity activity = ActivityPools.findActivity(BaseActivity.class);
+		final Activity activity = ActivityPools.getTopActivity();
 		if(activity!=null){
 			String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
 			Gson gson = new Gson();
@@ -169,7 +175,7 @@ public class MyReceiver extends BroadcastReceiver {
 				msgTipDialog.setTitle(jpushMsg.getTitle());
 				msgTipDialog.setMsg(jpushMsg.getMsg_content());
 				int state = jpushMsg.getExtras().getState();
-				if(state==0) {
+				if(state==1) {
 					msgTipDialog.setLeftBtnText("拒绝");
 					msgTipDialog.setRightBtnText("同意");
 					msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
@@ -217,12 +223,25 @@ public class MyReceiver extends BroadcastReceiver {
 				}
 				msgTipDialog.show();
 			}else if("login".equals(jpushMsg.getContent_type())){
-				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
-				msgTipDialog.setTitle(jpushMsg.getTitle());
-				msgTipDialog.setMsg(jpushMsg.getMsg_content());
-				msgTipDialog.hideLeftBtn();
-				msgTipDialog.setRightBtnText("知道了");
-				msgTipDialog.show();
+				DialogUtils.getInstance().createMsgTipDialog(activity)
+						.setTitle(jpushMsg.getTitle())
+						.setMsg(jpushMsg.getMsg_content())
+						.hideLeftBtn()
+						.setRightBtnText("知道了")
+						.setOnMsgTipOptions(new OnMsgTipOptions(){
+							@Override
+							public void onSure() {
+								super.onSure();
+								Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+								cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
+								activity.sendBroadcast(cmd);
+								SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
+								Intent intent = new Intent(activity,LoginRegisteActivity.class);
+								activity.startActivity(intent);
+								ActivityPools.finishAllExcept(LoginRegisteActivity.class);
+							}
+						})
+						.show();
 			}else if("normal".equals(jpushMsg.getContent_type())){
 				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
 				msgTipDialog.setTitle(jpushMsg.getTitle());

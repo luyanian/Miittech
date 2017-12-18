@@ -836,7 +836,7 @@ public  class BleService extends Service {
         user_loc.put("lng", location.getLongitude());
         user_loc.put("addr", Common.encodeBase64(location.getAddrStr()));
         Map repdata = new HashMap();
-        repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyyMMddhhmmss")));
+        repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyyMMddmmss")));
         repdata.put("user_loc", user_loc);
         repdata.put("devlist", devlist);
         String json = new Gson().toJson(repdata);
