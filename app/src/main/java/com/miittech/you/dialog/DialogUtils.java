@@ -16,15 +16,20 @@ public class DialogUtils {
         }
         return dialogUtils;
     }
-    static LogoutDialog logoutDialog;
+//    static LogoutDialog logoutDialog;
+//    public synchronized LogoutDialog showLogoutDialog(Context context){
+//        if(logoutDialog!=null){
+//            if(logoutDialog.isShowing()){
+//                logoutDialog.dismiss();
+//            }
+//            logoutDialog=null;
+//        }
+//        logoutDialog = new LogoutDialog(context);
+//        logoutDialog.show();
+//        return logoutDialog;
+//    }
     public synchronized LogoutDialog showLogoutDialog(Context context){
-        if(logoutDialog!=null){
-            if(logoutDialog.isShowing()){
-                logoutDialog.dismiss();
-            }
-            logoutDialog=null;
-        }
-        logoutDialog = new LogoutDialog(context);
+        LogoutDialog logoutDialog = LogoutDialog.getInstance(context);
         logoutDialog.show();
         return logoutDialog;
     }

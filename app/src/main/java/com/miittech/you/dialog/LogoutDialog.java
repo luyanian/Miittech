@@ -22,6 +22,19 @@ public class LogoutDialog extends Dialog {
     @BindView(R.id.btn_button_sure)
     TextView btnButtonSure;
 
+    private static LogoutDialog dialog;
+    public static synchronized LogoutDialog getInstance(Context context){
+        if (dialog!=null){
+           if(dialog.isShowing()){
+               dialog.dismiss();
+           }
+           dialog=null;
+        }
+        synchronized (LogoutDialog.class){
+            dialog = new LogoutDialog(context);
+        }
+        return dialog;
+    }
     public LogoutDialog(@NonNull Context context) {
         super(context,R.style.DialogStyle);
         setContentView(R.layout.dialog_logout);
@@ -38,6 +51,7 @@ public class LogoutDialog extends Dialog {
     }
 
     public void onClickSure(View.OnClickListener listener) {
+        this.dismiss();
         btnButtonSure.setOnClickListener(listener);
     }
 

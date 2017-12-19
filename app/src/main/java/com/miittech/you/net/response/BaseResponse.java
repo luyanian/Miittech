@@ -113,6 +113,7 @@ public class BaseResponse implements Serializable{
                 }
                 break;
             case ResponseCode.invalid_token:
+            case ResponseCode.invalid_sign_data:
                 ToastUtils.showShort("异地登陆执行退出");
                 Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                 cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
