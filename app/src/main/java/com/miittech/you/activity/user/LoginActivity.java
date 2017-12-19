@@ -10,7 +10,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
@@ -24,7 +23,6 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.LoginResponse;
-import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.ActivityPools;
@@ -181,6 +179,8 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                 doLogin();
                 break;
             case R.id.btn_forget_password:
+                Intent intent = new Intent(this,ForgetPhonePasswordActivity.class);
+                startActivity(intent);
                 break;
             case R.id.btn_login_with_wechat:
                 Platform wechat = ShareSDK.getPlatform(Wechat.NAME);
@@ -232,7 +232,7 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
 
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Params.userid_unlogin);
-        String sign_unSha1 = pubParam.toValueString() + json + EncryptUtils.encryptSHA1ToString(Params.signkey_unlogin).toLowerCase();
+        String sign_unSha1 = pubParam.toValueString() + json + Params.signkey_unlogin;
         LogUtils.d("sign_unsha1", sign_unSha1);
         String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
         LogUtils.d("sign_sha1", sign);

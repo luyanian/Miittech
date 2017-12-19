@@ -2,6 +2,7 @@ package com.miittech.you.net.response;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 
 import com.google.gson.annotations.SerializedName;
 import com.miittech.you.App;
@@ -107,7 +108,9 @@ public class BaseResponse implements Serializable{
                 ToastUtils.showShort(R.string.msg_account_already_bind);
                 break;
             case ResponseCode.invalid_sign://签名错误，请重新登录
-                Common.ValidToken(context);
+                if(!TextUtils.isEmpty(Common.getTocken())) {
+                    Common.ValidToken(context);
+                }
                 break;
             case ResponseCode.invalid_token:
                 ToastUtils.showShort("异地登陆执行退出");

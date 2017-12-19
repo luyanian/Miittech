@@ -196,7 +196,7 @@
         </receiver>
         <!-- Required  . Enable it you can get statistics data with channel -->
         <meta-data android:name="JPUSH_CHANNEL" android:value="developer-default"/>
-        <meta-data android:name="JPUSH_APPKEY" android:value="0f9c88770d1cba50d02e2047" /> <!--  </>值来自开发者平台取得的AppKey-->
+        <meta-data android:name="JPUSH_APPKEY" android:value="6ab0c946edea72c39b5b8b22" /> <!--  </>值来自开发者平台取得的AppKey-->
 
         <!-- ............................JPUSH配置end.................... -->
 
@@ -219,6 +219,9 @@
         <activity android:name=".activity.setting.SettingActivity" />
         <activity android:name=".activity.user.UserCenterActivity" />
         <activity android:name=".activity.user.EditNikeOrPWDActivity" />
+        <activity android:name=".activity.user.ForgetPhonePasswordActivity" />
+        <activity android:name=".activity.user.ForgetEmailPasswordActivity" />
+        <activity android:name=".activity.user.ResetPasswordActivity" />
         <activity android:name=".activity.user.LoginRegisteActivity"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AppStartLoadTranslucent">

@@ -32,6 +32,7 @@ import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.text.SimpleDateFormat;
 
@@ -100,14 +101,14 @@ public class DeviceMapDetailActivity extends BaseActivity {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.img_navagation:
-                if(AppUtils.isInstallApp("com.baidu.BaiduMap")){
+                if (AppUtils.isInstallApp("com.baidu.BaiduMap")) {
                     Intent i1 = new Intent();
-                    i1.setData(Uri.parse("baidumap://map/geocoder?location="+deviceDetailInfo.getLocinfo().getLat()+","+deviceDetailInfo.getLocinfo().getLng()));
+                    i1.setData(Uri.parse("baidumap://map/geocoder?location=" + deviceDetailInfo.getLocinfo().getLat() + "," + deviceDetailInfo.getLocinfo().getLng()));
                     startActivity(i1);
-                }else{
+                } else {
                     Intent l2 = new Intent(Intent.ACTION_VIEW);
-                    l2.setData(Uri.parse("http://api.map.baidu.com/geocoder?location="+deviceDetailInfo.getLocinfo().getLat()+","+deviceDetailInfo.getLocinfo().getLng()
-                            +"&coord_type=bd09ll&output=html&src=智云有物"));
+                    l2.setData(Uri.parse("http://api.map.baidu.com/geocoder?location=" + deviceDetailInfo.getLocinfo().getLat() + "," + deviceDetailInfo.getLocinfo().getLng()
+                            + "&coord_type=bd09ll&output=html&src=智云有物"));
                     startActivity(l2);
                 }
                 break;

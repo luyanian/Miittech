@@ -36,9 +36,11 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.PoiResultAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.location.LocationClient;
@@ -48,6 +50,7 @@ import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -168,18 +171,49 @@ public class IgnoreAddPointActivity extends BaseActivity {
             }
         });
         seekbar.setProgress(0);
-        RxPermissions rxPermissions = new RxPermissions(this);
-        rxPermissions.request(Manifest.permission.READ_PHONE_STATE
-                ,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION
-                ,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .subscribe(new Consumer<Boolean>() {
-                    @Override
-                    public void accept(Boolean aBoolean) throws Exception {
-                        if(aBoolean) {
-                            startLocation();
+        final Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+        if(locinfo==null||TextUtils.isEmpty(locinfo.getCity())) {
+            RxPermissions rxPermissions = new RxPermissions(this);
+            rxPermissions.request(Manifest.permission.READ_PHONE_STATE
+                    ,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION
+                    ,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    .subscribe(new Consumer<Boolean>() {
+                        @Override
+                        public void accept(Boolean aBoolean) throws Exception {
+                            if (aBoolean) {
+                                startLocation();
+                            }
                         }
-                    }
-                });
+                    });
+        }else{
+            updateMapLocalView(new LatLng(locinfo.getLat(),locinfo.getLng()));
+            etSerchText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    mPoiSearch.searchInCity((new PoiCitySearchOption())
+                            .city(locinfo.getCity())
+                            .keyword(s.toString())
+                            .pageNum(6));
+                }
+            });
+            String temp = etSerchText.getText().toString().trim();
+            if(!TextUtils.isEmpty(temp)) {
+                mPoiSearch.searchInCity((new PoiCitySearchOption())
+                        .city(locinfo.getCity())
+                        .keyword(temp)
+                        .pageNum(6));
+            }
+        }
     }
 
     private void startLocation() {

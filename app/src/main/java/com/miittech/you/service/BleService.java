@@ -201,6 +201,14 @@ public  class BleService extends Service {
 
     private synchronized void exceTask() {
         exceReportSubmit();
+        DeviceResponse deviceResponse = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+        if(deviceResponse!=null&&deviceResponse.getDevlist()!=null){
+            for (DeviceResponse.DevlistBean devlistBean : deviceResponse.getDevlist()){
+                if(!mDeviceMap.containsKey(Common.formatDevId2Mac(devlistBean.getDevidX()))){
+                    mDeviceMap.put(Common.formatDevId2Mac(devlistBean.getDevidX()),null);
+                }
+            }
+        }
         List<BleDevice> list = BleManager.getInstance().getMultipleBluetoothController().getDeviceList();
         if(list.size()<=0){
             return;
@@ -756,6 +764,7 @@ public  class BleService extends Service {
                 locinfo.setAddr(location.getAddrStr());
                 locinfo.setLat(location.getLatitude());
                 locinfo.setLng(location.getLongitude());
+
                 SPUtils.getInstance().remove(SPConst.LOC_INFO);
                 SPUtils.getInstance().saveObject(SPConst.LOC_INFO,locinfo);
 
@@ -836,7 +845,7 @@ public  class BleService extends Service {
         user_loc.put("lng", location.getLongitude());
         user_loc.put("addr", Common.encodeBase64(location.getAddrStr()));
         Map repdata = new HashMap();
-        repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyyMMddmmss")));
+        repdata.put("reptime", TimeUtils.millis2String(millis, new SimpleDateFormat("yyyyMMddHHmmss")));
         repdata.put("user_loc", user_loc);
         repdata.put("devlist", devlist);
         String json = new Gson().toJson(repdata);

@@ -29,6 +29,7 @@ import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
+import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.impl.TitleBarOptions;
@@ -36,6 +37,7 @@ import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
@@ -204,6 +206,15 @@ public class UserCenterActivity extends BaseActivity {
     }
 
     private void getUserInfo() {
+        if(!NetworkUtils.isConnected()){
+            UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
+            if(response!=null){
+                initData(response.getUserinfo());
+            }else {
+                ToastUtils.showShort("网络链接断开，请检查网络");
+            }
+            return;
+        }
         Map param = new HashMap();
         param.put("qrytype", Params.QRY_TYPE.BASE);
 //        param.put("sdate", "20170101");
@@ -223,6 +234,8 @@ public class UserCenterActivity extends BaseActivity {
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
                         if (response.isSuccessful()) {
+                            SPUtils.getInstance().remove(SPConst.DATA.USERINFO);
+                            SPUtils.getInstance().saveObject(SPConst.DATA.USERINFO,response);
                             initData(response.getUserinfo());
                         } else {
                             response.onError(UserCenterActivity.this);

@@ -15,6 +15,7 @@ import com.miittech.you.activity.user.MyFriendsActivity;
 import com.miittech.you.activity.user.UserCenterActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.glide.GlideApp;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
@@ -25,6 +26,9 @@ import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -111,6 +115,15 @@ public class SettingActivity extends BaseActivity {
     }
 
     private void getUserInfo(){
+        if(!NetworkUtils.isConnected()){
+            UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
+            if(response!=null){
+                initData(response.getUserinfo());
+            }else {
+                ToastUtils.showShort("网络链接断开，请检查网络");
+            }
+            return;
+        }
         Map param = new HashMap();
         param.put("qrytype", Params.QRY_TYPE.BASE);
 //        param.put("sdate", "20170101");
@@ -130,6 +143,8 @@ public class SettingActivity extends BaseActivity {
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
                         if(response.isSuccessful()){
+                            SPUtils.getInstance().remove(SPConst.DATA.USERINFO);
+                            SPUtils.getInstance().saveObject(SPConst.DATA.USERINFO,response);
                             initData(response.getUserinfo());
                         }else{
                             response.onError(SettingActivity.this);

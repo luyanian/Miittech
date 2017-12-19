@@ -191,13 +191,9 @@ public class DeviceDetailActivity extends BaseActivity {
                 if(deviceDetailInfo==null) {
                     return;
                 }
-                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
-                    Intent map = new Intent(this, DeviceMapDetailActivity.class);
-                    map.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
-                    startActivity(map);
-                }else{
-                    ToastUtils.showShort("您不是贴片拥有者，无操作权限");
-                }
+                Intent map = new Intent(this, DeviceMapDetailActivity.class);
+                map.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
+                startActivity(map);
                 break;
             case R.id.btn_option_share:
                 if(deviceDetailInfo==null) {

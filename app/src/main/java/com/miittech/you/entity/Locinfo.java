@@ -12,6 +12,7 @@ public class Locinfo implements Serializable {
     private double lat;//事件的纬度值(WGS84坐标系)
     private double lng;//事件的经度值(WGS84坐标系)
     private String addr;//地址名称（base64）
+    private String city;
 
     public double getLat() {
         return lat;
@@ -35,5 +36,13 @@ public class Locinfo implements Serializable {
 
     public void setAddr(String addr) {
         this.addr = addr;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 }

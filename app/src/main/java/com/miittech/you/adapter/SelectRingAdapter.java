@@ -81,7 +81,7 @@ public class SelectRingAdapter extends RecyclerView.Adapter {
             }
         }
         int index = (currentItem+1+2)%4;
-        SoundPlayUtils.playSound(index,false,10000);
+        SoundPlayUtils.playSound(index,true,10000);
     }
 
     public void initSelectAlerName(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo) {

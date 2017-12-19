@@ -37,6 +37,8 @@ import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.ToastUtils;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -195,6 +197,7 @@ public class ListFragment extends Fragment {
 
     private void getDeviceList() {
         if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort("网络链接断开，请检查网络");
             DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
             if(response!=null){
                 initDeviceList(response.getDevlist());

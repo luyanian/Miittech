@@ -25,5 +25,6 @@ public class SPConst{
 
     public static class DATA{
         public static final String DEVICELIST = "deviceList";
+        public static final String USERINFO = "userinfo";
     }
 }
