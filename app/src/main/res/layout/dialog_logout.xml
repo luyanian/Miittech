@@ -6,7 +6,7 @@
     android:background="@color/transparent">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="171dp"
+        android:layout_height="156dp"
         android:background="@drawable/shap_fillet_white"
         android:orientation="vertical">
         <TextView
@@ -15,7 +15,7 @@
             android:text="@string/tip_msg_dialog_logout"
             android:gravity="center"
             android:padding="20dp"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="@color/colorPrimary"/>
         <TextView
             android:layout_width="match_parent"
@@ -24,15 +24,15 @@
         <TextView
             android:id="@+id/btn_button_sure"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="45dp"
             android:text="@string/text_button_sure"
             android:gravity="center"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="@color/text_color_sure"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="45dp"
         android:background="@drawable/shap_fillet_white"
         android:layout_marginTop="20dp"
         android:gravity="center">
@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:text="@string/text_button_cancle"
             android:gravity="center"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="@color/text_color_cancel"/>
     </LinearLayout>
 </LinearLayout>

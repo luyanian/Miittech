@@ -20,8 +20,8 @@
 
         <com.miittech.you.weight.CircleImageView
             android:id="@+id/img_device_icon"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:src="@drawable/ic_header_img"
             app:civ_border_color="@color/white"
             app:civ_border_width="2dp"/>
@@ -34,7 +34,7 @@
             android:layout_centerHorizontal="true"
             android:text="不吃鱼的猫"
             android:layout_marginTop="5dp"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="#343434"/>
         <TextView
             android:id="@+id/tv_device_location"
@@ -43,7 +43,7 @@
             android:layout_centerHorizontal="true"
             android:text="第四大街67号，滨海新区"
             android:layout_below="@+id/tv_device_name"
-            android:textSize="16dp"
+            android:textSize="14dp"
             android:layout_marginTop="5dp"
             android:textColor="#343434"/>
         <TextView
@@ -54,7 +54,7 @@
             android:text="5分钟以前"
             android:layout_below="@+id/tv_device_name"
             android:textSize="14dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="3dp"
             android:textColor="#939393"/>
     </LinearLayout>
     <TextView
@@ -62,7 +62,7 @@
         android:layout_height="wrap_content"
         android:text="选择铃声"
         android:layout_margin="10dp"
-        android:textSize="18dp"
+        android:textSize="16dp"
         android:textColor="#6d6d6d"/>
 
     <android.support.v7.widget.RecyclerView

@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="名称"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="#FF323232"/>
         <EditText
             android:id="@+id/et_name"

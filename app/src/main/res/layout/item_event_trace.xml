@@ -16,8 +16,8 @@
 
         <com.miittech.you.weight.CircleImageView
             android:id="@+id/item_icon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:layout_centerVertical="true"
             android:src="@drawable/ic_email"/>
         <LinearLayout

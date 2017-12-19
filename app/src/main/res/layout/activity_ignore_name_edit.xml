@@ -20,4 +20,8 @@
         android:layout_marginRight="16dp"
         android:textColor="@color/colorPrimary"
         android:textSize="16dp"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/bg_lines"/>
 </LinearLayout>

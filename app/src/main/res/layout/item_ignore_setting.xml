@@ -25,7 +25,7 @@
             android:layout_marginLeft="8dp"
             android:layout_toRightOf="@+id/item_check"
             android:layout_centerVertical="true"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:layout_toLeftOf="@+id/item_flag"
             android:textColor="@color/colorPrimary"/>
         <ImageView

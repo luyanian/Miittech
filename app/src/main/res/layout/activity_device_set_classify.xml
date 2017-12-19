@@ -24,7 +24,7 @@
                 android:layout_height="50dp"
                 android:gravity="center_vertical"
                 android:textColor="#646464"
-                android:textSize="18dp"
+                android:textSize="16dp"
                 android:text="日常"/>
             <LinearLayout
                 android:id="@+id/ll_yaoshi"
@@ -105,7 +105,7 @@
                 android:layout_height="50dp"
                 android:gravity="center_vertical"
                 android:textColor="#646464"
-                android:textSize="18dp"
+                android:textSize="16dp"
                 android:text="交通"/>
             <LinearLayout
                 android:id="@+id/ll_zixingche"
@@ -148,7 +148,7 @@
                 android:layout_height="50dp"
                 android:gravity="center_vertical"
                 android:textColor="#646464"
-                android:textSize="18dp"
+                android:textSize="16dp"
                 android:text="出行"/>
             <LinearLayout
                 android:id="@+id/ll_xiangji"
@@ -299,7 +299,7 @@
                 android:layout_height="50dp"
                 android:gravity="center_vertical"
                 android:textColor="#646464"
-                android:textSize="18dp"
+                android:textSize="16dp"
                 android:text="其他"/>
             <LinearLayout
                 android:id="@+id/ll_qita"

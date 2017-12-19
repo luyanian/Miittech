@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="60dp"
+    android:layout_height="50dp"
     android:orientation="horizontal">
 
     <RelativeLayout
@@ -21,7 +21,7 @@
             android:textIsSelectable="true"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:textSize="20dp" />
+            android:textSize="18dp" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -41,6 +41,6 @@
             android:focusableInTouchMode="false"
             android:focusable="false"
             android:clickable="true"
-            android:textSize="20dp" />
+            android:textSize="18dp" />
     </RelativeLayout>
 </LinearLayout>

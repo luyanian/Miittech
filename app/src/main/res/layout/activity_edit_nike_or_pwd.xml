@@ -22,7 +22,7 @@
             android:gravity="center_vertical"
             android:hint="@string/tip_input_user_nike"
             android:textColorHint="@color/input_hint"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="@color/black"/>
         <TextView
             android:layout_width="match_parent"
@@ -43,7 +43,7 @@
             android:gravity="center_vertical"
             android:hint="@string/tip_input_password_old"
             android:textColorHint="@color/input_hint"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="@color/black"/>
         <TextView
             android:layout_width="match_parent"
@@ -58,7 +58,7 @@
             android:gravity="center_vertical"
             android:hint="@string/tip_input_password_new"
             android:textColorHint="@color/input_hint"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:textColor="@color/black"/>
         <TextView
             android:layout_width="match_parent"

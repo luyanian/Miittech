@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="星期一"
-            android:textSize="16dp"/>
+            android:textSize="14dp"/>
         <ImageView
             android:id="@+id/img_week_1"
             android:layout_width="30dp"
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="星期二"
-            android:textSize="16dp"/>
+            android:textSize="14dp"/>
         <ImageView
             android:id="@+id/img_week_2"
             android:layout_width="30dp"
@@ -71,7 +71,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="星期三"
-            android:textSize="16dp"/>
+            android:textSize="14dp"/>
         <ImageView
             android:id="@+id/img_week_3"
             android:layout_width="30dp"
@@ -96,7 +96,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="星期四"
-            android:textSize="16dp"/>
+            android:textSize="14dp"/>
         <ImageView
             android:id="@+id/img_week_4"
             android:layout_width="30dp"
@@ -121,7 +121,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="星期五"
-            android:textSize="16dp"/>
+            android:textSize="14dp"/>
         <ImageView
             android:id="@+id/img_week_5"
             android:layout_width="30dp"
@@ -146,7 +146,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="星期六"
-            android:textSize="16dp"/>
+            android:textSize="14dp"/>
         <ImageView
             android:id="@+id/img_week_6"
             android:layout_width="30dp"
@@ -171,7 +171,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:text="星期日"
-            android:textSize="16dp"/>
+            android:textSize="14dp"/>
         <ImageView
             android:id="@+id/img_week_7"
             android:layout_width="30dp"

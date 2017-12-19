@@ -20,27 +20,27 @@
                 android:id="@+id/btn_setting_myfriends"
                 android:layout_width="match_parent"
                 android:background="@color/white"
-                android:layout_height="80dp">
+                android:layout_height="50dp">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/text_user_header_image"
                     android:layout_centerVertical="true"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="@color/black"
-                    android:layout_marginLeft="30dp"/>
+                    android:layout_marginLeft="16dp"/>
                 <ImageView
                     android:id="@+id/imageView1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:src="@drawable/ic_setting_arrow"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
                     android:layout_marginRight="15dp"/>
                 <com.miittech.you.weight.CircleImageView
                     android:id="@+id/user_hearder_image"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
                     android:src="@drawable/ic_header_img"
                     android:layout_toLeftOf="@+id/imageView1"
                     android:layout_centerVertical="true"
@@ -62,13 +62,13 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_user_nike"
                     android:layout_centerVertical="true"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="@color/black"
-                    android:layout_marginLeft="30dp"/>
+                    android:layout_marginLeft="16dp"/>
                 <ImageView
                     android:id="@+id/imageView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:src="@drawable/ic_setting_arrow"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
@@ -98,13 +98,13 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_password_edit"
                     android:layout_centerVertical="true"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="@color/black"
-                    android:layout_marginLeft="30dp"/>
+                    android:layout_marginLeft="16dp"/>
                 <ImageView
                     android:id="@+id/imageView3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:src="@drawable/ic_setting_arrow"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
@@ -130,13 +130,13 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_phone_num"
                     android:layout_centerVertical="true"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="@color/black"
-                    android:layout_marginLeft="30dp"/>
+                    android:layout_marginLeft="16dp"/>
                 <ImageView
                     android:id="@+id/imageView4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:src="@drawable/ic_setting_arrow"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
@@ -166,13 +166,13 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_email"
                     android:layout_centerVertical="true"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="@color/black"
-                    android:layout_marginLeft="30dp"/>
+                    android:layout_marginLeft="16dp"/>
                 <ImageView
                     android:id="@+id/imageView5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:src="@drawable/ic_setting_arrow"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
@@ -202,13 +202,13 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_wechat"
                     android:layout_centerVertical="true"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="@color/black"
-                    android:layout_marginLeft="30dp"/>
+                    android:layout_marginLeft="16dp"/>
                 <ImageView
                     android:id="@+id/imageView6"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:src="@drawable/ic_setting_arrow"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
@@ -238,13 +238,13 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_qq"
                     android:layout_centerVertical="true"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textColor="@color/black"
-                    android:layout_marginLeft="30dp"/>
+                    android:layout_marginLeft="16dp"/>
                 <ImageView
                     android:id="@+id/imageView7"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:src="@drawable/ic_setting_arrow"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
@@ -260,6 +260,10 @@
                     android:textSize="16dp"
                     android:text="@string/text_unbind"/>
             </RelativeLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@drawable/bg_setting_lines"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -276,13 +280,13 @@
                         android:layout_height="wrap_content"
                         android:text="@string/text_user_location"
                         android:layout_centerVertical="true"
-                        android:textSize="18dp"
+                        android:textSize="16dp"
                         android:textColor="@color/black"
-                        android:layout_marginLeft="30dp"/>
+                        android:layout_marginLeft="16dp"/>
                     <CheckBox
                         android:id="@+id/user_location_toogle"
-                        android:layout_width="53dp"
-                        android:layout_height="32dp"
+                        android:layout_width="50dp"
+                        android:layout_height="30dp"
                         android:layout_marginRight="20dp"
                         android:button="@null"
                         android:background="@drawable/sl_switch"
@@ -295,7 +299,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="30dp"
+                    android:layout_marginLeft="16dp"
                     android:textSize="14dp"
                     android:textColor="@color/colorPrimary"
                     android:text="关闭后，好友将无法查看你的位置"/>

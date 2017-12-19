@@ -60,6 +60,7 @@
                 android:focusedByDefault="false"
                 android:defaultFocusHighlightEnabled="false"
                 android:hint="请输入位置"
+                android:textSize="14dp"
                 android:textColor="@color/colorPrimary"
                 android:background="@drawable/shap_trans"/>
         </RelativeLayout>
@@ -73,6 +74,7 @@
         android:layout_width="match_parent"
         android:layout_height="35dp"
         android:gravity="center"
+        android:textSize="14dp"
         android:textColor="@color/colorPrimary"
         android:text="当前半径200米"/>
     <TextView
@@ -93,6 +95,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:text="200"
+                android:textSize="12dp"
                 android:layout_margin="8dp"/>
             <TextView
                 android:id="@+id/tv_right"
@@ -101,6 +104,7 @@
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
                 android:text="1000"
+                android:textSize="12dp"
                 android:layout_margin="8dp"/>
             <SeekBar
                 android:id="@+id/seekbar"

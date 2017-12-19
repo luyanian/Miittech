@@ -12,28 +12,29 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="60dp"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
         <TextView
             android:id="@+id/tv_bluetooth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/text_bluetooth"
             android:textColor="@color/black"
-            android:paddingBottom="5dp"
-            android:textSize="18dp"/>
+            android:textSize="16dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tv_bluetooth"
             android:text="@string/text_bluetooth_open_tip"
+            android:layout_marginTop="2dp"
             android:textSize="12dp"/>
 
         <CheckBox
             android:id="@+id/check_bluetooth"
-            android:layout_width="53dp"
-            android:layout_height="32dp"
+            android:layout_width="50dp"
+            android:layout_height="30dp"
             android:button="@null"
             android:background="@drawable/sl_switch"
             android:checked="true"
@@ -45,17 +46,18 @@
         android:background="@drawable/bg_setting_lines"/>
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="60dp"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
         <TextView
             android:id="@+id/tv_location_service"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/text_location_service"
             android:textColor="@color/black"
-            android:paddingBottom="5dp"
-            android:textSize="18dp"/>
+            android:paddingBottom="2dp"
+            android:textSize="16dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -65,8 +67,8 @@
 
         <CheckBox
             android:id="@+id/check_lcoation"
-            android:layout_width="53dp"
-            android:layout_height="32dp"
+            android:layout_width="50dp"
+            android:layout_height="30dp"
             android:button="@null"
             android:background="@drawable/sl_switch"
             android:checked="true"
@@ -79,17 +81,18 @@
     <RelativeLayout
         android:id="@+id/rl_check_notification"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="60dp"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
         <TextView
             android:id="@+id/tv_notification"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/text_notification"
             android:textColor="@color/black"
-            android:paddingBottom="5dp"
-            android:textSize="18dp"/>
+            android:paddingBottom="2dp"
+            android:textSize="16dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -99,8 +102,8 @@
 
         <CheckBox
             android:id="@+id/check_notification"
-            android:layout_width="53dp"
-            android:layout_height="32dp"
+            android:layout_width="50dp"
+            android:layout_height="30dp"
             android:button="@null"
             android:background="@drawable/sl_switch"
             android:checked="true"
@@ -112,27 +115,29 @@
         android:background="@drawable/bg_setting_lines"/>
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="60dp"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
         <TextView
             android:id="@+id/tv_background"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/text_background_application_refresh"
             android:textColor="@color/black"
-            android:textSize="18dp"/>
+            android:textSize="16dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tv_background"
             android:text="@string/text_background_application_open_tip"
+            android:layout_marginTop="2dp"
             android:textSize="12dp"/>
 
         <CheckBox
             android:id="@+id/check_background"
-            android:layout_width="53dp"
-            android:layout_height="32dp"
+            android:layout_width="50dp"
+            android:layout_height="30dp"
             android:button="@null"
             android:background="@drawable/sl_switch"
             android:checked="true"
@@ -151,7 +156,7 @@
             android:text="@string/text_function_of_normal_user"
             android:layout_above="@+id/btn_ok"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="60dp"
+            android:layout_marginTop="100dp"
             android:textSize="16dp"
             android:layout_marginBottom="10dp"/>
         <RelativeLayout

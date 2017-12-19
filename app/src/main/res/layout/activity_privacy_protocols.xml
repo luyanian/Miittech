@@ -24,7 +24,7 @@
                 android:text="隐私协议"
                 android:gravity="center"
                 android:textColor="@color/colorPrimary"
-                android:textSize="22dp"/>
+                android:textSize="20dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
                 android:gravity="center_vertical"
                 android:textColor="@color/colorPrimary"
                 android:layout_marginTop="16dp"
-                android:textSize="22dp"/>
+                android:textSize="20dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
                 android:gravity="center_vertical"
                 android:textColor="@color/colorPrimary"
                 android:layout_marginTop="16dp"
-                android:textSize="22dp"/>
+                android:textSize="20dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -69,7 +69,7 @@
                 android:gravity="center_vertical"
                 android:textColor="@color/colorPrimary"
                 android:layout_marginTop="16dp"
-                android:textSize="22dp"/>
+                android:textSize="20dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -21,12 +21,12 @@
                 android:layout_height="wrap_content"
                 android:text="隐私协议"
                 android:layout_centerVertical="true"
-                android:textSize="18dp"
+                android:textSize="16dp"
                 android:textColor="@color/black"
                 android:layout_marginLeft="30dp"/>
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
                 android:src="@drawable/ic_setting_arrow"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
@@ -50,12 +50,12 @@
                 android:textColor="@color/black"
                 android:layout_marginLeft="30dp"/>
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
                 android:src="@drawable/ic_setting_arrow"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
-                android:layout_marginRight="15dp"/>
+                android:layout_marginRight="16dp"/>
         </RelativeLayout>
     </LinearLayout>
 </LinearLayout>

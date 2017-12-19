@@ -25,8 +25,8 @@
         android:layout_height="wrap_content"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp">
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
 
         <RelativeLayout
             android:id="@+id/rl_item_icon"
@@ -59,14 +59,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#323232"
-                android:textSize="18dp"
+                android:textSize="16dp"
                 android:lines="1"/>
             <TextView
                 android:id="@+id/item_location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#656565"
-                android:textSize="16dp"
+                android:textSize="14dp"
                 android:layout_marginTop="5dp"
                 android:maxLines="2"/>
             <TextView
@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="#969696"
                 android:textSize="14dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="3dp"
                 android:lines="1"/>
         </LinearLayout>
 

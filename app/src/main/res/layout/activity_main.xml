@@ -36,7 +36,7 @@
             android:layout_centerHorizontal="true"
             android:textColor="@drawable/sl_tab_text_color"
             android:gravity="center"
-            android:textSize="16dp"
+            android:textSize="12dp"
             android:text="@string/text_tab_list"/>
         <TextView
             android:id="@+id/tab_map"
@@ -47,7 +47,7 @@
             android:layout_centerHorizontal="true"
             android:textColor="@drawable/sl_tab_text_color"
             android:gravity="center"
-            android:textSize="16dp"
+            android:textSize="12dp"
             android:text="@string/text_tab_map"/>
         <TextView
             android:id="@+id/tab_events"
@@ -58,7 +58,7 @@
             android:layout_centerHorizontal="true"
             android:textColor="@drawable/sl_tab_text_color"
             android:gravity="center"
-            android:textSize="16dp"
+            android:textSize="12dp"
             android:text="@string/text_tab_events"/>
     </LinearLayout>
 </RelativeLayout>

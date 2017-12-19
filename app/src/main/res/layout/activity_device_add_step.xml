@@ -16,6 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="60dp"
         android:text="按贴片的LOGO按钮"
+        android:textSize="16dp"
         android:layout_below="@+id/titlebar"
         android:layout_centerHorizontal="true"/>
 
@@ -41,6 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="正在激活"
+            android:textSize="16dp"
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/progressbar"
             android:layout_marginTop="10dp"/>
@@ -49,6 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="尽量使您的手机和设备靠近"
+            android:textSize="16dp"
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/tv_progress"
             android:layout_marginTop="10dp"/>
@@ -75,7 +78,7 @@
             android:layout_below="@+id/img_connect_status"
             android:layout_marginTop="10dp"
             android:textColor="@color/colorPrimary"
-            android:textSize="18dp"
+            android:textSize="16dp"
             android:text="绑定成功"/>
 
         <TextView
@@ -85,7 +88,7 @@
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/tv_connect_status"
             android:layout_marginTop="10dp"
-            android:textSize="16dp"
+            android:textSize="14dp"
             android:text="请重新绑定"/>
 
     </RelativeLayout>

@@ -12,7 +12,7 @@
         android:text="选择铃声"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:textSize="20dp"
+        android:textSize="16dp"
         android:textColor="@color/colorPrimary"/>
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerview"

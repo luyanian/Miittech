@@ -20,7 +20,6 @@
         <ImageView
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_centerVertical="true"
             android:layout_marginLeft="16dp"
             android:src="@drawable/ic_yoowoo"/>
         <TextView
@@ -34,15 +33,6 @@
             android:text="Yoowoo"/>
     </RelativeLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/rl_device"
-        android:layout_marginTop="80dp"
-        android:text="选择您要绑定的贴片"
-        android:textColor="@color/black"
-        android:textSize="18dp"/>
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -54,6 +44,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/rl_device"
+            android:text="选择您要绑定的贴片"
+            android:textColor="@color/black"
+            android:textSize="16dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
             android:text="还没有贴片？"/>
         <TextView
             android:id="@+id/btn_buy"
