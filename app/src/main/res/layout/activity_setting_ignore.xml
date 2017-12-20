@@ -36,7 +36,7 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="30dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -72,6 +72,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/tv_bluetooth"
+                    android:layout_marginTop="10dp"
                     android:text="@string/text_setting_ignore_area_point"
                     android:textSize="12dp" />
 
@@ -80,7 +81,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-
+                    <include
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        layout="@layout/item_ignore_setting"/>
+                    <include
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        layout="@layout/item_ignore_setting"/>
                 </LinearLayout>
 
                 <TextView
@@ -96,6 +104,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+                    <include
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        layout="@layout/item_ignore_setting"/>
+                    <include
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        layout="@layout/item_ignore_setting"/>
 
                 </LinearLayout>
 

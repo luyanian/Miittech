@@ -323,15 +323,11 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             return;
         }
         List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist = response.getConfig().getDonotdisturb().getArealist();
-        if(arealist==null||arealist.size()<=0){
-
-        }else{
+        if(arealist!=null){
             updateAreaList(arealist);
         }
         List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist = response.getConfig().getDonotdisturb().getTimelist();
-        if(timelist==null||timelist.size()<=0){
-
-        }else{
+        if(timelist!=null){
             updateTimeList(timelist);
         }
     }
@@ -380,6 +376,8 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
 
     private void updateTimeList(List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist) {
         llIgnoreTimes.removeAllViews();
+        boolean isContainCompany = false;
+        boolean isContainHome = false;
         for (final UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean:timelist){
             View view = View.inflate(this,R.layout.item_ignore_setting,null);
             RelativeLayout rlItem = view.findViewById(R.id.rl_item);
@@ -387,7 +385,73 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             TextView itemName = view.findViewById(R.id.item_name);
             TextView itemFlag = view.findViewById(R.id.item_flag);
             ignoreCheckList.add(itemCheck);
+            if("公司".equals(Common.decodeBase64(timelistBean.getTitle()))){
+                isContainCompany=true;
+            }
+            if("家".equals(Common.decodeBase64(timelistBean.getTitle()))){
+                isContainHome=true;
+            }
             itemName.setText(Common.decodeBase64(timelistBean.getTitle()));
+            itemFlag.setVisibility(View.GONE);
+            rlItem.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(isEdit){
+                        if(itemCheck.isChecked()){
+                            itemCheck.setChecked(false);
+                        }else{
+                            unSelectAllExcept();
+                            itemCheck.setChecked(true);
+                            delObject = timelistBean;
+                        }
+                    }else{
+                        Intent intent = new Intent(IgnoreSettingActivity.this, IgnoreTimeSlotActivity.class);
+                        startActivity(intent);
+                    }
+                }
+            });
+            llIgnoreTimes.addView(view);
+        }
+        if(!isContainCompany){
+            final UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean = new UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean();
+            timelistBean.setTitle(Common.encodeBase64("公司"));
+            View view = View.inflate(this,R.layout.item_ignore_setting,null);
+            RelativeLayout rlItem = view.findViewById(R.id.rl_item);
+            final CheckBox itemCheck = view.findViewById(R.id.item_check);
+            TextView itemName = view.findViewById(R.id.item_name);
+            TextView itemFlag = view.findViewById(R.id.item_flag);
+            ignoreCheckList.add(itemCheck);
+            itemName.setText("公司");
+            itemFlag.setVisibility(View.GONE);
+            rlItem.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(isEdit){
+                        if(itemCheck.isChecked()){
+                            itemCheck.setChecked(false);
+                        }else{
+                            unSelectAllExcept();
+                            itemCheck.setChecked(true);
+                            delObject = timelistBean;
+                        }
+                    }else{
+                        Intent intent = new Intent(IgnoreSettingActivity.this, IgnoreTimeSlotActivity.class);
+                        startActivity(intent);
+                    }
+                }
+            });
+            llIgnoreTimes.addView(view);
+        }
+        if(!isContainHome){
+            final UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean = new UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean();
+            timelistBean.setTitle(Common.encodeBase64("家"));
+            View view = View.inflate(this,R.layout.item_ignore_setting,null);
+            RelativeLayout rlItem = view.findViewById(R.id.rl_item);
+            final CheckBox itemCheck = view.findViewById(R.id.item_check);
+            TextView itemName = view.findViewById(R.id.item_name);
+            TextView itemFlag = view.findViewById(R.id.item_flag);
+            ignoreCheckList.add(itemCheck);
+            itemName.setText("家");
             itemFlag.setVisibility(View.GONE);
             rlItem.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -434,7 +498,7 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         if(delObject instanceof UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean){
             UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean = (UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean) delObject;
             Map timedef = new HashMap();
-            timedef.put("id","0");
+            timedef.put("id",timelistBean.getId());
             timedef.put("title", timelistBean.getTitle());
             timedef.put("dayofweek",timelistBean.getDayofweek());
             timedef.put("stime",timelistBean.getStime());
@@ -454,7 +518,7 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             area.put("lng",arealistBean.getArea().getLng());
             area.put("R",arealistBean.getArea().getR());
             Map areadef = new HashMap();
-            areadef.put("id",0);
+            areadef.put("id",arealistBean.getId());
             areadef.put("title", arealistBean.getTitle());
             areadef.put("inout",1);
             areadef.put("areadef",area);

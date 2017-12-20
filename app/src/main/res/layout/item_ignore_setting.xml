@@ -6,7 +6,7 @@
     <RelativeLayout
         android:id="@+id/rl_item"
         android:layout_width="match_parent"
-        android:layout_height="45dp">
+        android:layout_height="35dp">
         <CheckBox
             android:id="@+id/item_check"
             android:layout_width="20dp"
@@ -30,8 +30,8 @@
             android:textColor="@color/colorPrimary"/>
         <ImageView
             android:id="@+id/img_right2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             android:src="@drawable/ic_setting_arrow"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
@@ -46,6 +46,6 @@
             android:hint="未设置"
             android:textColorHint="@color/input_hint"
             android:textColor="@color/colorPrimary"
-            android:textSize="16dp"/>
+            android:textSize="14dp"/>
     </RelativeLayout>
 </LinearLayout>
