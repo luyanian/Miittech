@@ -1,5 +1,6 @@
 package com.miittech.you.net.response;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -7,22 +8,26 @@ import java.util.List;
  */
 
 public class FriendLocInfoResponse extends BaseResponse {
-    private List<FriendInfo> friendlist;
 
-    public List<FriendInfo> getFriendlist() {
+    private List<FriendlistBean> friendlist;
+
+    public List<FriendlistBean> getFriendlist() {
         return friendlist;
     }
 
-    public void setFriendlist(List<FriendInfo> friendlist) {
+    public void setFriendlist(List<FriendlistBean> friendlist) {
         this.friendlist = friendlist;
     }
 
-    public static class FriendInfo{
+    public static class FriendlistBean implements Serializable {
+        /**
+         * friendid : 7
+         * locinfo : {"lat":39.141935,"lng":117.195131,"addr":"5aSp5rSl5biC5ZKM5bmz5Yy65Y2X6ams6LevMTHlj7c="}
+         * updtime : 20171220090825
+         */
+
         private String friendid;
-        private LocInfo locinfo;
-        private double lat;
-        private double lng;
-        private String addr;
+        private LocinfoBean locinfo;
         private String updtime;
 
         public String getFriendid() {
@@ -33,36 +38,12 @@ public class FriendLocInfoResponse extends BaseResponse {
             this.friendid = friendid;
         }
 
-        public LocInfo getLocinfo() {
+        public LocinfoBean getLocinfo() {
             return locinfo;
         }
 
-        public void setLocinfo(LocInfo locinfo) {
+        public void setLocinfo(LocinfoBean locinfo) {
             this.locinfo = locinfo;
-        }
-
-        public double getLat() {
-            return lat;
-        }
-
-        public void setLat(double lat) {
-            this.lat = lat;
-        }
-
-        public double getLng() {
-            return lng;
-        }
-
-        public void setLng(double lng) {
-            this.lng = lng;
-        }
-
-        public String getAddr() {
-            return addr;
-        }
-
-        public void setAddr(String addr) {
-            this.addr = addr;
         }
 
         public String getUpdtime() {
@@ -72,35 +53,41 @@ public class FriendLocInfoResponse extends BaseResponse {
         public void setUpdtime(String updtime) {
             this.updtime = updtime;
         }
-    }
 
-    public static class LocInfo{
-        private double lat;
-        private double lng;
-        private String attr;
+        public static class LocinfoBean implements Serializable {
+            /**
+             * lat : 39.141935
+             * lng : 117.195131
+             * addr : 5aSp5rSl5biC5ZKM5bmz5Yy65Y2X6ams6LevMTHlj7c=
+             */
 
-        public double getLat() {
-            return lat;
-        }
+            private double lat;
+            private double lng;
+            private String addr;
 
-        public void setLat(long lat) {
-            this.lat = lat;
-        }
+            public double getLat() {
+                return lat;
+            }
 
-        public double getLng() {
-            return lng;
-        }
+            public void setLat(double lat) {
+                this.lat = lat;
+            }
 
-        public void setLng(long lng) {
-            this.lng = lng;
-        }
+            public double getLng() {
+                return lng;
+            }
 
-        public String getAttr() {
-            return attr;
-        }
+            public void setLng(double lng) {
+                this.lng = lng;
+            }
 
-        public void setAttr(String attr) {
-            this.attr = attr;
+            public String getAddr() {
+                return addr;
+            }
+
+            public void setAddr(String addr) {
+                this.addr = addr;
+            }
         }
     }
 }

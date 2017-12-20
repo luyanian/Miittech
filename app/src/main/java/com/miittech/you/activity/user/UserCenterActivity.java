@@ -342,28 +342,30 @@ public class UserCenterActivity extends BaseActivity {
                 break;
             case R.id.btn_user_location:
                 if(userLocationToogle.isChecked()){
-                    MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(this);
-                    msgTipDialog.setTitle("操作确认");
-                    msgTipDialog.setMsg("关闭后，好友将无法查看你的位置，确认关闭吗？");
-                    msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions(){
-                        @Override
-                        public void onSure() {
-                            super.onSure();
-                            updateIsShareLocation(false);
-                        }
-                    });
+                    MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(this)
+                        .setTitle("操作确认")
+                        .setMsg("关闭后，好友将无法查看你的位置，确认关闭吗？")
+                        .setOnMsgTipOptions(new OnMsgTipOptions(){
+                            @Override
+                            public void onSure() {
+                                super.onSure();
+                                updateIsShareLocation(false);
+                            }
+                       });
                     msgTipDialog.show();
                 }else{
                     updateIsShareLocation(true);
                 }
                 break;
             case R.id.btn_logout:
-                DialogUtils.getInstance().showLogoutDialog(this).onClickSure(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        doLogout();
-                    }
-                });
+                DialogUtils.getInstance().showLogoutDialog(this)
+                    .onClickSure(new OnMsgTipOptions() {
+                        @Override
+                        public void onSure() {
+                            super.onSure();
+                            doLogout();
+                        }
+                    });
                 break;
         }
     }

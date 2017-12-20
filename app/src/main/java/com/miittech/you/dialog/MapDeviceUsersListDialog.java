@@ -33,7 +33,7 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
     private MapDeviceUsersListAdapter mapAdapter;
 
     public MapDeviceUsersListDialog(@NonNull Context context) {
-        super(context, R.style.DialogStyle);
+        super(context, R.style.DialogTransStyle);
         setContentView(R.layout.dialog_map_device_users_list);
         ButterKnife.bind(this);
         this.context = context;
@@ -81,6 +81,7 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
             }else if("friend".equals(type)){
                 FriendsResponse.FriendlistBean friendlistBean = new FriendsResponse.FriendlistBean();
                 friendlistBean.setFriendid(Common.getUserId());
+                friendlistBean.setNickname(Common.getNikeName());
                 friendlistBean.setHeadimg(Common.getUserHeadImage());
                 list.add(0,friendlistBean);
             }

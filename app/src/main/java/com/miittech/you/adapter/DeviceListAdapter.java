@@ -21,6 +21,7 @@ import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.weight.CircleImageView;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.TimeUtils;
 import java.text.SimpleDateFormat;
@@ -106,20 +107,29 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         });
     }
 
-    private void setConnectStatusStyle(String mac) {
+    private void setConnectStatusStyle(String mac){
+        setConnectStatusStyle(mac,-50);
+    }
+
+    private void setConnectStatusStyle(String mac,int rssi) {
         ViewHolder holder = holders.get(mac);
         if(holder==null){
             return;
         }
         if(BleManager.getInstance().isConnected(mac)){
-            holder.itemIconStatus.setVisibility(View.VISIBLE);
-            holder.itemIconStatus.setBackgroundResource(R.drawable.anim_connect_status);
-            AnimationDrawable animationDrawable = (AnimationDrawable) holder.itemIconStatus.getBackground();
-            if(animationDrawable!=null&&!animationDrawable.isRunning()){
-                animationDrawable.start();
+            if(rssi>-50) {
+                holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.ic_connect1));
+            }else if(rssi<=-50&&rssi>-65){
+                holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.ic_connect2));
+            }else if(rssi<=-65&&rssi>-85){
+                holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.ic_connect3));
+            }else if(rssi<=-85&&rssi>-100){
+                holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.ic_connect4));
+            }else if(rssi<=-100){
+                holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.ic_connect5));
             }
         }else{
-            holder.itemIconStatus.setVisibility(View.GONE);
+            holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.windowBg));
         }
     }
 
@@ -161,10 +171,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         RelativeLayout rlItem;
         @BindView(R.id.tv_is_shared)
         TextView tvIsShared;
-        @BindView(R.id.item_icon_status)
-        ImageView itemIconStatus;
         @BindView(R.id.item_icon)
-        ImageView itemIcon;
+        CircleImageView itemIcon;
         @BindView(R.id.item_title)
         TextView itemTitle;
         @BindView(R.id.item_location)
@@ -194,6 +202,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                     case IntentExtras.RET.RET_BLE_READ_RSSI:
                         LogUtils.d("RET_DEVICE_READ_RSSI");
                         int rssi = intent.getIntExtra("rssi",0);
+                        setConnectStatusStyle(address,rssi);
                         updateItemRssi(address,rssi);
                         break;
                     case IntentExtras.RET.RET_BLE_READ_BATTERY:
@@ -236,9 +245,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     private void updateItemBattery(String address, String battery) {
         ViewHolder viewHolder = holders.get(address);
         if(viewHolder!=null&&!TextUtils.isEmpty(battery)){
-            if(viewHolder.itemBattery!=null&&Integer.valueOf(battery)<20) {
-                viewHolder.itemBattery.setText("剩余电量  " + battery + "%");
-            }
+//            if(viewHolder.itemBattery!=null&&Integer.valueOf(battery)<20) {
+//                viewHolder.itemBattery.setText("剩余电量  " + battery + "%");
+//            }
             if(viewHolder.itemTime!=null) {
                 viewHolder.itemTime.setText("现在");
             }

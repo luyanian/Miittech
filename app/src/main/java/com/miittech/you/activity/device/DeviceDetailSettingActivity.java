@@ -16,6 +16,7 @@ import com.miittech.you.common.Common;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
+import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
@@ -27,6 +28,8 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 
 import java.io.File;
@@ -195,6 +198,47 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                     public void accept(BaseResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             doDeviceIconEditAttr(response.getUrl());
+                        } else {
+                            response.onError(DeviceDetailSettingActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+    private void getDeviceInfo(final DeviceResponse.DevlistBean device) {
+        if(!NetworkUtils.isConnected()){
+            DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(device.getDevidX()));
+            if(response!=null){
+                initData(response.getUserinfo().getDevinfo());
+            }
+            return;
+        }
+        Map param = new HashMap();
+        param.put("devid", device.getDevidX());
+        param.put("qrytype", Params.QRY_TYPE.ALL);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "deviceinfo/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postDeviceInfoOption(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceInfoResponse>() {
+                    @Override
+                    public void accept(DeviceInfoResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            SPUtils.getInstance().remove(Common.formatDevId2Mac(device.getDevidX()));
+                            SPUtils.getInstance().saveObject(Common.formatDevId2Mac(device.getDevidX()),response);
+                            initData(response.getUserinfo().getDevinfo());
                         } else {
                             response.onError(DeviceDetailSettingActivity.this);
                         }

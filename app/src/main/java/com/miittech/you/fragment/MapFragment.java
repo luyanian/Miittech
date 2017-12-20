@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClientOption;
@@ -25,7 +26,6 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
-import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 import com.bumptech.glide.load.resource.bitmap.CircleCrop;
@@ -58,11 +58,13 @@ import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -83,9 +85,12 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     MapView mMapView;
     @BindView(R.id.img_device)
     ImageView imgDevice;
+    @BindView(R.id.img_users)
+    ImageView imgUsers;
     private BaiduMap mBaiduMap;
     private Object currentObject;
-    private float radius=200f;
+//    private float radius = 200f;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle
@@ -106,12 +111,12 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             // 相当于onResume()方法
-            if(mMapView!=null) {
+            if (mMapView != null) {
                 mMapView.onResume();
             }
         } else {
             // 相当于onpause()方法
-            if(mMapView!=null) {
+            if (mMapView != null) {
                 mMapView.onPause();
             }
         }
@@ -121,12 +126,12 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     public void onHiddenChanged(boolean hidden) {
         if (hidden) {
             //相当于Fragment的onPause
-            if(mMapView!=null) {
+            if (mMapView != null) {
                 mMapView.onPause();
             }
         } else {
             // 相当于Fragment的onResume
-            if(mMapView!=null) {
+            if (mMapView != null) {
                 mMapView.onResume();
             }
         }
@@ -135,41 +140,27 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if(mMapView!=null) {
+        if (mMapView != null) {
             mMapView.onDestroy();
         }
         unbinder.unbind();
     }
 
     @OnClick(R.id.img_device)
-    public void onClickDevice(){
+    public void onClickDevice() {
+        imgUsers.setImageResource(R.drawable.ic_users);
+        imgDevice.setImageResource(R.drawable.ic_devece_hr);
         getDeviceList();
     }
+
     @OnClick(R.id.img_users)
-    public void onClickFriends(){
+    public void onClickFriends() {
+        imgDevice.setImageResource(R.drawable.ic_devece);
+        imgUsers.setImageResource(R.drawable.ic_users_hr);
         getFrentList();
     }
 
-    private BDAbstractLocationListener listener = new BDAbstractLocationListener() {
-        @Override
-        public void onReceiveLocation(BDLocation location){
-            radius = location.getRadius();
-            MyLocationData locData = new MyLocationData.Builder()
-                    .accuracy(radius)
-                    .direction(0).latitude(location.getLatitude())
-                    .longitude(location.getLongitude()).build();
-
-            // 设置定位数据
-            mBaiduMap.setMyLocationData(locData);
-
-            LatLng ll = new LatLng(location.getLatitude(),location.getLongitude());
-            MapStatus.Builder builder = new MapStatus.Builder();
-            builder.target(ll).zoom(18.0f);
-            mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
-        }
-    };
-
-    private void getFrentList(){
+    private void getFrentList() {
         Map param = new HashMap();
         param.put("state", 1);
         String json = new Gson().toJson(param);
@@ -181,34 +172,31 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         String path = HttpUrl.Api + "friendslist/" + pubParam.toUrlParam(sign);
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
 
-        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetFriendList(path,
-                requestBody)
+        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetFriendList(path,requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<FriendsResponse>() {
                     @Override
                     public void accept(FriendsResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            if(response.getFriendlist()!=null&&response.getFriendlist().size()>0) {
+                            if (response.getFriendlist() != null) {
                                 final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance().createDevicesUsersDialog(getActivity());
-                                mapDialog.initData("friend",response.getFriendlist(),new OnListItemClick(){
+                                mapDialog.initData("friend", response.getFriendlist(), new OnListItemClick() {
                                     @Override
                                     public void onItemClick(Object o) {
                                         super.onItemClick(o);
                                         FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) o;
-                                        if(!Common.getUserId().equals(friend.getFriendid())) {
+                                        if (!Common.getUserId().equals(friend.getFriendid())) {
                                             getFriendLocation(friend);
-                                        }else{
+                                        } else {
                                             initMapView(friend);
                                         }
-                                        if(mapDialog!=null&&mapDialog.isShowing()){
+                                        if (mapDialog != null && mapDialog.isShowing()) {
                                             mapDialog.dismiss();
                                         }
                                     }
                                 });
                                 mapDialog.show();
-                            }else{
-                                ToastUtils.showShort("您还没有添加好友！");
                             }
                         } else {
                             response.onError(getActivity());
@@ -223,7 +211,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     }
 
 
-    public void initMapView(){
+    public void initMapView() {
 
         mBaiduMap = mMapView.getMap();
         //普通地图
@@ -233,63 +221,40 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         MapView.setMapCustomEnable(true);
         mBaiduMap.setOnMyLocationClickListener(this);
         final Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
-        if(locinfo!=null){
-            MyLocationData locData = new MyLocationData.Builder()
-                    .accuracy(30)
-                    .direction(0).latitude(locinfo.getLat())
-                    .longitude(locinfo.getLng()).build();
-
-            // 设置定位数据
-            mBaiduMap.setMyLocationData(locData);
-
-            LatLng ll = new LatLng(locinfo.getLat(),locinfo.getLng());
+        if (locinfo != null) {
+//            MyLocationData locData = new MyLocationData.Builder()
+//                    .accuracy(30)
+//                    .direction(0).latitude(locinfo.getLat())
+//                    .longitude(locinfo.getLng()).build();
+//
+//            // 设置定位数据
+//            mBaiduMap.setMyLocationData(locData);
+            LatLng ll = new LatLng(locinfo.getLat(), locinfo.getLng());
             MapStatus.Builder builder = new MapStatus.Builder();
             builder.target(ll).zoom(18.0f);
             mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(builder.build()));
             return;
         }
-        RxPermissions permissions = new RxPermissions(getActivity());
-        permissions.request
-                (Manifest.permission.READ_PHONE_STATE,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION
-                        ,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .subscribe(new Consumer<Boolean>() {
-                    @Override
-                    public void accept(Boolean aBoolean) throws Exception {
-                        if(aBoolean){
-                            //注册监听函数
-                            LocationClientOption option = new LocationClientOption();
-                            option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
-                            option.setCoorType("bd09ll");
-                            option.setScanSpan(0);//只定位一次
-                            option.setOpenGps(true);
-                            option.setLocationNotify(true);
-                            option.setIgnoreKillProcess(false);
-                            option.SetIgnoreCacheException(false);
-                            option.setWifiCacheTimeOut(5*60*1000);
-                            option.setEnableSimulateGps(false);
-                            LocationClient.getInstance().initLocation().startLocation(option,listener);
-                        }
-                    }
-                });
     }
-    private void initMapView(final FriendsResponse.FriendlistBean friend, List<FriendLocInfoResponse.FriendInfo> friendInfos) {
+
+    private void initMapView(final FriendsResponse.FriendlistBean friend, List<FriendLocInfoResponse.FriendlistBean> friendInfos) {
         boolean isContain = false;
-        if(friendInfos!=null&&friendInfos.size()>0){
-            for (final FriendLocInfoResponse.FriendInfo friendInfo : friendInfos){
-                if(friend.getFriendid().equals(friendInfo.getFriendid())){
+        if (friendInfos != null && friendInfos.size() > 0) {
+            for (final FriendLocInfoResponse.FriendlistBean friendInfo : friendInfos) {
+                if (friend.getFriendid().equals(friendInfo.getFriendid())) {
                     isContain = true;
                     currentObject = friendInfo;
                     GlideApp.with(this)
                             .asBitmap()
                             .centerCrop()
-                            .override(60,60)
+                            .override(100, 100)
                             .load(friend.getHeadimg())
                             .transform(new CircleCrop())
                             .into(new SimpleTarget<Bitmap>() {
                                 @Override
                                 public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
                                     final BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
-                                    final LatLng llCircle = new LatLng(friendInfo.getLat(),friendInfo.getLng());
+                                    final LatLng llCircle = new LatLng(friendInfo.getLocinfo().getLat(), friendInfo.getLocinfo().getLng());
                                     MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
                                     Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
                                     MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
@@ -305,8 +270,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                                             button.setWidth(300);
                                             InfoWindow.OnInfoWindowClickListener listener = new InfoWindow.OnInfoWindowClickListener() {
                                                 public void onInfoWindowClick() {
-                                                    if(!Common.getUserId().equals(friendInfo.getFriendid())) {
-                                                        Intent intent = new Intent(getActivity(),FriendTraceDetailActivity.class);
+                                                    if (!Common.getUserId().equals(friendInfo.getFriendid())) {
+                                                        Intent intent = new Intent(getActivity(), FriendTraceDetailActivity.class);
                                                         intent.putExtra(IntentExtras.DEVICE.DATA, friend);
                                                         startActivity(intent);
                                                         mBaiduMap.hideInfoWindow();
@@ -325,26 +290,27 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                 }
             }
         }
-        if(!isContain){
+        if (!isContain) {
             ToastUtils.showShort("该好友还没有位置信息！");
         }
     }
+
     private void initMapView(final FriendsResponse.FriendlistBean friend) {
         final Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
-        if(locinfo==null){
+        if (locinfo == null) {
             return;
         }
         GlideApp.with(this)
                 .asBitmap()
                 .centerCrop()
-                .override(60,60)
+                .override(100, 100)
                 .load(friend.getHeadimg())
                 .transform(new CircleCrop())
                 .into(new SimpleTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
                         final BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
-                        final LatLng llCircle = new LatLng(locinfo.getLat(),locinfo.getLng());
+                        final LatLng llCircle = new LatLng(locinfo.getLat(), locinfo.getLng());
                         MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
                         Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
                         MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
@@ -372,21 +338,21 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                 });
     }
 
-    private void initMapView(final DeviceResponse.DevlistBean device){
+    private void initMapView(final DeviceResponse.DevlistBean device) {
         final DeviceResponse.DevlistBean.LocinfoBean locInfo = device.getLocinfo();
         currentObject = device;
-        if(locInfo==null){
+        if (locInfo == null) {
             return;
         }
         GlideApp.with(this)
-            .asBitmap()
-            .centerCrop()
-            .override(100,100)
-            .load(device.getDevimg())
-            .transform(new CircleCrop())
-            .into(new SimpleTarget<Bitmap>() {
-                @Override
-                public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+                .asBitmap()
+                .centerCrop()
+                .override(100, 100)
+                .load(device.getDevimg())
+                .transform(new CircleCrop())
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
 //                    MyLocationData locData = new MyLocationData.Builder()
 //                            .accuracy(radius)
 //                            .direction(0)
@@ -394,43 +360,43 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 //                            .longitude(locInfo.getLng()).build();
 //                    mBaiduMap.setMyLocationData(locData);
 
-                    final BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
-                    final LatLng llCircle = new LatLng(locInfo.getLat(),locInfo.getLng());
-                    MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
-                    Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
-                    MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
-                    mBaiduMap.setMapStatus(u);
+                        final BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(resource);
+                        final LatLng llCircle = new LatLng(locInfo.getLat(), locInfo.getLng());
+                        MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
+                        Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
+                        MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
+                        mBaiduMap.setMapStatus(u);
 
-                    mBaiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
-                        @Override
-                        public boolean onMarkerClick(Marker marker) {
-                            Button button = new Button(App.getInstance().getApplicationContext());
-                            button.setBackgroundResource(R.drawable.popup);
-                            button.setText(Common.decodeBase64(device.getDevname()));
-                            button.setTextColor(Color.BLACK);
-                            button.setWidth(300);
-                            InfoWindow.OnInfoWindowClickListener listener = new InfoWindow.OnInfoWindowClickListener() {
-                                public void onInfoWindowClick() {
-                                    Intent intent = new Intent(getActivity(),DeviceDetailActivity.class);
-                                    intent.putExtra(IntentExtras.DEVICE.DATA,device);
-                                    startActivity(intent);
-                                    mBaiduMap.hideInfoWindow();
-                                }
-                            };
-                            InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -47, listener);
-                            mBaiduMap.showInfoWindow(mInfoWindow);
-                            return false;
-                        }
-                    });
-                }
-            });
+                        mBaiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+                            @Override
+                            public boolean onMarkerClick(Marker marker) {
+                                Button button = new Button(App.getInstance().getApplicationContext());
+                                button.setBackgroundResource(R.drawable.popup);
+                                button.setText(Common.decodeBase64(device.getDevname()));
+                                button.setTextColor(Color.BLACK);
+                                button.setWidth(300);
+                                InfoWindow.OnInfoWindowClickListener listener = new InfoWindow.OnInfoWindowClickListener() {
+                                    public void onInfoWindowClick() {
+                                        Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
+                                        intent.putExtra(IntentExtras.DEVICE.DATA, device);
+                                        startActivity(intent);
+                                        mBaiduMap.hideInfoWindow();
+                                    }
+                                };
+                                InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -47, listener);
+                                mBaiduMap.showInfoWindow(mInfoWindow);
+                                return false;
+                            }
+                        });
+                    }
+                });
 
     }
 
     private void getFriendLocation(final FriendsResponse.FriendlistBean friend) {
         List<Map> friendlist = new ArrayList<>();
         Map item = new HashMap();
-        item.put("friendid",friend.getFriendid());
+        item.put("friendid", friend.getFriendid());
         friendlist.add(item);
         Map param = new HashMap();
         param.put("qrytype", Params.QRY_TYPE.BASE);
@@ -443,40 +409,29 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         LogUtils.d("sign_sha1", sign);
         String path = HttpUrl.Api + "friendslocation/" + pubParam.toUrlParam(sign);
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(getActivity()).postNetRequestObject(path,
+        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetFriendLocList(path,
                 requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<JsonObject>() {
-
+                .subscribe(new Consumer<FriendLocInfoResponse>() {
                     @Override
-                    public void accept(JsonObject jsonObject) throws Exception {
-                        JsonObject jsonObject1 = jsonObject;
+                    public void accept(FriendLocInfoResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            if(response.getFriendlist()!=null&&response.getFriendlist().size()>0) {
+                                initMapView(friend,response.getFriendlist());
+                            }else{
+                                response.onError(getActivity());
+                            }
+                        } else {
+                            response.onError(getActivity());
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
                     }
                 });
-//        ApiServiceManager.getInstance().buildApiService(getActivity()).postToGetFriendLocList(path,
-//                requestBody)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Consumer<FriendLocInfoResponse>() {
-//                    @Override
-//                    public void accept(FriendLocInfoResponse response) throws Exception {
-//                        if (response.isSuccessful()) {
-//                            if(response.getFriendlist()!=null&&response.getFriendlist().size()>0) {
-//                                initMapView(friend,response.getFriendlist());
-//                            }else{
-//                                response.onError(getActivity());
-//                            }
-//                        } else {
-//                            response.onError(getActivity());
-//                        }
-//                    }
-//                }, new Consumer<Throwable>() {
-//                    @Override
-//                    public void accept(Throwable throwable) throws Exception {
-//                        throwable.printStackTrace();
-//                    }
-//                });
     }
 
     private void getDeviceList() {
@@ -497,23 +452,23 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                 .subscribe(new Consumer<DeviceResponse>() {
                     @Override
                     public void accept(DeviceResponse response) throws Exception {
-                        if(response.isSuccessful()){
-                            if(response.getDevlist()!=null&&response.getDevlist().size()>0) {
+                        if (response.isSuccessful()) {
+                            if (response.getDevlist() != null && response.getDevlist().size() > 0) {
                                 final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance().createDevicesUsersDialog(getActivity());
-                                mapDialog.initData("device",response.getDevlist(),new OnListItemClick(){
+                                mapDialog.initData("device", response.getDevlist(), new OnListItemClick() {
                                     @Override
                                     public void onItemClick(Object o) {
                                         super.onItemClick(o);
                                         DeviceResponse.DevlistBean device = (DeviceResponse.DevlistBean) o;
                                         initMapView(device);
-                                        if(mapDialog!=null&&mapDialog.isShowing()){
+                                        if (mapDialog != null && mapDialog.isShowing()) {
                                             mapDialog.dismiss();
                                         }
                                     }
                                 });
                                 mapDialog.show();
                             }
-                        }else{
+                        } else {
                             response.onError(getActivity());
                         }
                     }
@@ -527,16 +482,16 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 
     @Override
     public boolean onMyLocationClick() {
-        if(currentObject==null){
+        if (currentObject == null) {
             return false;
         }
         Intent intent;
-        if(currentObject instanceof FriendsResponse.FriendlistBean){
+        if (currentObject instanceof FriendsResponse.FriendlistBean) {
 
         }
-        if(currentObject instanceof DeviceResponse.DevlistBean){
+        if (currentObject instanceof DeviceResponse.DevlistBean) {
             intent = new Intent(getActivity(), DeviceDetailActivity.class);
-            intent.putExtra(IntentExtras.DEVICE.DATA,(DeviceResponse.DevlistBean)currentObject);
+            intent.putExtra(IntentExtras.DEVICE.DATA, (DeviceResponse.DevlistBean) currentObject);
             startActivity(intent);
         }
         return false;

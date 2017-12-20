@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnIgnoreAddOptions;
+import com.miittech.you.impl.OnMsgTipOptions;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.net.ApiServiceManager;
@@ -31,6 +33,7 @@ import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -120,6 +123,48 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
         typeSelector.setTypeSelectorChangeLisener(this);
         typeSelector.setSelectItem(0);
     }
+    private void updateIngnoreSettingValid(int valid) {
+        Map userattr = new HashMap();
+        Map param = new HashMap();
+        if(typeSelector.getSelectItem()==0) {
+            SPUtils.getInstance().remove(SPConst.DISTURB.ISAREADISTURB);
+            SPUtils.getInstance().put(SPConst.DISTURB.ISAREADISTURB,valid);
+            userattr.put("isAreaDisturb", valid);
+            param.put("method", "E");
+        }else if(typeSelector.getSelectItem()==1){
+            SPUtils.getInstance().remove(SPConst.DISTURB.ISTIMEDISTURB);
+            SPUtils.getInstance().put(SPConst.DISTURB.ISTIMEDISTURB,valid);
+            userattr.put("isTimeDisturb", valid);
+            param.put("method", "F");
+        }
+        param.put("userattr", userattr);
+
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userattr/" + pubParam.toUrlParam(sign);
+        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(this).postNetRequest(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BaseResponse>() {
+                    @Override
+                    public void accept(BaseResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+
+                        } else {
+                            ToastUtils.showShort(response.getErrmsg());
+                        }
+                    }
+                });
+    }
 
     @Override
     protected void onResume() {
@@ -142,6 +187,13 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             }else {
                 btnAddText.setText(getResources().getString(R.string.text_setting_ignore_area_add));
             }
+            if(SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==1){
+                checkSettingIgnore.setChecked(true);
+                updateIngnoreSettingValid(1);
+            }else{
+                checkSettingIgnore.setChecked(false);
+                updateIngnoreSettingValid(0);
+            }
         } else if (item == 1) {
             tvSettingTitle.setText(getResources().getString(R.string.text_setting_ignore_time));
             tvSettingIgnoreDesc.setText(getResources().getString(R.string.tip_msg_ignore_time_desc));
@@ -155,38 +207,80 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             }else {
                 btnAddText.setText(getResources().getString(R.string.text_setting_ignore_time_add));
             }
+            if(SPUtils.getInstance().getInt(SPConst.DISTURB.ISTIMEDISTURB,1)==1){
+                checkSettingIgnore.setChecked(true);
+                updateIngnoreSettingValid(1);
+            }else{
+                checkSettingIgnore.setChecked(false);
+                updateIngnoreSettingValid(0);
+            }
         }
     }
 
-    @OnClick(R.id.btn_add_setting)
-    public void onViewClicked() {
-        if(isEdit){
-            //删除操作
-            doDelIgnoreSetting();
-            return;
-        }
-        if(typeSelector.getSelectItem()==0){
-            DialogUtils.getInstance().showIgnoreAddDialog(this).setIgnoreAddOptions(new OnIgnoreAddOptions() {
-                @Override
-                public void addPointIgnore() {
-                    Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddPointActivity.class);
-                    startActivity(intent);
+    @OnClick({R.id.btn_add_setting,R.id.check_setting_ignore})
+    public void onViewClicked(View view) {
+        switch (view.getId()){
+            case R.id.btn_add_setting:
+                if(isEdit){
+                    //删除操作
+                    doDelIgnoreSetting();
+                    return;
                 }
+                if(typeSelector.getSelectItem()==0){
+                    DialogUtils.getInstance().showIgnoreAddDialog(this).setIgnoreAddOptions(new OnIgnoreAddOptions() {
+                        @Override
+                        public void addPointIgnore() {
+                            Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddPointActivity.class);
+                            startActivity(intent);
+                        }
 
-                @Override
-                public void addWifiIgnore() {
-                    Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddWifiActivity.class);
+                        @Override
+                        public void addWifiIgnore() {
+                            Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreAddWifiActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+                }
+                if(typeSelector.getSelectItem()==1){
+                    Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreTimeSlotActivity.class);
                     startActivity(intent);
                 }
-            });
-        }
-        if(typeSelector.getSelectItem()==1){
-            Intent intent = new Intent(IgnoreSettingActivity.this,IgnoreTimeSlotActivity.class);
-            startActivity(intent);
+                break;
+            case R.id.check_setting_ignore:
+                if(checkSettingIgnore.isChecked()){
+                    updateIngnoreSettingValid(1);
+                }else{
+                    DialogUtils.getInstance().createMsgTipDialog(IgnoreSettingActivity.this)
+                            .setTitle("关闭勿扰设置")
+                            .setMsg("关闭后，所有的勿扰设置将失效")
+                            .setLeftBtnText("取消")
+                            .setRightBtnText("确定")
+                            .setOnMsgTipOptions(new OnMsgTipOptions(){
+                                @Override
+                                public void onCancel() {
+                                    super.onCancel();
+                                    checkSettingIgnore.setChecked(true);
+                                }
+
+                                @Override
+                                public void onSure() {
+                                    super.onSure();
+                                    updateIngnoreSettingValid(0);
+                                }
+                            }).show();
+                }
+                break;
         }
     }
 
     private void getIgnoreSetting() {
+        if(!NetworkUtils.isConnected()){
+            UserInfoResponse userInfoResponse = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
+            if(userInfoResponse!=null){
+                initIgnoreConfig(userInfoResponse);
+            }
+            return;
+        }
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
@@ -205,9 +299,9 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
                         if(response.isSuccessful()) {
-                            initIgnoreConfig(response);
                             SPUtils.getInstance().readObject(SPConst.USER_INFO);
                             SPUtils.getInstance().saveObject(SPConst.USER_INFO, response);
+                            initIgnoreConfig(response);
                         }else {
                             response.onError(IgnoreSettingActivity.this);
                         }

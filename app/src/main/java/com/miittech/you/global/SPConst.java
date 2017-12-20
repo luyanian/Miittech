@@ -11,7 +11,7 @@ public class SPConst{
         public static final String SP_NAME="session";
         public static final String KEY_TOCKEN="tocken";
         public static final String KEY_USERID="userId";
-        public static final String KEY_UNAME="uname";
+        public static final String KEY_NIKENAME="uname";
         public static final String KEY_IMAGE="image";
     }
 
@@ -26,5 +26,9 @@ public class SPConst{
     public static class DATA{
         public static final String DEVICELIST = "deviceList";
         public static final String USERINFO = "userinfo";
+    }
+    public static class DISTURB{
+        public static final String ISAREADISTURB="isAreaDisturb";
+        public static final String ISTIMEDISTURB="isTimeDisturb";
     }
 }

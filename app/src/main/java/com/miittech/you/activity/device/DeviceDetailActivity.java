@@ -17,6 +17,7 @@ import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
@@ -42,7 +43,6 @@ import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
-
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -159,6 +159,8 @@ public class DeviceDetailActivity extends BaseActivity {
                 .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))
                 .into(imgDeviceIcon);
         switchFindBtnStyle();
+        setConnectStatusStyle(Common.formatDevId2Mac(device.getDevimg()));
+
     }
 
     @Override
@@ -375,12 +377,14 @@ public class DeviceDetailActivity extends BaseActivity {
                     case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
                         if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
                             LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
+                            setConnectStatusStyle(address);
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_MODE_WORK_FAIL:
                         if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
                             LogUtils.d("RET_DEVICE_CONNECT_FAILED");
+                            setConnectStatusStyle(address);
                             switchFindBtnStyle();
                         }
                         break;
@@ -400,6 +404,7 @@ public class DeviceDetailActivity extends BaseActivity {
                         if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
                             LogUtils.d("RET_DEVICE_READ_RSSI");
                             int rssi = intent.getIntExtra("rssi",0);
+                            setConnectStatusStyle(address,rssi);
                             updateItemRssi(rssi);
                         }
                         break;
@@ -417,6 +422,30 @@ public class DeviceDetailActivity extends BaseActivity {
 
             }
         }
+    }
+    private void setConnectStatusStyle(String mac){
+        setConnectStatusStyle(mac,-50);
+    }
+
+    private void setConnectStatusStyle(String mac,int rssi) {
+        if(imgDeviceIcon==null){
+            return;
+        }
+//        if(BleManager.getInstance().isConnected(mac)){
+//            if(rssi>-50) {
+//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect1));
+//            }else if(rssi<=-50&&rssi>-65){
+//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect2));
+//            }else if(rssi<=-65&&rssi>-85){
+//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect3));
+//            }else if(rssi<=-85&&rssi>-100){
+//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect4));
+//            }else if(rssi<=-100){
+//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect5));
+//            }
+//        }else{
+//            imgDeviceIcon.setBorderColor(getResources().getColor(R.color.windowBg));
+//        }
     }
     private void updateItemRssi(int rssi) {
         if (tvDeviceLocation != null) {

@@ -16,11 +16,13 @@ import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapStatus;
+import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.model.LatLngBounds;
 import com.bumptech.glide.Glide;
 import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
@@ -78,8 +80,6 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
     RecyclerView recyclerview;
     @BindView(R.id.tv_is_shared)
     TextView tvIsShared;
-    @BindView(R.id.item_icon_status)
-    ImageView itemIconStatus;
     @BindView(R.id.item_icon)
     CircleImageView itemIcon;
     @BindView(R.id.rl_item_icon)
@@ -101,9 +101,9 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
     private BaiduMap mBaiduMap;
     private DeviceResponse.DevlistBean devlistBean;
     private TraceDalySelectAdapter traceDalySelectAdapter;
-    private ClusterManager mClusterManager;
     private MapStatus ms;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
+    private List<LatLng> latLngs = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,12 +138,6 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
             ms = new MapStatus.Builder().target(new LatLng(locinfo.getLat(), locinfo.getLng())).zoom(16).build();
             mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(ms));
         }
-        // 定义点聚合管理类ClusterManager
-        mClusterManager = new ClusterManager<MyItem>(this, mBaiduMap);
-        // 设置地图监听，当地图状态发生改变时，进行点聚合运算
-        mBaiduMap.setOnMapStatusChangeListener(mClusterManager);
-        // 设置maker点击时的响应
-        mBaiduMap.setOnMarkerClickListener(mClusterManager);
         //创建默认的线性LayoutManager
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         mLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
@@ -246,19 +240,25 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         LatLng latLng = new LatLng(locinfoBean.getLat(), locinfoBean.getLng());
         ms = new MapStatus.Builder().target(latLng).zoom(16).build();
         mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(ms));
-        List<MyItem> items = new ArrayList<>();
+        latLngs.clear();
         for (DeviceInfoResponse.TracelistBean tracelistBean : tracelist) {
             LatLng point1 = new LatLng(tracelistBean.getLocinfo().getLat(), tracelistBean.getLocinfo().getLng());
+            latLngs.add(point1);
             BitmapDescriptor descriptor = BitmapDescriptorFactory.fromResource(R.drawable.ic_map_point);
             OverlayOptions option1 = new MarkerOptions()
                     .position(point1)
                     .icon(descriptor);
             options.add(option1);
-
-            items.add(new MyItem(point1));
         }
         mBaiduMap.addOverlays(options);
-//        mClusterManager.addItems(items);
+
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (LatLng p : latLngs) {
+            builder = builder.include(p);
+        }
+        LatLngBounds latlngBounds = builder.build();
+        MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory.newLatLngBounds(latlngBounds,mapView.getWidth(),mapView.getHeight());
+        mBaiduMap.animateMapStatus(mapStatusUpdate);
     }
 
     private void setTimeText(TextView itemTime, String lasttime) {
@@ -272,30 +272,15 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
 
     @Override
     public void onMapLoaded() {
-        ms = new MapStatus.Builder().zoom(9).build();
-        mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(ms));
-    }
-
-    /**
-     * 每个Marker点，包含Marker点坐标以及图标
-     */
-    public class MyItem implements ClusterItem {
-        private final LatLng mPosition;
-
-        public MyItem(LatLng latLng) {
-            mPosition = latLng;
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (LatLng p : latLngs) {
+            builder = builder.include(p);
         }
-
-        @Override
-        public LatLng getPosition() {
-            return mPosition;
-        }
-
-        @Override
-        public BitmapDescriptor getBitmapDescriptor() {
-            return BitmapDescriptorFactory
-                    .fromResource(R.drawable.ic_map_point);
-        }
+        LatLngBounds latlngBounds = builder.build();
+        MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory.newLatLngBounds(latlngBounds,mapView.getWidth(),mapView.getHeight());
+        mBaiduMap.animateMapStatus(mapStatusUpdate);
+//        ms = new MapStatus.Builder().zoom(9).build();
+//        mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(ms));
     }
 
     private class CmdResponseReceiver extends BroadcastReceiver {

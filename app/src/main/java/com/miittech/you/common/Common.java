@@ -1,6 +1,11 @@
 package com.miittech.you.common;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -183,7 +188,7 @@ public class Common {
                 @Override
                 public void accept(UserInfoResponse response) throws Exception {
                     if(response.isSuccessful()){
-                        SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME,response.getUserinfo().getUsernameX());
+                        SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_NIKENAME,response.getUserinfo().getNickname());
                         SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_IMAGE,response.getUserinfo().getHeadimg());
                     }else{
                         response.onError(context);
@@ -383,6 +388,9 @@ public class Common {
     }
 
     public static boolean isAreaIgnore(List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist){
+        if(SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==0){
+            return false;
+        }
         if(arealist!=null&&arealist.size()>0){
             for (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean : arealist){
                 if(arealistBean!=null&&!TextUtils.isEmpty(arealistBean.getSsid())&&Common.decodeBase64(arealistBean.getSsid()).equals(NetworkUtils.getSsidOfConnectWifi())){
@@ -402,6 +410,9 @@ public class Common {
         return false;
     }
     public static boolean isTimeIgnore(List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist){
+        if(SPUtils.getInstance().getInt(SPConst.DISTURB.ISTIMEDISTURB,1)==0){
+            return false;
+        }
         if(timelist==null||timelist.size()<=0){
             return false;
         }
@@ -485,8 +496,8 @@ public class Common {
     public static String getUserId(){
         return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_USERID);
     }
-    public static String getUserName(){
-        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_UNAME);
+    public static String getNikeName(){
+        return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_NIKENAME);
     }
     public static String getUserHeadImage(){
         return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_IMAGE);

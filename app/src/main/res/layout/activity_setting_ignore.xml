@@ -53,6 +53,7 @@
                         android:layout_width="50dp"
                         android:layout_height="30dp"
                         android:layout_alignParentEnd="true"
+                        android:clickable="true"
                         android:background="@drawable/sl_switch"
                         android:button="@null"
                         android:checked="true" />

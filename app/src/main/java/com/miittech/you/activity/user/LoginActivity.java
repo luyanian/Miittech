@@ -143,7 +143,6 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                         if (response.isSuccessful()) {
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID,response.getUserid());
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
-                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME,response.getUsername());
                             JPushInterface.setAlias(LoginActivity.this,0,response.getUserid());
 
                             new Handler().postDelayed(new Runnable() {
@@ -247,7 +246,6 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
                         if (response.isSuccessful()) {
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_USERID,response.getUserid());
                             SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_TOCKEN,response.getToken());
-                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_UNAME,response.getUsername());
                             JPushInterface.setAlias(LoginActivity.this,0,response.getUserid());
 
                             new Handler().postDelayed(new Runnable() {

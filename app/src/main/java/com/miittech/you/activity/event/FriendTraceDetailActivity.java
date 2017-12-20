@@ -82,8 +82,6 @@ public class FriendTraceDetailActivity extends BaseActivity {
     RecyclerView recyclerview;
     @BindView(R.id.tv_is_shared)
     TextView tvIsShared;
-    @BindView(R.id.item_icon_status)
-    ImageView itemIconStatus;
     @BindView(R.id.item_icon)
     CircleImageView itemIcon;
     @BindView(R.id.rl_item_icon)
