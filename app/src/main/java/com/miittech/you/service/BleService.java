@@ -251,9 +251,8 @@ public  class BleService extends Service {
                     DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
                     if (alertinfoBean != null) {
                         byte[] data = new byte[1];
-                        if (alertinfoBean.getIsRepeat() == 0 || Common.isIgnoreBell()) {
+                        if (alertinfoBean.getIsRepeat() == 0 || !Common.isBell()) {
                            data[0] = 0x00;
-
                         }else{
                             data[0] = 0x02;
                         }
@@ -346,7 +345,6 @@ public  class BleService extends Service {
                             intent1.putExtra("address", result.getMac());
                             sendBroadcast(intent1);
                         }
-                        connectDevice(result);
                     }
                     return;
                 }
@@ -430,7 +428,7 @@ public  class BleService extends Service {
                         if (response != null) {
                             DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
                             if (alertinfoBean != null) {
-                                if (alertinfoBean.getIsReconnect() == 1 && !Common.isIgnoreBell()) {
+                                if (alertinfoBean.getIsReconnect() == 1 && Common.isBell()) {
                                     doPlay(response);
                                 }
                             }
@@ -550,7 +548,7 @@ public  class BleService extends Service {
                     if (response != null) {
                         DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
                         if (alertinfoBean != null) {
-                            if (alertinfoBean.getIsReconnect() == 1 && !Common.isIgnoreBell()) {
+                            if (alertinfoBean.getIsReconnect() == 1 && Common.isBell()) {
                                 doPlay(response);
                             }
                         }
@@ -614,7 +612,7 @@ public  class BleService extends Service {
             public void onCharacteristicChanged(BleDevice device, byte[] data) {
                 LogUtils.d("bleService", "监测到" + device.getMac() + "双击事件("+data[0]+")--->报警广播数据");
                 if (data[0] == 02) {
-                    if (Common.isIgnoreBell()) {
+                    if (!Common.isBell()) {
                         LogUtils.d("贴片在勿扰范围内,报警忽略！");
                         return;
                     }

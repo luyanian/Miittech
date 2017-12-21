@@ -375,68 +375,69 @@ public class Common {
         return false;
     }
 
-    public static boolean isIgnoreBell() {
+    public static boolean isBell() {
+        boolean isPointIgnore = (SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==1);
+        boolean isTimeIgnore = (SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==1);
+        if(isPointIgnore&&!Common.isAreaIgnore()){
+            return true;
+        }
+        if(isTimeIgnore&&!Common.isTimeIgnore()){
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isAreaIgnore(){
         UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
         if(response!=null&&response.getConfig()!=null){
             UserInfoResponse.ConfigBean configBean = response.getConfig();
             if(configBean.getDonotdisturb()!=null){
                 UserInfoResponse.ConfigBean.DonotdisturbBean donotdisturbBean = configBean.getDonotdisturb();
-                if(isAreaIgnore(donotdisturbBean.getArealist())||isTimeIgnore(donotdisturbBean.getTimelist())){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public static boolean isAreaIgnore(List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist){
-        if(SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==0){
-            return false;
-        }
-        if(arealist!=null&&arealist.size()>0){
-            for (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean : arealist){
-                if(arealistBean!=null&&!TextUtils.isEmpty(arealistBean.getSsid())&&Common.decodeBase64(arealistBean.getSsid()).equals(NetworkUtils.getSsidOfConnectWifi())){
-                    return true;
-                }
-                UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean.AreaBean areaBean = arealistBean.getArea();
-                if(areaBean!=null&&areaBean.getLat()<=0&&areaBean.getLat()<=0){
-                    Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
-                    LatLng latLng1 = new LatLng(areaBean.getLat(),areaBean.getLng());
-                    LatLng latLng2 = new LatLng(locinfo.getLat(),locinfo.getLng());
-                    if(DistanceUtil.getDistance(latLng1, latLng2)<areaBean.getR()){
-                        return true;
+                if(donotdisturbBean.getArealist()!=null&&donotdisturbBean.getArealist().size()>0){
+                    for (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean : donotdisturbBean.getArealist()){
+                        if(!TextUtils.isEmpty(arealistBean.getSsid())&&Common.decodeBase64(arealistBean.getSsid()).equals(NetworkUtils.getSsidOfConnectWifi())){
+                            return true;
+                        }
+                        UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean.AreaBean areaBean = arealistBean.getArea();
+                        if(areaBean!=null){
+                            Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+                            LatLng latLng1 = new LatLng(areaBean.getLat(),areaBean.getLng());
+                            LatLng latLng2 = new LatLng(locinfo.getLat(),locinfo.getLng());
+                            if(DistanceUtil.getDistance(latLng1, latLng2)<areaBean.getR()){
+                                return true;
+                            }
+                        }
                     }
                 }
             }
         }
         return false;
     }
-    public static boolean isTimeIgnore(List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist){
-        if(SPUtils.getInstance().getInt(SPConst.DISTURB.ISTIMEDISTURB,1)==0){
-            return false;
-        }
-        if(timelist==null||timelist.size()<=0){
-            return false;
-        }
-        for(UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean : timelist){
-            int index = TimeUtils.getWeekIndex(new Date());
-            String week = timelistBean.getDayofweek();
-            if(TextUtils.isEmpty(week)){
-                return false;
-            }
-            index = (index+7-1)%7;
-
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
-            Date date = new Date();
-
-            String ymd = simpleDateFormat.format(date);
-            SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-            long stime = TimeUtils.string2Millis(ymd+timelistBean.getStime(),format);
-            long etime = TimeUtils.string2Millis(ymd+timelistBean.getEtime(),format);
-            long curTime = TimeUtils.getNowMills();
-
-            if(curTime>stime&&curTime<etime&&week.contains(index+"")){
-                return true;
+    public static boolean isTimeIgnore(){
+        UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
+        if(response!=null&&response.getConfig()!=null) {
+            UserInfoResponse.ConfigBean configBean = response.getConfig();
+            if (configBean.getDonotdisturb() != null) {
+                UserInfoResponse.ConfigBean.DonotdisturbBean donotdisturbBean = configBean.getDonotdisturb();
+                if(donotdisturbBean.getTimelist()!=null&&donotdisturbBean.getTimelist().size()>0){
+                    for(UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean : donotdisturbBean.getTimelist()){
+                        int index = TimeUtils.getWeekIndex(new Date());
+                        index = (index+7-1)%7;
+                        String week = timelistBean.getDayofweek();
+                        if(!TextUtils.isEmpty(week)&&week.contains(index+"")){
+                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+                            Date date = new Date();
+                            String ymd = simpleDateFormat.format(date);
+                            SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
+                            long stime = TimeUtils.string2Millis(ymd+timelistBean.getStime(),format);
+                            long etime = TimeUtils.string2Millis(ymd+timelistBean.getEtime(),format);
+                            long curTime = TimeUtils.getNowMills();
+                            if(curTime>stime&&curTime<etime){
+                                return true;
+                            }
+                        }
+                    }
+                }
             }
         }
         return false;
