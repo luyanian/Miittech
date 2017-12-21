@@ -431,17 +431,17 @@ public class UserInfoResponse extends BaseResponse{
                  * ssid : lan-hi
                  */
 
-                private int id;
+                private String id;
                 private String title;
                 private int inout;
                 private AreaBean area;
                 private String ssid;
 
-                public int getId() {
+                public String getId() {
                     return id;
                 }
 
-                public void setId(int id) {
+                public void setId(String id) {
                     this.id = id;
                 }
 
@@ -534,18 +534,18 @@ public class UserInfoResponse extends BaseResponse{
                  * etime : 111637
                  */
 
-                private int id;
+                private String id;
                 private String title;
                 private String dayofweek;
                 private int repeat;
-                private int stime;
-                private int etime;
+                private String stime;
+                private String etime;
 
-                public int getId() {
+                public String getId() {
                     return id;
                 }
 
-                public void setId(int id) {
+                public void setId(String id) {
                     this.id = id;
                 }
 
@@ -573,19 +573,19 @@ public class UserInfoResponse extends BaseResponse{
                     this.repeat = repeat;
                 }
 
-                public int getStime() {
+                public String getStime() {
                     return stime;
                 }
 
-                public void setStime(int stime) {
+                public void setStime(String stime) {
                     this.stime = stime;
                 }
 
-                public int getEtime() {
+                public String getEtime() {
                     return etime;
                 }
 
-                public void setEtime(int etime) {
+                public void setEtime(String etime) {
                     this.etime = etime;
                 }
             }

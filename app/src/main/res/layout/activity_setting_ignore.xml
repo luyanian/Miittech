@@ -67,58 +67,51 @@
                     android:text="@string/text_bluetooth_open_tip"
                     android:textSize="12dp" />
 
-                <TextView
-                    android:id="@+id/tv_setting_ignore_area"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tv_bluetooth"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/text_setting_ignore_area_point"
-                    android:textSize="12dp" />
-
                 <LinearLayout
-                    android:id="@+id/ll_ignore_areas"
+                    android:id="@+id/ll_ignore_points"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-                    <include
+                    <TextView
+                        android:id="@+id/tv_setting_ignore_area"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tv_bluetooth"
+                        android:text="@string/text_setting_ignore_area_point"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone"
+                        android:textSize="14dp" />
+                    <LinearLayout
+                        android:id="@+id/ll_ignore_areas"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        layout="@layout/item_ignore_setting"/>
-                    <include
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        layout="@layout/item_ignore_setting"/>
-                </LinearLayout>
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+                    </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_setting_ignore_ssid"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tv_bluetooth"
-                    android:text="@string/text_setting_ignore_area_wifi"
-                    android:textSize="12dp" />
-
-                <LinearLayout
-                    android:id="@+id/ll_ignore_ssids"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <include
+                    <TextView
+                        android:id="@+id/tv_setting_ignore_ssid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tv_bluetooth"
+                        android:text="@string/text_setting_ignore_area_wifi"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone"
+                        android:textSize="14dp" />
+                    <LinearLayout
+                        android:id="@+id/ll_ignore_ssids"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        layout="@layout/item_ignore_setting"/>
-                    <include
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        layout="@layout/item_ignore_setting"/>
-
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+                    </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/ll_ignore_times"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
                     android:orientation="vertical">
 
                 </LinearLayout>

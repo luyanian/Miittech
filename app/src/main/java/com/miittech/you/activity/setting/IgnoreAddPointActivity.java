@@ -38,6 +38,7 @@ import com.miittech.you.adapter.PoiResultAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
@@ -47,6 +48,7 @@ import com.miittech.you.location.LocationClient;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
@@ -91,6 +93,7 @@ public class IgnoreAddPointActivity extends BaseActivity {
     private PoiResultAdapter poiResultAdapter;
     private int progress=200;
     private PoiInfo poiInfo;
+    private UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,10 +115,26 @@ public class IgnoreAddPointActivity extends BaseActivity {
             public void onComplete() {
                 super.onComplete();
                 if(IgnoreAddPointActivity.this.poiInfo==null){
-                    ToastUtils.showShort("没有获取到合法的位置");
-                    return;
+                    if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)&&arealistBean!=null) {
+                        Intent intent = new Intent(IgnoreAddPointActivity.this,IgnoreNameEditActivity.class);
+                        intent.putExtra("id",arealistBean.getId());
+                        intent.putExtra("name",Common.decodeBase64(arealistBean.getTitle()));
+                        intent.putExtra("lat",arealistBean.getArea().getLat());
+                        intent.putExtra("lng",arealistBean.getArea().getLng());
+                        intent.putExtra("addr",Common.decodeBase64(arealistBean.getArea().getAddr()));
+                        intent.putExtra("progress",progress);
+                        startActivity(intent);
+                        return;
+                    }else{
+                        ToastUtils.showShort("没有获取到合法的位置");
+                        return;
+                    }
                 }
                 Intent intent = new Intent(IgnoreAddPointActivity.this,IgnoreNameEditActivity.class);
+                if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)&&arealistBean!=null) {
+                    intent.putExtra("id",arealistBean.getId());
+                    intent.putExtra("name",Common.decodeBase64(arealistBean.getTitle()));
+                }
                 intent.putExtra("lat",poiInfo.location.latitude);
                 intent.putExtra("lng",poiInfo.location.longitude);
                 intent.putExtra("addr",poiInfo.address);
@@ -171,22 +190,23 @@ public class IgnoreAddPointActivity extends BaseActivity {
             }
         });
         seekbar.setProgress(0);
+        boolean islocation = true;
+        if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)){
+            arealistBean = (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean) getIntent().getSerializableExtra(IntentExtras.IGNORE.DATA);
+            if(arealistBean!=null) {
+                this.progress = arealistBean.getArea().getR();
+                if(this.progress>=200&&this.progress<=1000)
+                seekbar.setProgress(this.progress-200);
+                updateMapLocalView(new LatLng(arealistBean.getArea().getLat(), arealistBean.getArea().getLng()));
+                islocation = false;
+            }
+        }
+
         final Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
-        if(locinfo==null||TextUtils.isEmpty(locinfo.getCity())) {
-            RxPermissions rxPermissions = new RxPermissions(this);
-            rxPermissions.request(Manifest.permission.READ_PHONE_STATE
-                    ,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION
-                    ,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    .subscribe(new Consumer<Boolean>() {
-                        @Override
-                        public void accept(Boolean aBoolean) throws Exception {
-                            if (aBoolean) {
-                                startLocation();
-                            }
-                        }
-                    });
-        }else{
-            updateMapLocalView(new LatLng(locinfo.getLat(),locinfo.getLng()));
+        if(locinfo!=null) {
+            if(islocation) {
+                updateMapLocalView(new LatLng(locinfo.getLat(), locinfo.getLng()));
+            }
             etSerchText.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -200,6 +220,9 @@ public class IgnoreAddPointActivity extends BaseActivity {
 
                 @Override
                 public void afterTextChanged(Editable s) {
+                    if(TextUtils.isEmpty(s.toString())||TextUtils.isEmpty(locinfo.getCity())){
+                        return;
+                    }
                     mPoiSearch.searchInCity((new PoiCitySearchOption())
                             .city(locinfo.getCity())
                             .keyword(s.toString())
@@ -214,56 +237,6 @@ public class IgnoreAddPointActivity extends BaseActivity {
                         .pageNum(6));
             }
         }
-    }
-
-    private void startLocation() {
-        LocationClientOption option = new LocationClientOption();
-        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
-        option.setCoorType("bd09ll");
-        option.setScanSpan(0);//只定位一次
-        option.setOpenGps(true);
-        option.setIsNeedLocationDescribe(true);
-        option.setIsNeedAddress(true);
-        option.setLocationNotify(true);
-        option.setIgnoreKillProcess(false);
-        option.SetIgnoreCacheException(false);
-        option.setWifiCacheTimeOut(5*60*1000);
-        LocationClient.getInstance().initLocation().startLocation(option, new BDAbstractLocationListener() {
-            @Override
-            public void onReceiveLocation(final BDLocation bdLocation) {
-                updateMapLocalView(new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude()));
-                etSerchText.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-                        if(bdLocation.getCity()==null||s==null||StringUtils.isEmpty(s.toString())){
-                            poiResultAdapter.setPoiResult(null);
-                            return;
-                        }
-                        mPoiSearch.searchInCity((new PoiCitySearchOption())
-                                .city(bdLocation.getCity())
-                                .keyword(s.toString())
-                                .pageNum(6));
-                    }
-                });
-                String temp = etSerchText.getText().toString().trim();
-                if(!TextUtils.isEmpty(temp)) {
-                    mPoiSearch.searchInCity((new PoiCitySearchOption())
-                            .city(bdLocation.getCity())
-                            .keyword(temp)
-                            .pageNum(6));
-                }
-            }
-        });
     }
 
     @OnClick({R.id.tv_cancle, R.id.img_ignore_serch, R.id.img_ignore_serch_delete})

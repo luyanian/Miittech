@@ -89,7 +89,7 @@ public class IgnoreRepeatActivity extends BaseActivity {
                 data.putExtra("key",key.toString());
                 String keyStr = key.toString();
                 if("1234567".equals(keyStr)){
-                    data.putExtra("value","全周");
+                    data.putExtra("value","每天");
                 }else if("".equals(keyStr)){
                     data.putExtra("value","");
                 }else{

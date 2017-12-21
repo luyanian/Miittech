@@ -14,17 +14,23 @@ import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,11 +60,12 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
     private String week="";
     private String startTime="";
     private String endTime ="";
+    private String ignoreTimeId = "0";
 
     private final static int REQUEST_CODE_TIME=0x01;
     private final static int REQUEST_CODE_REPEAT=0x02;
-
     private boolean isSubmitting = false;
+    private UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +88,20 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
                 doComplete();
             }
         });
+        if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)){
+            timelistBean = (UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean) getIntent().getSerializableExtra(IntentExtras.IGNORE.DATA);
+            ignoreTimeId = timelistBean.getId();
+            etName.setText(Common.decodeBase64(timelistBean.getTitle()));
+            startTime = timelistBean.getStime();
+            endTime = timelistBean.getEtime();
+            DateFormat dateFormat = new SimpleDateFormat("HHmmss");
+            DateFormat dateFormat1 = new SimpleDateFormat("HH:mm:ss");
+            String sTime = dateFormat1.format(TimeUtils.string2Date(startTime,dateFormat));
+            String eTime = dateFormat1.format(TimeUtils.string2Date(endTime,dateFormat));
+            tvTime.setText( sTime + " - " + eTime);
+            week = timelistBean.getDayofweek();
+            tvIsRepeat.setText(Common.formatWeekRepeat(timelistBean.getDayofweek()));
+        }
     }
 
     @Override
@@ -91,7 +112,7 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
                 if(resultCode==RESULT_OK){
                     startTime = data.getStringExtra("startTime");
                     endTime = data.getStringExtra("endTime");
-                    tvTime.setText(startTime+" 至 "+endTime);
+                    tvTime.setText(startTime+" - "+endTime);
                 }
                 break;
             case REQUEST_CODE_REPEAT:
@@ -111,6 +132,7 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
                 break;
             case R.id.rl_time:
                 intent.setClass(this,IgnoreTimeSelectActivity.class);
+                intent.putExtra("tvTime",tvTime.getText().toString().trim());
                 startActivityForResult(intent,REQUEST_CODE_TIME);
                 break;
             case R.id.rl_is_repeat:
@@ -140,7 +162,7 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
         }
         isSubmitting=true;
         Map timedef = new HashMap();
-        timedef.put("id","0");
+        timedef.put("id",ignoreTimeId);
         timedef.put("title", Common.encodeBase64(title));
         timedef.put("dayofweek",week);
         timedef.put("stime",startTime.replace(":",""));
@@ -150,7 +172,11 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
         Map config = new HashMap();
         config.put("donotdisturb",donotdisturb);
         Map param = new HashMap();
-        param.put("method", Params.METHOD.IGNORE_ADD);
+        if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)){
+            param.put("method", Params.METHOD.IGNORE_UPD);
+        }else {
+            param.put("method", Params.METHOD.IGNORE_ADD);
+        }
         param.put("config_type", "TIME");
         param.put("config", config);
         String json = new Gson().toJson(param);
@@ -169,8 +195,7 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
                     public void accept(BaseResponse response) throws Exception {
                         isSubmitting=false;
                         if(response.isSuccessful()){
-                            ToastUtils.showShort("勿扰设置添加成功！");
-                            finish();
+                            ActivityPools.finishActivity(IgnoreTimeSlotActivity.class);
                         }else{
                             response.onError(IgnoreTimeSlotActivity.this);
                         }

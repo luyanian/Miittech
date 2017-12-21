@@ -9,11 +9,17 @@ import android.widget.TextView;
 import com.bigkoo.pickerview.TimePickerView;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.common.Common;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
+import org.w3c.dom.Text;
+
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -58,6 +64,19 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
                 doComplete();
             }
         });
+
+        if(getIntent().hasExtra("tvTime")){
+            String temp = getIntent().getStringExtra("tvTime");
+            if(!TextUtils.isEmpty(temp)) {
+                String[] times = temp.split(" - ");
+                if(times.length==2) {
+                    startTime = times[0];
+                    tvStartTime.setText(startTime);
+                    endTime = times[1];
+                    tvEndTime.setText(endTime);
+                }
+            }
+        }
     }
 
     private void doComplete() {
@@ -93,17 +112,17 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
                         tvStartTime.setText(startTime);
                     }
                 }).setType(new boolean[]{false, false, false, true, true, false})// 默认全部显示
-                        .setCancelText("取消")//取消按钮文字
-                        .setSubmitText("确定")//确认按钮文字
-                        .setContentSize(15)//滚轮文字大小
-                        .setTitleSize(16)//标题文字大小
-                        .setTitleText("时间")//标题文字
-                        .setOutSideCancelable(false)//点击屏幕，点在控件外部范围时，是否取消显示
-                        .isCyclic(true)//是否循环滚动
-                        .setLabel("年","月","日","时","分","秒")//默认设置为年月日时分秒
-                        .isCenterLabel(false) //是否只显示中间选中项的label文字，false则每项item全部都带有label。
-                        .isDialog(false)//是否显示为对话框样式
-                        .build();
+                    .setCancelText("取消")//取消按钮文字
+                    .setSubmitText("确定")//确认按钮文字
+                    .setContentSize(15)//滚轮文字大小
+                    .setTitleSize(16)//标题文字大小
+                    .setTitleText("时间")//标题文字
+                    .setOutSideCancelable(false)//点击屏幕，点在控件外部范围时，是否取消显示
+                    .isCyclic(true)//是否循环滚动
+                    .setLabel("年","月","日","时","分","秒")//默认设置为年月日时分秒
+                    .isCenterLabel(false) //是否只显示中间选中项的label文字，false则每项item全部都带有label。
+                    .isDialog(false)//是否显示为对话框样式
+                    .build();
                 pvStartTime.setDate(Calendar.getInstance());//注：根据需求来决定是否使用该方法（一般是精确到秒的情况），此项可以在弹出选择器的时候重新设置当前时间，避免在初始化之后由于时间已经设定，导致选中时间与当前时间不匹配的问题。
                 pvStartTime.show();
                 break;

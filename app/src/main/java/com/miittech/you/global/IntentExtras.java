@@ -22,6 +22,10 @@ public class IntentExtras {
         public static final String NAME="name";
     }
 
+    public static class IGNORE{
+        public static final String DATA="ignore_data";
+    }
+
     public static class ACTION{
         public final static String ACTION_BLE_COMMAND="com.mittech.you.device.service.cmd";
         public final static String ACTION_CMD_RESPONSE="com.mittech.you.device.service.response";

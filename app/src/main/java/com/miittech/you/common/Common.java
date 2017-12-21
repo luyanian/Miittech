@@ -1,6 +1,7 @@
 package com.miittech.you.common;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -9,6 +10,7 @@ import android.graphics.Rect;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.view.View;
 
 import com.baidu.location.BDLocation;
 import com.baidu.mapapi.model.LatLng;
@@ -501,5 +503,39 @@ public class Common {
     }
     public static String getUserHeadImage(){
         return SPUtils.getInstance(SPConst.USER.SP_NAME).getString(SPConst.USER.KEY_IMAGE);
+    }
+
+    public static String formatWeekRepeat(String dayofweek) {
+        if(dayofweek.contains("1234567")){
+            return "每天";
+        }
+        StringBuilder value = new StringBuilder();
+        if(dayofweek.contains("1")){
+            value.append(",星期一");
+        }
+        if(dayofweek.contains("2")){
+            value.append(",星期二");
+        }
+        if(dayofweek.contains("3")){
+            value.append(",星期三");
+        }
+        if(dayofweek.contains("4")){
+            value.append(",星期四");
+        }
+        if(dayofweek.contains("5")){
+            value.append(",星期五");
+        }
+        if(dayofweek.contains("6")){
+            value.append(",星期六");
+        }
+        if(dayofweek.contains("7")){
+            value.append(",星期日");
+        }
+        String keyStr = value.toString();
+        if(TextUtils.isEmpty(keyStr)){
+            return "";
+        }else{
+            return keyStr.substring(1);
+        }
     }
 }

@@ -72,7 +72,7 @@ public class FriendBeInvitedActivity extends BaseActivity{
         initMyTitleBar(titlebar, getResources().getString(R.string.text_setting_myfriends));
         titlebar.showBackOption()
                 .showSettingOption()
-                .setSettingIcon(R.drawable.ic_friends_add)
+                .setSettingIcon(R.drawable.ic_menu_friends_add)
                 .setTitleBarOptions(new TitleBarOptions() {
                     @Override
                     public void onBack() {

@@ -17,12 +17,15 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
+import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
@@ -54,6 +57,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
     @BindView(R.id.tv_ssid)
     TextView tvSsid;
 
+    private String editId = "0";
     private String ssid="";
     private boolean isSubmitting=false;
 
@@ -78,10 +82,20 @@ public class IgnoreAddWifiActivity extends BaseActivity {
                 doComplete();
             }
         });
+        if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)){
+            UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean = (UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean) getIntent().getSerializableExtra(IntentExtras.IGNORE.DATA);
+            if(arealistBean!=null&&!TextUtils.isEmpty(arealistBean.getSsid())) {
+                editId = arealistBean.getId();
+                etName.setText(Common.decodeBase64(arealistBean.getTitle()));
+                updateSSID(Common.decodeBase64(arealistBean.getSsid()));
+                return;
+            }
+        }
+
         updateSSID();
         IntentFilter filter = new IntentFilter();
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        registerReceiver(new WifiStateReciver(),filter);
+        registerReceiver(new WifiStateReciver(), filter);
     }
 
     private class WifiStateReciver extends BroadcastReceiver{
@@ -108,6 +122,10 @@ public class IgnoreAddWifiActivity extends BaseActivity {
         ssid = NetworkUtils.getSsidOfConnectWifi();
         tvSsid.setText("当前连接WIFI : "+ssid);
     }
+    private void updateSSID(String ssidStr) {
+        ssid=ssidStr;
+        tvSsid.setText("当前连接WIFI : "+ssidStr);
+    }
 
     private void doComplete() {
         if(isSubmitting){
@@ -124,7 +142,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
         }
         isSubmitting=true;
         Map areadef = new HashMap();
-        areadef.put("id",0);
+        areadef.put("id",editId);
         areadef.put("title", Common.encodeBase64(name));
         areadef.put("inout",1);
         areadef.put("ssid",Common.encodeBase64(ssid));
@@ -133,7 +151,11 @@ public class IgnoreAddWifiActivity extends BaseActivity {
         Map config = new HashMap();
         config.put("donotdisturb",donotdisturb);
         Map param = new LinkedHashMap();
-        param.put("method", Params.METHOD.IGNORE_ADD);
+        if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)){
+            param.put("method", Params.METHOD.IGNORE_UPD);
+        }else {
+            param.put("method", Params.METHOD.IGNORE_ADD);
+        }
         param.put("config_type", "AREA");
         param.put("config", config);
         String json = new Gson().toJson(param);
@@ -152,8 +174,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
                     public void accept(BaseResponse response) throws Exception {
                         isSubmitting=false;
                         if(response.isSuccessful()){
-                            ToastUtils.showShort("添加勿扰设置成功");
-                            finish();
+                            ActivityPools.finishActivity(IgnoreAddWifiActivity.class);
                         }else{
                             response.onError(IgnoreAddWifiActivity.this);
                         }

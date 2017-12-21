@@ -17,6 +17,7 @@ import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.weight.Titlebar;
+import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.ToastUtils;
@@ -68,6 +69,10 @@ public class IgnoreNameEditActivity extends BaseActivity {
                 updateIgnoreSetting();
             }
         });
+        if(getIntent().hasExtra("name")) {
+            String name = getIntent().getStringExtra("name");
+            etName.setText(name);
+        }
     }
     public void updateIgnoreSetting(){
         if(isSubmitting){
@@ -92,13 +97,18 @@ public class IgnoreNameEditActivity extends BaseActivity {
         areadef.put("id",0);
         areadef.put("title", Common.encodeBase64(name));
         areadef.put("inout",1);
-        areadef.put("areadef",area);
+        areadef.put("area",area);
         Map donotdisturb = new HashMap();
         donotdisturb.put("areadef",areadef);
         Map config = new HashMap();
         config.put("donotdisturb",donotdisturb);
         Map param = new LinkedHashMap();
-        param.put("method", Params.METHOD.IGNORE_ADD);
+        if(getIntent().hasExtra("id")) {
+            areadef.put("id",getIntent().getStringExtra("id"));
+            param.put("method", Params.METHOD.IGNORE_UPD);
+        }else {
+            param.put("method", Params.METHOD.IGNORE_ADD);
+        }
         param.put("config_type", "AREA");
         param.put("config", config);
         String json = new Gson().toJson(param);
@@ -117,8 +127,8 @@ public class IgnoreNameEditActivity extends BaseActivity {
                     public void accept(BaseResponse response) throws Exception {
                         isSubmitting=false;
                         if(response.isSuccessful()){
-                            ToastUtils.showShort("添加勿扰设置成功");
-                            finish();
+                            ActivityPools.finishActivity(IgnoreNameEditActivity.class);
+                            ActivityPools.finishActivity(IgnoreAddPointActivity.class);
                         }else{
                             response.onError(IgnoreNameEditActivity.this);
                         }
