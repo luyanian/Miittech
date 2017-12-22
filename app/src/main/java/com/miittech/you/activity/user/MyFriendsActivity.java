@@ -27,6 +27,8 @@ import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
@@ -129,6 +131,9 @@ public class MyFriendsActivity extends BaseActivity {
     }
 
     private void getFrinds() {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new HashMap();
         param.put("state", Params.FRIEND_STATUS.FRIEND_BE_INVITED+Params.FRIEND_STATUS.FRIEND_AREADY_ADD);
         String json = new Gson().toJson(param);

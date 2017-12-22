@@ -438,6 +438,10 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             ToastUtils.showShort("请选择删除信息");
             return;
         }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         if(delObject instanceof UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean){
             UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean = (UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean) delObject;

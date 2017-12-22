@@ -35,6 +35,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.miittech.you.App;
+import com.miittech.you.R;
 import com.miittech.you.common.BingGoPlayUtils;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
@@ -56,6 +57,8 @@ import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
+import com.ryon.mutils.ToastUtils;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -838,6 +841,9 @@ public  class BleService extends Service {
     }
 
     private void doReport(final int method, final JsonArray jsonArray) {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new HashMap();
         param.put("method", method);
         param.put("repdata",jsonArray);

@@ -91,7 +91,6 @@ public class IgnoreAddWifiActivity extends BaseActivity {
                 return;
             }
         }
-
         updateSSID();
         IntentFilter filter = new IntentFilter();
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
@@ -119,8 +118,10 @@ public class IgnoreAddWifiActivity extends BaseActivity {
     }
 
     private void updateSSID() {
-        ssid = NetworkUtils.getSsidOfConnectWifi();
-        tvSsid.setText("当前连接WIFI : "+ssid);
+        if(NetworkUtils.isWifiConnected()){
+            ssid = NetworkUtils.getSsidOfConnectWifi();
+            tvSsid.setText("当前连接WIFI : "+ssid);
+        }
     }
     private void updateSSID(String ssidStr) {
         ssid=ssidStr;
@@ -138,6 +139,10 @@ public class IgnoreAddWifiActivity extends BaseActivity {
         }
         if(TextUtils.isEmpty(ssid)){
             ToastUtils.showShort("未获取到您的ssid,请wifi网络是否正常");
+            return;
+        }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         isSubmitting=true;

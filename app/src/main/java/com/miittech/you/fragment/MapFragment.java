@@ -49,6 +49,7 @@ import com.miittech.you.net.response.FriendLocInfoResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -154,6 +155,9 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     }
 
     private void getFrentList() {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new HashMap();
         param.put("state", 1);
         String json = new Gson().toJson(param);
@@ -387,6 +391,10 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     }
 
     private void getFriendLocation(final FriendsResponse.FriendlistBean friend) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         List<Map> friendlist = new ArrayList<>();
         Map item = new HashMap();
         item.put("friendid", friend.getFriendid());
@@ -428,6 +436,9 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     }
 
     private void getDeviceList() {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);

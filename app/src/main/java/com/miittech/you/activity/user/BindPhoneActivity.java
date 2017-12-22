@@ -24,6 +24,7 @@ import com.miittech.you.weight.Titlebar;
 import com.miittech.you.impl.TitleBarOptions;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -99,6 +100,10 @@ public class BindPhoneActivity extends BaseActivity {
         }
         if (TextUtils.isEmpty(vercode)) {
             ToastUtils.showShort(getResources().getString(R.string.tip_ver_code_empty));
+            return;
+        }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         Map param = new HashMap();

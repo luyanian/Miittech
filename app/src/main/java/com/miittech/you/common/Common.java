@@ -57,10 +57,17 @@ public class Common {
 
         if(!RegexUtils.isMobileSimple(phone)){
             ToastUtils.showShort(R.string.tip_ver_phone_faild);
+            if(onGetVerCodeComplete!=null) {
+                onGetVerCodeComplete.onRequestStart();
+            }
             return;
         }
-        if(onGetVerCodeComplete!=null) {
-            onGetVerCodeComplete.onRequestStart();
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            if(onGetVerCodeComplete!=null) {
+                onGetVerCodeComplete.onRequestStart();
+            }
+            return;
         }
         Map param = new HashMap();
         param.put("vtype", Params.VTYPE.PHONELOGIN);
@@ -90,6 +97,9 @@ public class Common {
                 });
     }
     public synchronized static void doCommitEvents(final Context context, String devId, int eventType, Detailinfo detailinfo){
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new HashMap();
         param.put("devid", devId);
         param.put("eventtime", Common.getCurrentTime());
@@ -131,6 +141,9 @@ public class Common {
                 });
     }
     public synchronized static void eventConfirm(final Context context, String eventId, String method){
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new HashMap();
         param.put("eventid", eventId);
         param.put("method", method);
@@ -251,6 +264,10 @@ public class Common {
                 });
     }
     public synchronized static void AddFriendConfirm(final Context context, String friendId, String method) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         param.put("method", method);
         param.put("friended", friendId);
@@ -326,6 +343,9 @@ public class Common {
                 });
     }
     public static void ValidToken(final Context context) {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         String json = "";
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();

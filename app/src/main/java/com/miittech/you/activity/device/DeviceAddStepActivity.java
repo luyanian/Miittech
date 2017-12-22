@@ -31,6 +31,8 @@ import com.miittech.you.weight.CircleProgressBar;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -115,6 +117,14 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
     }
 
     private void vertifyDevice(final String mac) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            outBindError();
+            Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
+            intent.putExtra("address",mac);
+            return;
+        }
         progressbar.setProgress(12);
         Map param = new HashMap();
         param.put("devid", Common.formatMac2DevId(mac));
@@ -171,6 +181,14 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
     }
 
     private void bindDevice(final String mac) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            outBindError();
+            Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+            intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
+            intent.putExtra("address",mac);
+            return;
+        }
         progressbar.setProgress(71);
         Map param = new HashMap();
         param.put("devid", Common.formatMac2DevId(mac));

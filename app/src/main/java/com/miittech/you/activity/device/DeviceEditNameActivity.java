@@ -17,6 +17,7 @@ import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -73,7 +74,10 @@ public class DeviceEditNameActivity extends BaseActivity {
             ToastUtils.showShort("设备名称不能为空！");
             return;
         }
-
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map devattrMap = new LinkedHashMap();
         devattrMap.put("devname", Common.encodeBase64(devName));
         Map param = new LinkedHashMap();

@@ -25,6 +25,8 @@ import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -153,6 +155,10 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
     }
 
     private void setDeviceAlertinfo() {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map alertinfo = new HashMap();
         alertinfo.put("vol",31);//音量
         this.deviceInfo.getAlertinfo().setVol(31);

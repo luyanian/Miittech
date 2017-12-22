@@ -130,6 +130,10 @@ public class UserCenterActivity extends BaseActivity {
     }
 
     private void uploadImage(String path) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         File file = new File(path);
         Map param = new HashMap();
         String fileName = file.getName();
@@ -175,6 +179,10 @@ public class UserCenterActivity extends BaseActivity {
     }
 
     public void aysnUserInfo(String imageUrl) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map userattr = new HashMap();
         userattr.put("headimg", imageUrl);
         Map param = new HashMap();
@@ -208,7 +216,7 @@ public class UserCenterActivity extends BaseActivity {
 
     private void getUserInfo() {
         if(!NetworkUtils.isConnected()){
-            ToastUtils.showShort("网络链接断开，请检查网络");
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         Map param = new HashMap();
@@ -365,6 +373,9 @@ public class UserCenterActivity extends BaseActivity {
     }
 
     private void updateIsShareLocation(boolean b) {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map userattr = new HashMap();
         userattr.put("isShareLocation",b?1:0);
         Map param = new HashMap();
@@ -396,7 +407,9 @@ public class UserCenterActivity extends BaseActivity {
     }
 
     private void doLogout() {
-
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
@@ -447,6 +460,10 @@ public class UserCenterActivity extends BaseActivity {
     };
 
     private void doBindSSO(Platform platform) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         String access_token = platform.getDb().getToken(); // 获取授权token
         String openid = platform.getDb().getUserId(); // 获取用户在此平台的ID
         long expires_in = platform.getDb().getExpiresIn();

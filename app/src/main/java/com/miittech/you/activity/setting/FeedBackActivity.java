@@ -16,6 +16,7 @@ import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -75,7 +76,10 @@ public class FeedBackActivity extends BaseActivity {
             ToastUtils.showShort("反馈内容不能为空");
             return;
         }
-
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new LinkedHashMap();
         param.put("email", email);
         param.put("content", content);

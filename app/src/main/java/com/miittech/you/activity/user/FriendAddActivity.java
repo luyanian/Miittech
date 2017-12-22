@@ -22,6 +22,7 @@ import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -104,7 +105,10 @@ public class FriendAddActivity extends BaseActivity implements TypeSelectorChang
                 return;
             }
         }
-
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         param.put("method", Params.METHOD.FRIEND_ADD);
         param.put("phone", phone);

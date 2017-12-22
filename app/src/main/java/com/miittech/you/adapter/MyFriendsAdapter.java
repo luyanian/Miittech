@@ -27,6 +27,8 @@ import com.miittech.you.weight.BtnTextView;
 import com.miittech.you.weight.CircleImageView;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -148,6 +150,10 @@ public class MyFriendsAdapter extends RecyclerSwipeAdapter<MyFriendsAdapter.Simp
     }
 
     private void doFriendDelete(final int position , final FriendsResponse.FriendlistBean friend, final SimpleViewHolder viewHolder) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         param.put("method", Params.METHOD.FRIEND_DELETE);
         param.put("friended", friend.getFriendid());

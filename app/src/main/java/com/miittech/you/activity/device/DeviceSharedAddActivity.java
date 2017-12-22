@@ -22,6 +22,7 @@ import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -104,7 +105,10 @@ public class DeviceSharedAddActivity extends BaseActivity implements TypeSelecto
                 return;
             }
         }
-
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         param.put("devid", devinfoBean.getDevidX());
         param.put("phone", phone);

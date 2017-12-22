@@ -46,6 +46,7 @@ import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
@@ -191,6 +192,10 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
     }
 
     private void getPoints(Date date) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         String daly = TimeUtils.date2String(date, new SimpleDateFormat("yyyyMMdd"));
         Map param = new HashMap();
         param.put("devid", devlistBean.getDevidX());

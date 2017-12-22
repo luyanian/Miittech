@@ -31,6 +31,8 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -154,6 +156,10 @@ public class DeviceSelectRingActivity extends BaseActivity{
 
 
     public void getSoundList(){
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + Common.getTocken();
         LogUtils.d("sign_unsha1", sign_unSha1);
@@ -182,6 +188,10 @@ public class DeviceSelectRingActivity extends BaseActivity{
     }
 
     private void setDeviceAlertinfo() {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map alertinfo = new HashMap();
         if(this.deviceInfo==null){
             alertinfo.put("vol",31);//音量

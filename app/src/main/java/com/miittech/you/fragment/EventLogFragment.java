@@ -22,6 +22,8 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
@@ -130,6 +132,9 @@ public class EventLogFragment extends Fragment {
         unbinder.unbind();
     }
     private synchronized void getEventList() {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new HashMap();
         param.put("qrytype", Params.QRY_TYPE.EVENTLOG);
         param.put("dir", dir);

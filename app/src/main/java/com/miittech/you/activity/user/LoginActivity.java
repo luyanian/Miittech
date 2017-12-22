@@ -29,6 +29,7 @@ import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
@@ -120,6 +121,10 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
         }
         if (TextUtils.isEmpty(password)) {
             ToastUtils.showShort(getResources().getString(R.string.tip_ver_password_empty));
+            return;
+        }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         Map param = new HashMap();
@@ -214,6 +219,10 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
     }
 
     private synchronized void doShareSdkLogin(final Platform platform) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         String access_token = platform.getDb().getToken(); // 获取授权token
         String openid = platform.getDb().getUserId(); // 获取用户在此平台的ID
@@ -287,6 +296,9 @@ public class LoginActivity extends BaseActivity implements TypeSelectorChangeLis
     }
 
     private void sendRegistationIdToServer(final Context context, String regId) {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new HashMap();
         param.put("regid", regId);
         param.put("ostype", "android");

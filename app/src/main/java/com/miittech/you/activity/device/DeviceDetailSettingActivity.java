@@ -32,6 +32,7 @@ import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -168,6 +169,10 @@ public class DeviceDetailSettingActivity extends BaseActivity {
         }
     }
     private void uploadImage(String path) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         File file = new File(path);
         Map param = new HashMap();
         String fileName = file.getName();
@@ -211,6 +216,10 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 });
     }
     private void doDeviceIconEditAttr(final String iconUrl) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         final Map devattrMap = new HashMap();
         devattrMap.put("devimg",iconUrl);
         Map param = new HashMap();

@@ -32,6 +32,7 @@ import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
@@ -158,6 +159,10 @@ public class RegisteActivity extends BaseActivity implements TypeSelectorChangeL
         }
         if(TextUtils.isEmpty(password)){
             ToastUtils.showShort(R.string.tip_ver_password_empty);
+            return;
+        }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         Map param = new HashMap();

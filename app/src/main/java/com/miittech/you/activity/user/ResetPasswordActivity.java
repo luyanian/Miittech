@@ -20,6 +20,7 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -70,6 +71,10 @@ public class ResetPasswordActivity extends BaseActivity {
         String password = etEmailUserPassword.getText().toString().trim();
         if(TextUtils.isEmpty(password)){
             ToastUtils.showShort("新密码不能为空");
+            return;
+        }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         String phone = getIntent().getStringExtra("phone");

@@ -28,6 +28,8 @@ import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
@@ -141,6 +143,9 @@ public class FriendBeInvitedActivity extends BaseActivity{
     }
 
     private void getFrinds() {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new HashMap();
         param.put("state",Params.FRIEND_STATUS.FRIEND_AREADY_ADD
                 +Params.FRIEND_STATUS.FRIEND_APPLYING
@@ -186,6 +191,10 @@ public class FriendBeInvitedActivity extends BaseActivity{
     }
 
     private void doFriendOption(String friendId,String method) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         param.put("method",method);
         param.put("friended", friendId);

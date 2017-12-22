@@ -21,6 +21,7 @@ import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.ToastUtils;
 
 import java.util.HashMap;
@@ -105,7 +106,10 @@ public class EditNikeOrPWDActivity extends BaseActivity {
             ToastUtils.showShort(getResources().getString(R.string.tip_ver_password_empty));
             return;
         }
-
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         param.put("oldpasswd", EncryptUtils.encryptSHA1ToString(oldpwd).toLowerCase());
         param.put("newpasswd", EncryptUtils.encryptSHA1ToString(newpwd).toLowerCase());
@@ -144,6 +148,10 @@ public class EditNikeOrPWDActivity extends BaseActivity {
         String nikeName = etUserNike.getText().toString().trim();
         if(TextUtils.isEmpty(nikeName)){
             ToastUtils.showShort(getResources().getString(R.string.tip_ver_user_nike_empty));
+            return;
+        }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         Map userattr = new HashMap();

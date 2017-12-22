@@ -25,6 +25,8 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.io.File;
 import java.util.HashMap;
@@ -144,6 +146,10 @@ public class DeviceSetAttrActivity extends BaseActivity {
     }
 
     private void uploadImage(String path) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         File file = new File(path);
         Map param = new HashMap();
         String fileName = file.getName();
@@ -188,6 +194,10 @@ public class DeviceSetAttrActivity extends BaseActivity {
     }
 
     private void doDeviceIconEditAttr(final String iconUrl) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         this.iconUrl = iconUrl;
         Map devattrMap = new HashMap();
         devattrMap.put("devimg",iconUrl);

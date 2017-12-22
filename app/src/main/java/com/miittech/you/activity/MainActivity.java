@@ -27,6 +27,7 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
 
@@ -174,6 +175,9 @@ public class MainActivity extends BaseActivity {
         }
     }
     private void getIgnoreSetting() {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);

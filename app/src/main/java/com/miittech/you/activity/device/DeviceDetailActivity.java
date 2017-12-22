@@ -40,6 +40,7 @@ import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.TimeUtils;
@@ -284,6 +285,10 @@ public class DeviceDetailActivity extends BaseActivity {
         itemTime.setText(timeSpan);
     }
     private void unbindDevice() {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new HashMap();
         param.put("devid", deviceInfo.getDevidX());
         param.put("method", Params.METHOD.UNBIND);

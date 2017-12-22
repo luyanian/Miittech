@@ -25,6 +25,7 @@ import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
 import java.util.HashMap;
@@ -161,6 +162,10 @@ public class DeviceSharedListActivity extends BaseActivity {
     }
 
     private void getDeviceSharedList(String devId) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         Map param = new LinkedHashMap();
         param.put("devid",devId);
         String json = new Gson().toJson(param);

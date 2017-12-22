@@ -20,6 +20,7 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.ToastUtils;
 
 import org.w3c.dom.Text;
@@ -81,6 +82,10 @@ public class IgnoreNameEditActivity extends BaseActivity {
         String name = etName.getText().toString().trim();
         if(TextUtils.isEmpty(name)){
             ToastUtils.showShort("请填写名称");
+            return;
+        }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         isSubmitting=true;

@@ -39,6 +39,7 @@ import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
@@ -165,6 +166,9 @@ public class FriendTraceDetailActivity extends BaseActivity {
     }
 
     private void getPoints(Date date) {
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
         String daly = TimeUtils.date2String(date, new SimpleDateFormat("yyyyMMdd"));
         Map param = new HashMap();
         param.put("friendid", friend.getFriendid());

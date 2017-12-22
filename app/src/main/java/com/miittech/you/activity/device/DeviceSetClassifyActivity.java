@@ -17,6 +17,8 @@ import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -109,6 +111,10 @@ public class DeviceSetClassifyActivity extends BaseActivity {
     }
 
     private void setDeviceClassfy(final Intent intent) {
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
+            return;
+        }
         final String devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
         final String classfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
         Map devattrMap = new LinkedHashMap();

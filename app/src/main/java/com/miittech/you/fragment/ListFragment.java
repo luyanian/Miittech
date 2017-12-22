@@ -203,8 +203,8 @@ public class ListFragment extends Fragment {
             }
             return;
         }
-        if (!NetworkUtils.isConnected()) {
-            ToastUtils.showShort("网络链接断开，请检查网络");
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
         Map param = new LinkedHashMap();
