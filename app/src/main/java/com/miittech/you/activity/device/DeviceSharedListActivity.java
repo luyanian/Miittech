@@ -8,11 +8,11 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.SharedFriendListAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
@@ -20,7 +20,7 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceInfoResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
@@ -60,7 +60,7 @@ public class DeviceSharedListActivity extends BaseActivity {
     RelativeLayout rlTip;
 
     private SharedFriendListAdapter mAdapter;
-    private DeviceInfoResponse.UserinfoBean.DevinfoBean devinfoBean;
+    private DeviceInfo devinfoBean;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +68,7 @@ public class DeviceSharedListActivity extends BaseActivity {
         setContentView(R.layout.activity_device_shared_list);
         ButterKnife.bind(this);
         initMyTitleBar(titlebar,"分享");
-        devinfoBean = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        devinfoBean = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         titlebar.showBackOption();
         titlebar.showSettingOption();
         titlebar.setSettingIcon(R.drawable.ic_device_shared);
@@ -94,7 +94,7 @@ public class DeviceSharedListActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        getDeviceSharedList(devinfoBean.getDevid());
+        getDeviceSharedList(devinfoBean.getDevidX());
     }
 
     @OnClick(R.id.btn_shared)
@@ -114,7 +114,7 @@ public class DeviceSharedListActivity extends BaseActivity {
             public void onShare(Platform platform, Platform.ShareParams paramsToShare) {
                 double lat = 0;
                 double lng = 0;
-                if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(devinfoBean.getDevid()))){
+                if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(devinfoBean.getDevidX()))){
                     Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
                     if(locinfo!=null){
                         lat = locinfo.getLat();

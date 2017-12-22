@@ -1,21 +1,18 @@
 package com.miittech.you.net;
 import com.google.gson.JsonObject;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendLocInfoResponse;
 import com.miittech.you.net.response.FriendTraceResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.LoginResponse;
-import com.miittech.you.net.response.RegisteCodeResponse;
 import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 
 import io.reactivex.Observable;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -39,10 +36,10 @@ public interface ApiService {
     Observable<FriendLocInfoResponse> postToGetFriendLocList(@Url String url, @Body RequestBody body);
 
     @POST()
-    Observable<DeviceResponse> postDeviceOption(@Url String url, @Body RequestBody body);
+    Observable<DeviceListResponse> postDeviceOption(@Url String url, @Body RequestBody body);
 
     @POST()
-    Observable<DeviceInfoResponse> postDeviceInfoOption(@Url String url, @Body RequestBody body);
+    Observable<DeviceDetailResponse> postDeviceInfoOption(@Url String url, @Body RequestBody body);
 
     @POST()
     Observable<FriendTraceResponse> postGetFriendTraceList(@Url String url, @Body RequestBody body);

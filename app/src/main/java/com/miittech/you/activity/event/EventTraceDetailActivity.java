@@ -9,7 +9,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.baidu.mapapi.map.BaiduMap;
@@ -23,15 +22,14 @@ import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
-import com.bumptech.glide.Glide;
 import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.setting.SettingActivity;
 import com.miittech.you.adapter.TraceDalySelectAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
@@ -42,8 +40,8 @@ import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
@@ -63,8 +61,6 @@ import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import mapapi.clusterutil.clustering.ClusterItem;
-import mapapi.clusterutil.clustering.ClusterManager;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
@@ -99,7 +95,7 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
     @BindView(R.id.map_view)
     MapView mapView;
     private BaiduMap mBaiduMap;
-    private DeviceResponse.DevlistBean devlistBean;
+    private DeviceInfo devlistBean;
     private TraceDalySelectAdapter traceDalySelectAdapter;
     private MapStatus ms;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
@@ -110,7 +106,7 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_trace_detail);
         ButterKnife.bind(this);
-        devlistBean = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        devlistBean = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         initMyTitleBar(titlebar);
         titlebar.showBackOption();
         titlebar.showSettingOption();
@@ -213,9 +209,9 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         ApiServiceManager.getInstance().buildApiService(this).postDeviceInfoOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceInfoResponse>() {
+                .subscribe(new Consumer<DeviceDetailResponse>() {
                     @Override
-                    public void accept(DeviceInfoResponse response) throws Exception {
+                    public void accept(DeviceDetailResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             initMapPoints(response.getTracelist());
                         } else {
@@ -230,18 +226,18 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
                 });
     }
 
-    private void initMapPoints(List<DeviceInfoResponse.TracelistBean> tracelist) {
+    private void initMapPoints(List<DeviceDetailResponse.TracelistBean> tracelist) {
         if (tracelist == null || tracelist.size() <= 0) {
             ToastUtils.showShort("没有发现轨迹信息");
             return;
         }
         List<OverlayOptions> options = new ArrayList<OverlayOptions>();
-        DeviceInfoResponse.TracelistBean.LocinfoBean locinfoBean = tracelist.get(0).getLocinfo();
+        DeviceDetailResponse.TracelistBean.LocinfoBean locinfoBean = tracelist.get(0).getLocinfo();
         LatLng latLng = new LatLng(locinfoBean.getLat(), locinfoBean.getLng());
         ms = new MapStatus.Builder().target(latLng).zoom(16).build();
         mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newMapStatus(ms));
         latLngs.clear();
-        for (DeviceInfoResponse.TracelistBean tracelistBean : tracelist) {
+        for (DeviceDetailResponse.TracelistBean tracelistBean : tracelist) {
             LatLng point1 = new LatLng(tracelistBean.getLocinfo().getLat(), tracelistBean.getLocinfo().getLng());
             latLngs.add(point1);
             BitmapDescriptor descriptor = BitmapDescriptorFactory.fromResource(R.drawable.ic_map_point);

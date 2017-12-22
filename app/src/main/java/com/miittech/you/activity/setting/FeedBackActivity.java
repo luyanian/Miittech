@@ -5,24 +5,19 @@ import android.text.TextUtils;
 import android.widget.EditText;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
-import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.ToastUtils;
-
-import org.w3c.dom.Text;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

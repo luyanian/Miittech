@@ -1,7 +1,6 @@
 package com.miittech.you.activity.device;
 
 import android.Manifest;
-import android.bluetooth.BluetoothGatt;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,14 +14,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.clj.fastble.BleManager;
-import com.clj.fastble.callback.BleScanAndConnectCallback;
-import com.clj.fastble.data.BleDevice;
-import com.clj.fastble.exception.BleException;
-import com.clj.fastble.scan.BleScanRuleConfig;
 import com.google.gson.Gson;
 import com.luck.picture.lib.permissions.RxPermissions;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
@@ -32,15 +25,14 @@ import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
-import com.miittech.you.net.response.DeviceResponse;
-import com.miittech.you.service.BleService;
+import com.miittech.you.net.response.BaseResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleProgressBar;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import java.util.ArrayList;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -137,9 +129,9 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
         ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         progressbar.setProgress(24);
                         if(response.isVerSuccessful()){
                             progressbar.setProgress(27);
@@ -191,12 +183,12 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
         LogUtils.d("sign_sha1", sign);
         String path = HttpUrl.Api + "devbind/" + pubParam.toUrlParam(sign);
         final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
+        ApiServiceManager.getInstance().buildApiService(this).postNetRequest(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<BaseResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(BaseResponse response) throws Exception {
                         progressbar.setProgress(85);
                         if(response.isBindSuccessful()){
                             progressbar.setProgress(100);

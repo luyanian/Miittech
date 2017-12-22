@@ -1,6 +1,5 @@
 package com.miittech.you.activity.setting;
 
-import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,9 +12,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import com.baidu.location.BDAbstractLocationListener;
-import com.baidu.location.BDLocation;
-import com.baidu.location.LocationClientOption;
+
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
@@ -29,45 +26,23 @@ import com.baidu.mapapi.search.poi.PoiDetailResult;
 import com.baidu.mapapi.search.poi.PoiIndoorResult;
 import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
-import com.google.gson.Gson;
-import com.luck.picture.lib.permissions.RxPermissions;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.PoiResultAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.entity.Locinfo;
-import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
-import com.miittech.you.global.Params;
-import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.location.LocationClient;
-import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
-import com.ryon.mutils.EncryptUtils;
-import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
-import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.ToastUtils;
-
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 
 /**
  * Created by Administrator on 2017/9/30.

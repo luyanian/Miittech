@@ -1,57 +1,44 @@
 package com.miittech.you.common;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.view.View;
 
-import com.baidu.location.BDLocation;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
-import com.miittech.you.activity.setting.SettingActivity;
+import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.entity.Detailinfo;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
-import com.miittech.you.entity.Repdata;
-import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
+import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.service.BleService;
 import com.miittech.you.utils.HexUtil;
-import com.ryon.mutils.ConvertUtils;
-import com.ryon.mutils.EncodeUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.RegexUtils;
 import com.ryon.mutils.SPUtils;
-import com.ryon.mutils.SpanUtils;
-import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
-import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -129,9 +116,9 @@ public class Common {
         ApiServiceManager.getInstance().buildApiService(context).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         if(!response.isSuccessful()) {
                             response.onError(context);
                         }
@@ -172,9 +159,15 @@ public class Common {
                     }
                 });
     }
-    public synchronized static void getUserInfoAfterLogin(final Context context){
+    public synchronized static void getUserInfo(final Context context, final OnNetRequestCallBack onNetRequestCallBack){
+        if(!NetworkUtils.isConnected()){
+            if(onNetRequestCallBack!=null){
+                onNetRequestCallBack.OnRequestComplete();
+            }
+            return;
+        }
         Map param = new HashMap();
-        param.put("qrytype", Params.QRY_TYPE.BASE);
+        param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
@@ -192,16 +185,70 @@ public class Common {
                     if(response.isSuccessful()){
                         SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_NIKENAME,response.getUserinfo().getNickname());
                         SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_IMAGE,response.getUserinfo().getHeadimg());
+                        SPUtils.getInstance().remove(SPConst.DATA.USERINFO);
+                        SPUtils.getInstance().saveObject(SPConst.DATA.USERINFO,response);
                     }else{
                         response.onError(context);
+                    }
+                    if(onNetRequestCallBack!=null){
+                        onNetRequestCallBack.OnRequestComplete();
                     }
                 }
             }, new Consumer<Throwable>() {
                 @Override
                 public void accept(Throwable throwable) throws Exception {
                     throwable.printStackTrace();
+                    if(onNetRequestCallBack!=null){
+                        onNetRequestCallBack.OnRequestComplete();
+                    }
                 }
             });
+    }
+    public synchronized static void getDeviceDetailInfo(final Context context, final String devId, final OnNetRequestCallBack onNetRequestCallBack){
+        if(!NetworkUtils.isConnected()){
+            if(onNetRequestCallBack!=null){
+                onNetRequestCallBack.OnRequestComplete();
+            }
+            ToastUtils.showShort("网络链接断开，请检查网络");
+            return;
+        }
+        Map param = new HashMap();
+        param.put("devid", devId);
+        param.put("qrytype", Params.QRY_TYPE.ALL);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "deviceinfo/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(context).postDeviceInfoOption(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceDetailResponse>() {
+                    @Override
+                    public void accept(DeviceDetailResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            SPUtils.getInstance().remove(Common.formatDevId2Mac(devId));
+                            SPUtils.getInstance().saveObject(Common.formatDevId2Mac(devId),response);
+                        } else {
+                            response.onError(context);
+                        }
+                        if(onNetRequestCallBack!=null){
+                            onNetRequestCallBack.OnRequestComplete();
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                        if(onNetRequestCallBack!=null){
+                            onNetRequestCallBack.OnRequestComplete();
+                        }
+                    }
+                });
     }
     public synchronized static void AddFriendConfirm(final Context context, String friendId, String method) {
         Map param = new HashMap();
@@ -230,6 +277,51 @@ public class Common {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         throwable.printStackTrace();
+                    }
+                });
+    }
+    public synchronized static void initDeviceList(final Context context, final OnNetRequestCallBack onNetRequestCallBack) {
+        if(!NetworkUtils.isConnected()){
+            if(onNetRequestCallBack!=null){
+                onNetRequestCallBack.OnRequestComplete();
+            }
+            ToastUtils.showShort("网络链接断开，请检查网络");
+            return;
+        }
+        Map param = new LinkedHashMap();
+        param.put("qrytype", Params.QRY_TYPE.ALL);
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userdevicelist/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(context).postDeviceOption(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DeviceListResponse>() {
+                    @Override
+                    public void accept(DeviceListResponse response) throws Exception {
+                        if(response.isSuccessful()) {
+                            SPUtils.getInstance().remove(SPConst.DATA.DEVICELIST);
+                            SPUtils.getInstance().saveObject(SPConst.DATA.DEVICELIST, response);
+                        }else{
+                            response.onError(context);
+                        }
+                        if(onNetRequestCallBack!=null){
+                            onNetRequestCallBack.OnRequestComplete();
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                        if(onNetRequestCallBack!=null){
+                            onNetRequestCallBack.OnRequestComplete();
+                        }
                     }
                 });
     }
@@ -360,13 +452,13 @@ public class Common {
     }
 
     public static boolean isUserContainDevice(String address) {
-        DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+        DeviceListResponse response = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
         if(response!=null){
-            List<DeviceResponse.DevlistBean> list = response.getDevlist();
+            List<DeviceInfo> list = response.getDevlist();
             if(list==null||list.size()<=0){
                 return false;
             }
-            for (DeviceResponse.DevlistBean devlistBean : list){
+            for (DeviceInfo devlistBean : list){
                 if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))&&TextUtils.isEmpty(devlistBean.getFriendname())){
                     return true;
                 }
@@ -376,18 +468,17 @@ public class Common {
     }
 
     public static boolean isBell() {
-        boolean isPointIgnore = (SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==1);
-        boolean isTimeIgnore = (SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==1);
-        if(isPointIgnore&&!Common.isAreaIgnore()){
-            return true;
+        if(Common.isAreaIgnore()||Common.isTimeIgnore()){
+            return false;
         }
-        if(isTimeIgnore&&!Common.isTimeIgnore()){
-            return true;
-        }
-        return false;
+        return true;
     }
 
     public static boolean isAreaIgnore(){
+        boolean isPointIgnore = (SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==1);
+        if(!isPointIgnore){
+            return false;
+        }
         UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
         if(response!=null&&response.getConfig()!=null){
             UserInfoResponse.ConfigBean configBean = response.getConfig();
@@ -403,7 +494,8 @@ public class Common {
                             Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
                             LatLng latLng1 = new LatLng(areaBean.getLat(),areaBean.getLng());
                             LatLng latLng2 = new LatLng(locinfo.getLat(),locinfo.getLng());
-                            if(DistanceUtil.getDistance(latLng1, latLng2)<areaBean.getR()){
+                            double distance = DistanceUtil.getDistance(latLng1, latLng2);
+                            if(distance<areaBean.getR()){
                                 return true;
                             }
                         }
@@ -414,6 +506,10 @@ public class Common {
         return false;
     }
     public static boolean isTimeIgnore(){
+        boolean isTimeIgnore = (SPUtils.getInstance().getInt(SPConst.DISTURB.ISTIMEDISTURB,1)==1);
+        if(!isTimeIgnore){
+            return false;
+        }
         UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
         if(response!=null&&response.getConfig()!=null) {
             UserInfoResponse.ConfigBean configBean = response.getConfig();

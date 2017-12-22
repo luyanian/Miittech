@@ -6,20 +6,18 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.activity.user.FriendAddActivity;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
-import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceInfoResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.EncryptUtils;
@@ -57,13 +55,13 @@ public class DeviceSharedAddActivity extends BaseActivity implements TypeSelecto
     EditText etUserEmail;
     @BindView(R.id.ll_tab_email)
     LinearLayout llTabEmail;
-    private DeviceInfoResponse.UserinfoBean.DevinfoBean devinfoBean;
+    private DeviceInfo devinfoBean;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_shared_add);
-        devinfoBean = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        devinfoBean = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         ButterKnife.bind(this);
         initMyTitleBar(titlebar,R.string.text_setting_myfriends_add);
         titlebar.showBackOption();
@@ -108,7 +106,7 @@ public class DeviceSharedAddActivity extends BaseActivity implements TypeSelecto
         }
 
         Map param = new HashMap();
-        param.put("devid", devinfoBean.getDevid());
+        param.put("devid", devinfoBean.getDevidX());
         param.put("phone", phone);
         param.put("email", email);
         String json = new Gson().toJson(param);

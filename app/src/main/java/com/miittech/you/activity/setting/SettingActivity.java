@@ -73,7 +73,10 @@ public class SettingActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        getUserInfo();
+        UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
+        if(response!=null){
+            initData(response.getUserinfo());
+        }
     }
 
     @OnClick({R.id.user_header_image, R.id.user_name, R.id.btn_setting_myfriends, R.id.btn_setting_ignore, R.id.btn_setting_service, R.id.btn_setting_star, R.id.btn_setting_shop, R.id.btn_setting_readme, R.id.btn_setting_feedbak,R.id.btn_setting_about_me})
@@ -114,49 +117,44 @@ public class SettingActivity extends BaseActivity {
         }
     }
 
-    private void getUserInfo(){
-        if(!NetworkUtils.isConnected()){
-            UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
-            if(response!=null){
-                initData(response.getUserinfo());
-            }else {
-                ToastUtils.showShort("网络链接断开，请检查网络");
-            }
-            return;
-        }
-        Map param = new HashMap();
-        param.put("qrytype", Params.QRY_TYPE.BASE);
-//        param.put("sdate", "20170101");
-//        param.put("edate", "20170920");
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(Common.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "userinfo/" + pubParam.toUrlParam(sign);
-        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-        ApiServiceManager.getInstance().buildApiService(this).postToGetUserInfo(path, requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<UserInfoResponse>() {
-                    @Override
-                    public void accept(UserInfoResponse response) throws Exception {
-                        if(response.isSuccessful()){
-                            SPUtils.getInstance().remove(SPConst.DATA.USERINFO);
-                            SPUtils.getInstance().saveObject(SPConst.DATA.USERINFO,response);
-                            initData(response.getUserinfo());
-                        }else{
-                            response.onError(SettingActivity.this);
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
+//    private void getUserInfo(boolean isFromNet){
+//        if(!NetworkUtils.isConnected()){
+//            ToastUtils.showShort("网络链接断开，请检查网络");
+//            return;
+//        }
+//        Map param = new HashMap();
+//        param.put("qrytype", Params.QRY_TYPE.BASE);
+//        String json = new Gson().toJson(param);
+//        PubParam pubParam = new PubParam(Common.getUserId());
+//        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+//        LogUtils.d("sign_unsha1", sign_unSha1);
+//        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+//        LogUtils.d("sign_sha1", sign);
+//        String path = HttpUrl.Api + "userinfo/" + pubParam.toUrlParam(sign);
+//        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+//        ApiServiceManager.getInstance().buildApiService(this).postToGetUserInfo(path, requestBody)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Consumer<UserInfoResponse>() {
+//                    @Override
+//                    public void accept(UserInfoResponse response) throws Exception {
+//                        if(response.isSuccessful()){
+//                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_NIKENAME,response.getUserinfo().getNickname());
+//                            SPUtils.getInstance(SPConst.USER.SP_NAME).put(SPConst.USER.KEY_IMAGE,response.getUserinfo().getHeadimg());
+//                            SPUtils.getInstance().remove(SPConst.DATA.USERINFO);
+//                            SPUtils.getInstance().saveObject(SPConst.DATA.USERINFO,response);
+//                            initData(response.getUserinfo());
+//                        }else{
+//                            response.onError(SettingActivity.this);
+//                        }
+//                    }
+//                }, new Consumer<Throwable>() {
+//                    @Override
+//                    public void accept(Throwable throwable) throws Exception {
+//                        throwable.printStackTrace();
+//                    }
+//                });
+//    }
 
     private void initData(UserInfoResponse.UserinfoBean userinfo) {
         if(!TextUtils.isEmpty(userinfo.getHeadimg())){

@@ -11,7 +11,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.text.TextUtils;
-import android.view.View;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -40,6 +39,7 @@ import com.miittech.you.common.BingGoPlayUtils;
 import com.miittech.you.common.BleCommon;
 import com.miittech.you.common.Common;
 import com.miittech.you.common.SoundPlayUtils;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
@@ -47,8 +47,8 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.ryon.constant.TimeConstants;
 import com.ryon.mutils.EncryptUtils;
@@ -188,7 +188,7 @@ public  class BleService extends Service {
                         unbindDevice(intent.getStringExtra("address"));
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR:
-                        clearAllConnect();
+                        clearAllConnect(false);
                         break;
                     case IntentExtras.CMD.CMD_TASK_EXCE:
                         new Thread(new Runnable() {
@@ -211,8 +211,8 @@ public  class BleService extends Service {
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         break;
                     case BluetoothAdapter.STATE_OFF:
-                        clearAllConnect();
                         BleManager.getInstance().cancelScan();
+                        clearAllConnect(true);
                         break;
                 }
             }
@@ -246,16 +246,16 @@ public  class BleService extends Service {
                     }
                 });
 
-                DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(bleDevice.getMac());
+                DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(bleDevice.getMac());
                 if(response!=null) {
-                    DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                    DeviceInfo.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
                     if (alertinfoBean != null) {
                         byte[] data = new byte[1];
-                        if (alertinfoBean.getIsRepeat() == 0 || !Common.isBell()) {
-                           data[0] = 0x00;
-                        }else{
-                            data[0] = 0x02;
-                        }
+//                        if (alertinfoBean.getIsRepeat() == 0 || !Common.isBell()) {
+//                           data[0] = 0x00;
+//                        }else{
+//                            data[0] = 0x02;
+//                        }
 //                        BLEClientManager.getClient().write(mac,BleCommon.linkLossUUID,BleCommon.characteristicUUID,data,new BleWriteResponse(){
 //                            @Override
 //                            public void onResponse(int code) {
@@ -275,13 +275,14 @@ public  class BleService extends Service {
     }
 
     private void exceCalibrationDevice() {
-        DeviceResponse deviceResponse = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+        DeviceListResponse deviceResponse = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
         if(deviceResponse!=null&&deviceResponse.getDevlist()!=null){
-            for (DeviceResponse.DevlistBean devlistBean : deviceResponse.getDevlist()){
-                if(!mDeviceMap.containsKey(Common.formatDevId2Mac(devlistBean.getDevidX()))){
-                    mDeviceMap.put(Common.formatDevId2Mac(devlistBean.getDevidX()),null);
-                    if(mConnectMac.contains(Common.formatDevId2Mac(devlistBean.getDevidX()))){
-                        mConnectMac.remove(Common.formatDevId2Mac(devlistBean.getDevidX()));
+            for (DeviceInfo devlistBean : deviceResponse.getDevlist()){
+                String mac = Common.formatDevId2Mac(devlistBean.getDevidX());
+                if(!mDeviceMap.containsKey(mac)){
+                    mDeviceMap.put(mac,null);
+                    if(mConnectMac.contains(mac)){
+                        mConnectMac.remove(mac);
                     }
                 }
             }
@@ -424,11 +425,11 @@ public  class BleService extends Service {
                     }
                     if(!isActiveDisConnected) {
                         Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(device.getMac()), Params.EVENT_TYPE.DEVICE_LOSE, null);
-                        DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(device.getMac());
+                        DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(device.getMac());
                         if (response != null) {
-                            DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                            DeviceInfo.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
                             if (alertinfoBean != null) {
-                                if (alertinfoBean.getIsReconnect() == 1 && Common.isBell()) {
+                                if (alertinfoBean.getIsRepeat() == 1 && Common.isBell()) {
                                     doPlay(response);
                                 }
                             }
@@ -471,11 +472,13 @@ public  class BleService extends Service {
         });
     }
 
-    private synchronized void clearAllConnect(){
+    private synchronized void clearAllConnect(boolean isBleClose){
         LogUtils.d("bleService","clearAllConnect");
         mDeviceMap.clear();
         mBindMap.clear();
-        isNeedAlerts.clear();
+        if(!isBleClose) {
+            isNeedAlerts.clear();
+        }
         isBind=false;
         BleManager.getInstance().disconnectAllDevice();
     }
@@ -544,9 +547,9 @@ public  class BleService extends Service {
                 }
                 if(isNeedAlerts.get(device.getMac())) {
                     Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(device.getMac()), Params.EVENT_TYPE.DEVICE_REDISCOVER, null);
-                    final DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(device.getMac());
+                    final DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(device.getMac());
                     if (response != null) {
-                        DeviceInfoResponse.UserinfoBean.DevinfoBean.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                        DeviceInfo.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
                         if (alertinfoBean != null) {
                             if (alertinfoBean.getIsReconnect() == 1 && Common.isBell()) {
                                 doPlay(response);
@@ -616,9 +619,11 @@ public  class BleService extends Service {
                         LogUtils.d("贴片在勿扰范围内,报警忽略！");
                         return;
                     }
-                    DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(device.getMac());
+                    DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(device.getMac());
                     if (response != null) {
-                        doPlay(response);
+                        if(Common.isBell()) {
+                            doPlay(response);
+                        }
                     }
 
                 }
@@ -653,19 +658,19 @@ public  class BleService extends Service {
         });
     }
 
-    private void doPlay(DeviceInfoResponse response) {
+    private void doPlay(DeviceDetailResponse response) {
         String url = response.getUserinfo().getDevinfo().getAlertinfo().getUrlX();
-        boolean isRepeat = (response.getUserinfo().getDevinfo().getAlertinfo().getIsRepeat()==1)?true:false;
         boolean isShake = (response.getUserinfo().getDevinfo().getAlertinfo().getIsShake()==1)?true:false;
         int duration = response.getUserinfo().getDevinfo().getAlertinfo().getDuration();
+        duration*=1000;
         if(url.contains("bluesforslim")){
-            SoundPlayUtils.play(1,isRepeat,duration);
+            SoundPlayUtils.play(3,duration,isShake);
         }else if(url.contains("countryfair")){
-            SoundPlayUtils.play(2,isRepeat,duration);
+            SoundPlayUtils.play(4,duration,isShake);
         }else if(url.contains("theclassiccall")){
-            SoundPlayUtils.play(4,isRepeat,duration);
+            SoundPlayUtils.play(2,duration,isShake);
         }else{
-            SoundPlayUtils.play(3,isRepeat,duration);
+            SoundPlayUtils.play(1,duration,isShake);
         }
     }
 
@@ -735,16 +740,16 @@ public  class BleService extends Service {
     }
 
     private synchronized void reportUserLocation(final long millis, final BDLocation location) {
-        DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+        DeviceListResponse response = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
         if(response==null){
             return;
         }
-        List<DeviceResponse.DevlistBean> mlist = response.getDevlist();
+        List<DeviceInfo> mlist = response.getDevlist();
         if(mlist==null||mlist.size()<=0){
             return;
         }
         final List<Map> devlist = new ArrayList<>();
-        for (DeviceResponse.DevlistBean devlistBean : mlist){
+        for (DeviceInfo devlistBean : mlist){
             String mac = Common.formatDevId2Mac(devlistBean.getDevidX());
             final Map devItem = new HashMap();
             devItem.put("devid", devlistBean.getDevidX());

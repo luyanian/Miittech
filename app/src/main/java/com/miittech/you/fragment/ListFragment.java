@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
 import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
 import com.luck.picture.lib.permissions.RxPermissions;
@@ -25,6 +26,7 @@ import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
@@ -32,16 +34,20 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
+import com.scwang.smartrefresh.layout.SmartRefreshLayout;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -69,6 +75,8 @@ public class ListFragment extends Fragment {
     LinearLayout llLocationServiceDisabled;
     @BindView(R.id.ll_background_service_disabled)
     LinearLayout llBackgroundServiceDisabled;
+    @BindView(R.id.refreshLayout)
+    SmartRefreshLayout refreshLayout;
 
     private LinearLayoutManager mLayoutManager;
     private DeviceListAdapter mDeviceListAdapter;
@@ -88,56 +96,48 @@ public class ListFragment extends Fragment {
         mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setHasFixedSize(true);
-        //创建并设置Adapter
-        mDeviceListAdapter = new DeviceListAdapter(getActivity(), new OnListItemClick<DeviceResponse.DevlistBean>() {
+
+        refreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
-            public void onItemClick(DeviceResponse.DevlistBean devlistBean,String flag) {
-                super.onItemClick(devlistBean,flag);
+            public void onRefresh(RefreshLayout refreshlayout) {
+                refreshlayout.finishRefresh(2000);
+                getDeviceList(true);
+            }
+        });
+        //创建并设置Adapter
+        mDeviceListAdapter = new DeviceListAdapter(getActivity(), new OnListItemClick<DeviceInfo>() {
+            @Override
+            public void onItemClick(DeviceInfo devlistBean, String flag) {
+                super.onItemClick(devlistBean, flag);
                 Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
                 intent.putExtra(IntentExtras.DEVICE.DATA, devlistBean);
-                intent.putExtra("location",flag);
+                intent.putExtra("location", flag);
                 startActivity(intent);
             }
         });
         recyclerView.setAdapter(mDeviceListAdapter);
-//        getDeviceList();
         initServiceStateListening();
         initState();
     }
 
-    public void initState(){
-        if(!BleManager.getInstance().isBlueEnable()){
+    public void initState() {
+        if (!BleManager.getInstance().isBlueEnable()) {
             llBluetoothDisabled.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             llBluetoothDisabled.setVisibility(View.GONE);
         }
         RxPermissions rxPermissions = new RxPermissions(getActivity());
-        if(rxPermissions.isGranted(Manifest.permission.ACCESS_FINE_LOCATION)||rxPermissions.isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)){
+        if (rxPermissions.isGranted(Manifest.permission.ACCESS_FINE_LOCATION) || rxPermissions.isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
             llLocationServiceDisabled.setVisibility(View.GONE);
-        }else{
+        } else {
             llLocationServiceDisabled.setVisibility(View.VISIBLE);
         }
         NotificationManagerCompat manager = NotificationManagerCompat.from(App.getInstance().getApplicationContext());
-        if(manager.areNotificationsEnabled()){
+        if (manager.areNotificationsEnabled()) {
             llNotifyServiceDisabled.setVisibility(View.GONE);
-        }else{
+        } else {
             llNotifyServiceDisabled.setVisibility(View.VISIBLE);
         }
-//        if(Common.isAccessibilitySettingsOn(getActivity())){
-//            llBackgroundServiceDisabled.setVisibility(View.GONE);
-//        }else{
-//            llBackgroundServiceDisabled.setVisibility(View.VISIBLE);
-//        }
-//
-//        llBackgroundServiceDisabled.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (!Common.isAccessibilitySettingsOn(getActivity())) {
-//                    Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-//                    startActivity(intent);
-//                }
-//            }
-//        });
     }
 
     private void initServiceStateListening() {
@@ -171,8 +171,8 @@ public class ListFragment extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
+            getDeviceList(false);
             initState();
-            getDeviceList();
         } else {
         }
     }
@@ -183,8 +183,8 @@ public class ListFragment extends Fragment {
         if (hidden) {
 
         } else {
+            getDeviceList(false);
             initState();
-            getDeviceList();
         }
     }
 
@@ -192,16 +192,19 @@ public class ListFragment extends Fragment {
     public void onResume() {
         super.onResume();
         initState();
-        getDeviceList();
+        getDeviceList(false);
     }
 
-    private void getDeviceList() {
-        if(!NetworkUtils.isConnected()){
-            ToastUtils.showShort("网络链接断开，请检查网络");
-            DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
-            if(response!=null){
+    private void getDeviceList(boolean isFromNet) {
+        if(!isFromNet){
+            DeviceListResponse response = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+            if (response != null) {
                 initDeviceList(response.getDevlist());
             }
+            return;
+        }
+        if (!NetworkUtils.isConnected()) {
+            ToastUtils.showShort("网络链接断开，请检查网络");
             return;
         }
         Map param = new LinkedHashMap();
@@ -218,11 +221,11 @@ public class ListFragment extends Fragment {
         ApiServiceManager.getInstance().buildApiService(getActivity()).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         SPUtils.getInstance().remove(SPConst.DATA.DEVICELIST);
-                        SPUtils.getInstance().saveObject(SPConst.DATA.DEVICELIST,response);
+                        SPUtils.getInstance().saveObject(SPConst.DATA.DEVICELIST, response);
                         initDeviceList(response.getDevlist());
                         if (!response.isSuccessful()) {
                             response.onError(getActivity());
@@ -236,11 +239,11 @@ public class ListFragment extends Fragment {
                 });
     }
 
-    private void initDeviceList(List<DeviceResponse.DevlistBean> devlist) {
+    private void initDeviceList(List<DeviceInfo> devlist) {
         if (devlist == null || devlist.size() == 0) {
             rlTip.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
-        }else{
+        } else {
             rlTip.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
@@ -250,7 +253,7 @@ public class ListFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if(mDeviceListAdapter!=null){
+        if (mDeviceListAdapter != null) {
             mDeviceListAdapter.unregist();
         }
         unbinder.unbind();

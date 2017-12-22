@@ -13,6 +13,7 @@ import com.luck.picture.lib.entity.LocalMedia;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
@@ -21,8 +22,8 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
@@ -72,7 +73,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
 
     private static final int REQUEST_DEVICE_NAME=0x01;
     private static final int REQUEST_DEVICE_CLASSFY=0x02;
-    DeviceInfoResponse.UserinfoBean.DevinfoBean deviceDetailInfo;
+    DeviceInfo deviceInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,14 +89,14 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 finish();
             }
         });
-        deviceDetailInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        initData(deviceDetailInfo);
+        deviceInfo = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        initData(deviceInfo);
     }
 
-    private void initData(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceDetailInfo) {
+    private void initData(DeviceInfo deviceDetailInfo) {
         tvDeviceName.setText(Common.decodeBase64(deviceDetailInfo.getDevname()));
         tvDeviceClassify.setText(Common.decodeBase64(deviceDetailInfo.getGroupname()));
-        tvDeviceId.setText(deviceDetailInfo.getDevid());
+        tvDeviceId.setText(deviceInfo.getDevidX());
         DateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 a HH:mm");
         Date date = TimeUtils.string2Date(deviceDetailInfo.getBindtime(),new SimpleDateFormat("yyyyMMddHHmmss"));
         tvDeviceTimeActive.setText(TimeUtils.date2String(date,dateFormat));
@@ -141,7 +142,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.rl_device_name:
                 intent = new Intent(this,DeviceEditNameActivity.class);
-                intent.putExtra(IntentExtras.DEVICE.ID,deviceDetailInfo.getDevid());
+                intent.putExtra(IntentExtras.DEVICE.ID,deviceInfo.getDevidX());
                 startActivityForResult(intent,REQUEST_DEVICE_NAME);
                 break;
             case R.id.rl_device_img:
@@ -153,13 +154,13 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 break;
             case R.id.rl_device_classify:
                 intent = new Intent(this,DeviceSetClassifyActivity.class);
-                intent.putExtra(IntentExtras.DEVICE.ID,deviceDetailInfo.getDevid());
+                intent.putExtra(IntentExtras.DEVICE.ID,deviceInfo.getDevidX());
                 intent.putExtra(IntentExtras.FROM,"DEVICESETTING");
                 startActivityForResult(intent,REQUEST_DEVICE_CLASSFY);
                 break;
             case R.id.rl_device_alert:
                 intent = new Intent(this,DevicePhoneAlertSettingActivity.class);
-                intent.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
+                intent.putExtra(IntentExtras.DEVICE.DATA,deviceInfo);
                 startActivity(intent);
                 break;
             case R.id.rl_device_update:
@@ -209,52 +210,11 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                     }
                 });
     }
-    private void getDeviceInfo(final DeviceResponse.DevlistBean device) {
-        if(!NetworkUtils.isConnected()){
-            DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(device.getDevidX()));
-            if(response!=null){
-                initData(response.getUserinfo().getDevinfo());
-            }
-            return;
-        }
-        Map param = new HashMap();
-        param.put("devid", device.getDevidX());
-        param.put("qrytype", Params.QRY_TYPE.ALL);
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(Common.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "deviceinfo/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-
-        ApiServiceManager.getInstance().buildApiService(this).postDeviceInfoOption(path, requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceInfoResponse>() {
-                    @Override
-                    public void accept(DeviceInfoResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            SPUtils.getInstance().remove(Common.formatDevId2Mac(device.getDevidX()));
-                            SPUtils.getInstance().saveObject(Common.formatDevId2Mac(device.getDevidX()),response);
-                            initData(response.getUserinfo().getDevinfo());
-                        } else {
-                            response.onError(DeviceDetailSettingActivity.this);
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
     private void doDeviceIconEditAttr(final String iconUrl) {
         final Map devattrMap = new HashMap();
         devattrMap.put("devimg",iconUrl);
         Map param = new HashMap();
-        param.put("devid", deviceDetailInfo.getDevid());
+        param.put("devid", deviceInfo.getDevidX());
         param.put("method", "C");
         param.put("devattr", devattrMap);
         String json = new Gson().toJson(param);
@@ -269,15 +229,17 @@ public class DeviceDetailSettingActivity extends BaseActivity {
         ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         if(response.isSuccessful()){
                             GlideApp.with(DeviceDetailSettingActivity.this)
                                     .load(iconUrl)
-                                    .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
-                                    .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
+                                    .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceInfo.getGroupname())))
+                                    .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceInfo.getGroupname())))
                                     .into(imgDeviceIcon);
+                            Common.getDeviceDetailInfo(DeviceDetailSettingActivity.this,deviceInfo.getDevidX(),null);
+                            Common.initDeviceList(DeviceDetailSettingActivity.this,null);
                         }else{
                             response.onError(DeviceDetailSettingActivity.this);
                         }

@@ -88,10 +88,11 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
             ToastUtils.showShort("请设置结束时间！");
             return;
         }
-//        if(TimeUtils.string2Millis(endTime)<=TimeUtils.string2Millis(startTime)){
-//            ToastUtils.showShort("结束时间不能小于开始时间！");
-//            return;
-//        }
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        if(TimeUtils.string2Millis(endTime,dateFormat)<=TimeUtils.string2Millis(startTime,dateFormat)){
+            ToastUtils.showShort("结束时间不能小于开始时间！");
+            return;
+        }
         Intent data = new Intent();
         data.putExtra("startTime",startTime);
         data.putExtra("endTime",endTime);

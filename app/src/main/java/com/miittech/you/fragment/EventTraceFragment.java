@@ -12,12 +12,11 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.event.EventTraceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
@@ -25,21 +24,17 @@ import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
-import com.miittech.you.net.response.DeviceResponse;
-import com.miittech.you.net.response.UserInfoResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +52,7 @@ import okhttp3.RequestBody;
  * Created by ryon on 2017/10/28.
  */
 
-public class TraceFragment extends Fragment {
+public class EventTraceFragment extends Fragment {
     @BindView(R.id.recyclerview)
     RecyclerView recyclerview;
     @BindView(R.id.rl_tip)
@@ -74,13 +69,7 @@ public class TraceFragment extends Fragment {
             @Override
             public void onRefresh(RefreshLayout refreshlayout) {
                 refreshlayout.finishRefresh(2000);
-                getDeviceList();
-            }
-        });
-        refreshLayout.setOnLoadmoreListener(new OnLoadmoreListener() {
-            @Override
-            public void onLoadmore(RefreshLayout refreshlayout) {
-                refreshlayout.finishLoadmore(2000);
+                getDeviceList(true);
             }
         });
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
@@ -90,7 +79,7 @@ public class TraceFragment extends Fragment {
             @Override
             public void onItemClick(Object o,String flag) {
                 super.onItemClick(o);
-                DeviceResponse.DevlistBean devlistBean = (DeviceResponse.DevlistBean) o;
+                DeviceInfo devlistBean = (DeviceInfo) o;
                 Intent intent = new Intent(getActivity(), EventTraceDetailActivity.class);
                 intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
                 intent.putExtra("location",flag);
@@ -98,7 +87,7 @@ public class TraceFragment extends Fragment {
             }
         });
         recyclerview.setAdapter(mDeviceListAdapter);
-        refreshLayout.autoRefresh();
+        getDeviceList(false);
     }
 
     @Nullable
@@ -109,12 +98,16 @@ public class TraceFragment extends Fragment {
         return view;
     }
 
-    private void getDeviceList() {
-        if(!NetworkUtils.isConnected()){
-            DeviceResponse response = (DeviceResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
-            if(response!=null){
+    private void getDeviceList(boolean isFromNet) {
+        if(!isFromNet){
+            DeviceListResponse response = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
+            if (response != null) {
                 initDeviceList(response.getDevlist());
             }
+            return;
+        }
+        if (!NetworkUtils.isConnected()) {
+            ToastUtils.showShort("网络链接断开，请检查网络");
             return;
         }
         Map param = new LinkedHashMap();
@@ -131,9 +124,9 @@ public class TraceFragment extends Fragment {
         ApiServiceManager.getInstance().buildApiService(getActivity()).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         SPUtils.getInstance().remove(SPConst.DATA.DEVICELIST);
                         SPUtils.getInstance().saveObject(SPConst.DATA.DEVICELIST,response);
                         initDeviceList(response.getDevlist());
@@ -149,7 +142,7 @@ public class TraceFragment extends Fragment {
                 });
     }
 
-    private void initDeviceList(List<DeviceResponse.DevlistBean> devlist) {
+    private void initDeviceList(List<DeviceInfo> devlist) {
         if (devlist == null || devlist.size() == 0) {
             rlTip.setVisibility(View.VISIBLE);
             recyclerview.setVisibility(View.GONE);

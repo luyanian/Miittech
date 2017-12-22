@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.PersistableBundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -12,33 +13,33 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnMsgTipOptions;
+import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.impl.TypeSelectorChangeLisener;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
-import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.weight.TypeSelector;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.StringUtils;
 import com.ryon.mutils.TimeUtils;
@@ -81,8 +82,7 @@ public class DeviceDetailActivity extends BaseActivity {
     TextView tvBattarry;
     @BindView(R.id.tv_device_time)
     TextView tvDeviceTime;
-    private DeviceResponse.DevlistBean device;
-    private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceDetailInfo;
+    private DeviceInfo deviceInfo;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
 
     @Override
@@ -119,10 +119,12 @@ public class DeviceDetailActivity extends BaseActivity {
             }
         });
         typeSelector.setSelectItem(0);
-        device = (DeviceResponse.DevlistBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        if(getIntent().hasExtra("location")){
-            tvDeviceLocation.setText(getIntent().getStringExtra("location"));
-        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initDeviceInfoFromList();
     }
 
     @Override
@@ -132,100 +134,92 @@ public class DeviceDetailActivity extends BaseActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        getDeviceInfo(device);
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
     }
-
-    private void initViewData(DeviceInfoResponse.UserinfoBean.DevinfoBean device) {
-        this.deviceDetailInfo = device;
-        tvDeviceName.setText(Common.decodeBase64(device.getDevname()));
+    private void initDeviceInfoFromList() {
+        DeviceInfo devlistBean = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(devlistBean.getDevidX()));
+        if(response!=null&&response.getUserinfo()!=null&&response.getUserinfo().getDevinfo()!=null){
+            initDeviceInfo(response.getUserinfo().getDevinfo());
+        }else{
+            initDeviceInfo(devlistBean);
+        }
+        if(getIntent().hasExtra("location")){
+            tvDeviceLocation.setText(getIntent().getStringExtra("location"));
+        }
+    }
+    private void initDeviceInfo(DeviceInfo deviceInfo) {
+        this.deviceInfo = deviceInfo;
+        tvDeviceName.setText(Common.decodeBase64(deviceInfo.getDevname()));
         tvBattarry.setVisibility(View.GONE);
 
-        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(device.getDevid()))){
+        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
             tvDeviceTime.setText("现在");
         }else {
-            setTimeText(tvDeviceTime,device.getLasttime());
-            tvDeviceLocation.setText(Common.decodeBase64(device.getLocinfo().getAddr()));
+            setTimeText(tvDeviceTime,deviceInfo.getLasttime());
+            tvDeviceLocation.setText(Common.decodeBase64(deviceInfo.getLocinfo().getAddr()));
         }
         GlideApp.with(this)
-                .load(device.getDevimg())
-                .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))
-                .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))
+                .load(deviceInfo.getDevimg())
+                .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceInfo.getGroupname())))
+                .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceInfo.getGroupname())))
                 .into(imgDeviceIcon);
         switchFindBtnStyle();
-        setConnectStatusStyle(Common.formatDevId2Mac(device.getDevimg()));
+        setConnectStatusStyle(Common.formatDevId2Mac(deviceInfo.getDevidX()));
 
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null) {
-            if (data.hasExtra(IntentExtras.DEVICE.NAME)) {
-                String name = data.getStringExtra(IntentExtras.DEVICE.NAME);
-                if (!StringUtils.isEmpty(name)) {
-                    tvDeviceName.setText(name);
-                }
-            }
-        }
     }
 
     @OnClick({R.id.rl_bell_status, R.id.btn_option_map, R.id.btn_option_share, R.id.btn_option_setting, R.id.btn_option_delete})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.rl_bell_status:
-                if(deviceDetailInfo==null){
+                if(deviceInfo==null){
                     return;
                 }
-                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
+                if(TextUtils.isEmpty(deviceInfo.getOwneruser())||"0".equals(deviceInfo.getOwneruser())) {
                     doFindOrBell();
                 }else{
                     ToastUtils.showShort("您不是贴片拥有者，无操作权限");
                 }
                 break;
             case R.id.btn_option_map:
-                if(deviceDetailInfo==null) {
+                if(deviceInfo==null) {
                     return;
                 }
                 Intent map = new Intent(this, DeviceMapDetailActivity.class);
-                map.putExtra(IntentExtras.DEVICE.DATA,deviceDetailInfo);
+                map.putExtra(IntentExtras.DEVICE.DATA,deviceInfo);
                 startActivity(map);
                 break;
             case R.id.btn_option_share:
-                if(deviceDetailInfo==null) {
+                if(deviceInfo==null) {
                     return;
                 }
-                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
+                if(TextUtils.isEmpty(deviceInfo.getOwneruser())||"0".equals(deviceInfo.getOwneruser())) {
                     Intent toshareIntent = new Intent(this, DeviceSharedListActivity.class);
-                    toshareIntent.putExtra(IntentExtras.DEVICE.DATA, deviceDetailInfo);
+                    toshareIntent.putExtra(IntentExtras.DEVICE.DATA, deviceInfo);
                     startActivity(toshareIntent);
                 }else{
                     ToastUtils.showShort("您不是贴片拥有者，无操作权限");
                 }
                 break;
             case R.id.btn_option_setting:
-                if(deviceDetailInfo==null) {
+                if(deviceInfo==null) {
                     return;
                 }
-                if(TextUtils.isEmpty(deviceDetailInfo.getOwneruser())||"0".equals(deviceDetailInfo.getOwneruser())) {
+                if(TextUtils.isEmpty(deviceInfo.getOwneruser())||"0".equals(deviceInfo.getOwneruser())) {
                     Intent intent = new Intent(this, DeviceDetailSettingActivity.class);
-                    intent.putExtra(IntentExtras.DEVICE.DATA, this.deviceDetailInfo);
-                    startActivity(intent);
+                    intent.putExtra(IntentExtras.DEVICE.DATA, this.deviceInfo);
+                    startActivityForResult(intent,0);
                 }else{
                     ToastUtils.showShort("您不是贴片拥有者，无操作权限");
                 }
                 break;
             case R.id.btn_option_delete:
-                if(deviceDetailInfo==null) {
+                if(deviceInfo==null) {
                     return;
                 }
-                if(!TextUtils.isEmpty(deviceDetailInfo.getOwneruser())&&!"0".equals(deviceDetailInfo.getOwneruser())){
+                if(!TextUtils.isEmpty(deviceInfo.getOwneruser())&&!"0".equals(deviceInfo.getOwneruser())){
                     ToastUtils.showShort("您不是贴片拥有者，无操作权限");
                     return;
                 }
@@ -237,7 +231,7 @@ public class DeviceDetailActivity extends BaseActivity {
                         super.onSure();
                         Intent unbind= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                         unbind.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
-                        unbind.putExtra("address",Common.formatDevId2Mac(device.getDevidX()));
+                        unbind.putExtra("address",Common.formatDevId2Mac(deviceInfo.getDevidX()));
                         sendBroadcast(unbind);
                     }
 
@@ -253,23 +247,23 @@ public class DeviceDetailActivity extends BaseActivity {
     }
 
     private void doFindOrBell() {
-        if(Common.isIgnoreBell()){
+        if(!Common.isBell()){
             ToastUtils.showShort("贴片在勿扰范围内");
             return;
         }
         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-        if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
+        if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceInfo.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_ALERT_START);
         }else{
             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_ALERT_STOP);
         }
-        intent.putExtra("address",Common.formatDevId2Mac(device.getDevidX()));
+        intent.putExtra("address",Common.formatDevId2Mac(deviceInfo.getDevidX()));
         sendBroadcast(intent);
     }
     private void switchFindBtnStyle() {
-        String mac = Common.formatDevId2Mac(device.getDevidX());
+        String mac = Common.formatDevId2Mac(deviceInfo.getDevidX());
         if(BleManager.getInstance().isConnected(mac)) {
-            if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(device.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
+            if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
                 rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
                 imgFindBtn.setImageResource(R.drawable.ic_device_find);
             } else {
@@ -289,51 +283,9 @@ public class DeviceDetailActivity extends BaseActivity {
         String timeSpan = TimeUtils.getFriendlyTimeSpanByNow(lasttime,sdf);
         itemTime.setText(timeSpan);
     }
-
-    private void getDeviceInfo(final DeviceResponse.DevlistBean device) {
-        if(!NetworkUtils.isConnected()){
-            DeviceInfoResponse response = (DeviceInfoResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(device.getDevidX()));
-            if(response!=null){
-                initViewData(response.getUserinfo().getDevinfo());
-            }
-            return;
-        }
-        Map param = new HashMap();
-        param.put("devid", device.getDevidX());
-        param.put("qrytype", Params.QRY_TYPE.ALL);
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(Common.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "deviceinfo/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-
-        ApiServiceManager.getInstance().buildApiService(this).postDeviceInfoOption(path, requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceInfoResponse>() {
-                    @Override
-                    public void accept(DeviceInfoResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            SPUtils.getInstance().remove(Common.formatDevId2Mac(device.getDevidX()));
-                            SPUtils.getInstance().saveObject(Common.formatDevId2Mac(device.getDevidX()),response);
-                            initViewData(response.getUserinfo().getDevinfo());
-                        } else {
-                            response.onError(DeviceDetailActivity.this);
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
     private void unbindDevice() {
         Map param = new HashMap();
-        param.put("devid", device.getDevidX());
+        param.put("devid", deviceInfo.getDevidX());
         param.put("method", Params.METHOD.UNBIND);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
@@ -346,12 +298,17 @@ public class DeviceDetailActivity extends BaseActivity {
         ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             ToastUtils.showShort("删除成功");
-                            finish();
+                            Common.initDeviceList(App.getInstance(), new OnNetRequestCallBack() {
+                                @Override
+                                public void OnRequestComplete() {
+                                    DeviceDetailActivity.this.finish();
+                                }
+                            });
                         } else {
                             response.onError(DeviceDetailActivity.this);
                         }
@@ -368,40 +325,40 @@ public class DeviceDetailActivity extends BaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
-                if(deviceDetailInfo==null){
+                if(deviceInfo==null){
                     return;
                 }
                 String address = intent.getStringExtra("address");
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 switch (ret){
                     case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                        if(address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
                             LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
                             setConnectStatusStyle(address);
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_MODE_WORK_FAIL:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                        if(address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
                             LogUtils.d("RET_DEVICE_CONNECT_FAILED");
                             setConnectStatusStyle(address);
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_ALERT_STARTED:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
-                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(), SPConst.ALET_STATUE.STATUS_BELLING);
+                        if(address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
+                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_BELLING);
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_ALERT_STOPED:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
-                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(device.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL);
+                        if(address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
+                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL);
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_READ_RSSI:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                        if(address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
                             LogUtils.d("RET_DEVICE_READ_RSSI");
                             int rssi = intent.getIntExtra("rssi",0);
                             setConnectStatusStyle(address,rssi);
@@ -409,7 +366,7 @@ public class DeviceDetailActivity extends BaseActivity {
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_READ_BATTERY:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                        if(address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
                             LogUtils.d("RET_DEVICE_READ_BATTERY");
                             String battery = intent.getStringExtra("battery");
                             updateItemBattery(battery);

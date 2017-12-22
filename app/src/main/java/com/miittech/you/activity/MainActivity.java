@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceAddActivity;
 import com.miittech.you.activity.setting.SettingActivity;
@@ -83,7 +82,8 @@ public class MainActivity extends BaseActivity {
         });
         tabMap.setSelected(true);
         onViewClicked(tabList);
-        Common.getUserInfoAfterLogin(this);
+        Common.getUserInfo(this,null);
+        Common.initDeviceList(this,null);
         getIgnoreSetting();
     }
 

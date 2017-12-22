@@ -34,6 +34,9 @@ public class BaseResponse implements Serializable{
     private String url;
     private String errmsg;
     private int configid;
+    private String devid;//蓝牙贴片的出厂id
+    private int valid;//1:可用，0：不可用(已被其他绑int定),-1：不合法贴片id
+    private int bindstate;//1：已绑定 0：未绑定
 
 
     public String getClientid() {
@@ -74,6 +77,30 @@ public class BaseResponse implements Serializable{
 
     public void setConfigid(int configid) {
         this.configid = configid;
+    }
+
+    public String getDevid() {
+        return devid;
+    }
+
+    public void setDevid(String devid) {
+        this.devid = devid;
+    }
+
+    public int getValid() {
+        return valid;
+    }
+
+    public void setValid(int valid) {
+        this.valid = valid;
+    }
+
+    public int getBindstate() {
+        return bindstate;
+    }
+
+    public void setBindstate(int bindstate) {
+        this.bindstate = bindstate;
     }
 
     @Override
@@ -125,6 +152,27 @@ public class BaseResponse implements Serializable{
                 break;
             default:
                 ToastUtils.showShort(errmsg);
+                break;
+        }
+    }
+
+    public boolean isVerSuccessful() {
+        return (isSuccessful()&&this.valid==1);
+    }
+
+    public boolean isBindSuccessful(){
+        return (isSuccessful()&&this.bindstate==1);
+    }
+
+    public void onVerError(){
+        switch (this.valid){
+            case 1:
+                break;
+            case 0:
+                ToastUtils.showShort("设备已被绑定或者设备不可用！");
+                break;
+            case -1:
+                ToastUtils.showShort("不合法设备！");
                 break;
         }
     }

@@ -1,6 +1,7 @@
 package com.miittech.you.activity.user;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
@@ -11,6 +12,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
+import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
@@ -125,7 +127,12 @@ public class EditNikeOrPWDActivity extends BaseActivity {
                     public void accept(BaseResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             ToastUtils.showShort(getResources().getString(R.string.msg_edit_successful));
-                            EditNikeOrPWDActivity.this.finish();
+                            Common.getUserInfo(App.getInstance(), new OnNetRequestCallBack() {
+                                @Override
+                                public void OnRequestComplete() {
+                                    EditNikeOrPWDActivity.this.finish();
+                                }
+                            });
                         }else{
                             ToastUtils.showShort(response.getErrmsg());
                         }
@@ -162,7 +169,13 @@ public class EditNikeOrPWDActivity extends BaseActivity {
                     public void accept(BaseResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             ToastUtils.showShort(getResources().getString(R.string.msg_edit_successful));
-                            EditNikeOrPWDActivity.this.finish();
+                            Common.getUserInfo(App.getInstance(), new OnNetRequestCallBack() {
+                                @Override
+                                public void OnRequestComplete() {
+                                    EditNikeOrPWDActivity.this.finish();
+                                }
+                            });
+
                         }else{
                             ToastUtils.showShort(response.getErrmsg());
                         }

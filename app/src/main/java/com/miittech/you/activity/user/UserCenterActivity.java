@@ -8,13 +8,11 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
@@ -29,7 +27,6 @@ import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.miittech.you.impl.TitleBarOptions;
@@ -105,7 +102,10 @@ public class UserCenterActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        getUserInfo();
+        UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
+        if(response!=null){
+            initData(response.getUserinfo());
+        }
     }
 
     @Override
@@ -197,6 +197,7 @@ public class UserCenterActivity extends BaseActivity {
                     @Override
                     public void accept(BaseResponse response) throws Exception {
                         if (response.isSuccessful()) {
+                            getUserInfo();
                             ToastUtils.showShort(R.string.msg_upload_file_success);
                         } else {
                             ToastUtils.showShort(response.getErrmsg());
@@ -207,18 +208,11 @@ public class UserCenterActivity extends BaseActivity {
 
     private void getUserInfo() {
         if(!NetworkUtils.isConnected()){
-            UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
-            if(response!=null){
-                initData(response.getUserinfo());
-            }else {
-                ToastUtils.showShort("网络链接断开，请检查网络");
-            }
+            ToastUtils.showShort("网络链接断开，请检查网络");
             return;
         }
         Map param = new HashMap();
-        param.put("qrytype", Params.QRY_TYPE.BASE);
-//        param.put("sdate", "20170101");
-//        param.put("edate", "20170920");
+        param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();

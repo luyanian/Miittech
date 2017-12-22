@@ -1,15 +1,10 @@
 package com.miittech.you.activity.event;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -22,9 +17,7 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
-import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.setting.SettingActivity;
@@ -40,8 +33,6 @@ import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.FriendTraceResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.weight.CircleImageView;
@@ -65,8 +56,6 @@ import butterknife.ButterKnife;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import mapapi.clusterutil.clustering.ClusterItem;
-import mapapi.clusterutil.clustering.ClusterManager;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 

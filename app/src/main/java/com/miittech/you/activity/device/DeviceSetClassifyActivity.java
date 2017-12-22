@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
@@ -14,7 +13,7 @@ import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
@@ -110,7 +109,7 @@ public class DeviceSetClassifyActivity extends BaseActivity {
     }
 
     private void setDeviceClassfy(final Intent intent) {
-        String devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
+        final String devId = intent.getStringExtra(IntentExtras.DEVICE.ID);
         final String classfy = intent.getStringExtra(IntentExtras.DEVICE.CLASSIFY);
         Map devattrMap = new LinkedHashMap();
         Map param = new LinkedHashMap();
@@ -140,14 +139,16 @@ public class DeviceSetClassifyActivity extends BaseActivity {
         ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             if(getIntent().hasExtra(IntentExtras.FROM)&&"DEVICESETTING".equals(getIntent().getStringExtra(IntentExtras.FROM))){
                                 Intent data = new Intent();
                                 data.putExtra(IntentExtras.DEVICE.CLASSIFY,classfy);
                                 setResult(RESULT_OK,data);
+                                Common.getDeviceDetailInfo(DeviceSetClassifyActivity.this,devId,null);
+                                Common.initDeviceList(DeviceSetClassifyActivity.this,null);
                                 DeviceSetClassifyActivity.this.finish();
                             }else {
                                 startActivity(intent);

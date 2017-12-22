@@ -8,10 +8,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
@@ -20,7 +18,6 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;

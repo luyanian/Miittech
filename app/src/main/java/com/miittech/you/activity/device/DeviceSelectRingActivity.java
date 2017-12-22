@@ -7,28 +7,28 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.MainActivity;
 import com.miittech.you.adapter.SelectRingAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.common.SoundPlayUtils;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
+import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.SoundListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
-import com.ryon.mutils.ActivityUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 
@@ -65,7 +65,7 @@ public class DeviceSelectRingActivity extends BaseActivity{
 
     private SelectRingAdapter selectRingAdapter;
     List<SoundListResponse.SourndlistBean> sourndlist = new ArrayList<>();
-    private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo;
+    private DeviceInfo deviceInfo;
     private SoundListResponse.SourndlistBean sourndlistBean;
     private String devId ;
     private Intent intent;
@@ -83,6 +83,7 @@ public class DeviceSelectRingActivity extends BaseActivity{
             @Override
             public void onBack() {
                 super.onBack();
+                SoundPlayUtils.stopAll();
                 finish();
             }
 
@@ -102,8 +103,8 @@ public class DeviceSelectRingActivity extends BaseActivity{
     private void initViews() {
         intent = getIntent();
         if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
-            deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
-            this.devId = deviceInfo.getDevid();
+            deviceInfo = (DeviceInfo) intent.getSerializableExtra(IntentExtras.DEVICE.DATA);
+            this.devId = deviceInfo.getDevidX();
             tvDeviceName.setText(Common.decodeBase64(deviceInfo.getDevname()));
             tvDeviceLocation.setText(Common.decodeBase64(deviceInfo.getGroupname()));
             GlideApp.with(this)
@@ -217,24 +218,31 @@ public class DeviceSelectRingActivity extends BaseActivity{
         ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            Intent data = new Intent();
-                            data.putExtra(IntentExtras.SOURND.ID,sourndlistBean.getId());
-                            data.putExtra(IntentExtras.SOURND.NAME,sourndlistBean.getName());
-                            setResult(RESULT_OK,data);
-                            if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
-                                ActivityPools.finishActivity(DeviceSetClassifyActivity.class);
-                                ActivityPools.finishActivity(DeviceSetAttrActivity.class);
-                                finish();
-                            }else{
-                                ActivityPools.finishAllExcept(MainActivity.class);
-                            }
-                        } else {
-                            response.onError(DeviceSelectRingActivity.this);
+                    public void accept(DeviceListResponse response) throws Exception {
+                    if (response.isSuccessful()) {
+                        SoundPlayUtils.stopAll();
+                        Intent data = new Intent();
+                        data.putExtra(IntentExtras.SOURND.ID,sourndlistBean.getId());
+                        data.putExtra(IntentExtras.SOURND.NAME,sourndlistBean.getName());
+                        setResult(RESULT_OK,data);
+                        if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
+                            Common.initDeviceList(DeviceSelectRingActivity.this,null);
+                            Common.getDeviceDetailInfo(DeviceSelectRingActivity.this, deviceInfo.getDevidX(), new OnNetRequestCallBack() {
+                                @Override
+                                public void OnRequestComplete() {
+                                    ActivityPools.finishActivity(DeviceSetClassifyActivity.class);
+                                    ActivityPools.finishActivity(DeviceSetAttrActivity.class);
+                                    ActivityPools.finishActivity(DeviceSelectRingActivity.class);
+                                }
+                            });
+                        }else{
+                            ActivityPools.finishAllExcept(MainActivity.class);
                         }
+                    } else {
+                        response.onError(DeviceSelectRingActivity.this);
+                    }
                     }
                 }, new Consumer<Throwable>() {
                     @Override

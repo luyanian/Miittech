@@ -13,14 +13,15 @@ import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.SelectTimeDialog;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceInfoResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
@@ -62,7 +63,7 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
     TextView tvInfo3;
 
 
-    private DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo;
+    private DeviceInfo deviceInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,14 +79,14 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
                 finish();
             }
         });
-        deviceInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        deviceInfo = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         initViews(deviceInfo);
         checkDisconnectRepeatedRemind.setOnCheckedChangeListener(this);
         checkRepeatedRemind.setOnCheckedChangeListener(this);
         checkVibrate.setOnCheckedChangeListener(this);
     }
 
-    private void initViews(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo) {
+    private void initViews(DeviceInfo deviceInfo) {
         tvBell.setText(this.deviceInfo.getAlertinfo().getName());
         checkVibrate.setChecked((this.deviceInfo.getAlertinfo().getIsShake()==1)?true:false);
         tvDisconnectReminderTime.setText(this.deviceInfo.getAlertinfo().getDuration()+"s");
@@ -169,7 +170,7 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
         Map devattr = new HashMap();
         devattr.put("alertinfo",alertinfo);
         Map param = new HashMap();
-        param.put("devid", deviceInfo.getDevid());
+        param.put("devid", deviceInfo.getDevidX());
         param.put("method", "G");
         param.put("devattr",devattr);
         String json = new Gson().toJson(param);
@@ -183,11 +184,14 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
         ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         if (!response.isSuccessful()) {
                             response.onError(DevicePhoneAlertSettingActivity.this);
+                        }else{
+                            Common.getDeviceDetailInfo(DevicePhoneAlertSettingActivity.this,deviceInfo.getDevidX(),null);
+                            Common.initDeviceList(DevicePhoneAlertSettingActivity.this,null);
                         }
                     }
                 }, new Consumer<Throwable>() {

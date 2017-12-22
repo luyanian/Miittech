@@ -1,6 +1,5 @@
 package com.miittech.you.fragment;
 
-import android.Manifest;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -13,9 +12,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.baidu.location.BDAbstractLocationListener;
-import com.baidu.location.BDLocation;
-import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
@@ -26,14 +22,11 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
-import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
@@ -41,6 +34,7 @@ import com.miittech.you.activity.event.FriendTraceDetailActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MapDeviceUsersListDialog;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
@@ -49,9 +43,8 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.location.LocationClient;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendLocInfoResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.ryon.mutils.EncryptUtils;
@@ -338,8 +331,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                 });
     }
 
-    private void initMapView(final DeviceResponse.DevlistBean device) {
-        final DeviceResponse.DevlistBean.LocinfoBean locInfo = device.getLocinfo();
+    private void initMapView(final DeviceInfo device) {
+        final DeviceInfo.LocinfoBean locInfo = device.getLocinfo();
         currentObject = device;
         if (locInfo == null) {
             return;
@@ -449,9 +442,9 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         ApiServiceManager.getInstance().buildApiService(getActivity()).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             if (response.getDevlist() != null && response.getDevlist().size() > 0) {
                                 final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance().createDevicesUsersDialog(getActivity());
@@ -459,7 +452,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                                     @Override
                                     public void onItemClick(Object o) {
                                         super.onItemClick(o);
-                                        DeviceResponse.DevlistBean device = (DeviceResponse.DevlistBean) o;
+                                        DeviceInfo device = (DeviceInfo) o;
                                         initMapView(device);
                                         if (mapDialog != null && mapDialog.isShowing()) {
                                             mapDialog.dismiss();
@@ -489,9 +482,9 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         if (currentObject instanceof FriendsResponse.FriendlistBean) {
 
         }
-        if (currentObject instanceof DeviceResponse.DevlistBean) {
+        if (currentObject instanceof DeviceInfo) {
             intent = new Intent(getActivity(), DeviceDetailActivity.class);
-            intent.putExtra(IntentExtras.DEVICE.DATA, (DeviceResponse.DevlistBean) currentObject);
+            intent.putExtra(IntentExtras.DEVICE.DATA, (DeviceInfo) currentObject);
             startActivity(intent);
         }
         return false;

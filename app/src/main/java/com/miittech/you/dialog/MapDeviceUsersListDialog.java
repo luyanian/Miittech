@@ -11,8 +11,9 @@ import android.view.WindowManager;
 import com.miittech.you.R;
 import com.miittech.you.adapter.MapDeviceUsersListAdapter;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 
 import java.util.Collections;
@@ -68,8 +69,8 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
                 Collections.sort(list, new Comparator<Object>() {
                     @Override
                     public int compare(Object o1, Object o2) {
-                        if (o1 instanceof DeviceResponse.DevlistBean) {
-                            if (TextUtils.isEmpty(((DeviceResponse.DevlistBean) o1).getFriendname())) {
+                        if (o1 instanceof DeviceInfo) {
+                            if (TextUtils.isEmpty(((DeviceInfo) o1).getFriendname())) {
                                 return -1;
                             }
                             return 1;

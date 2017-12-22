@@ -22,19 +22,16 @@ import com.clj.fastble.BleManager;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.net.response.DeviceInfoResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
-import com.ryon.mutils.TimeUtils;
-import com.ryon.mutils.ToastUtils;
-
-import java.text.SimpleDateFormat;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -58,7 +55,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
     @BindView(R.id.img_find_butten)
     ImageView imgFindButten;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
-    DeviceInfoResponse.UserinfoBean.DevinfoBean deviceDetailInfo;
+    DeviceInfo deviceDetailInfo;
     private BaiduMap mBaiduMap;
 
     @Override
@@ -66,7 +63,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_log_detail);
         ButterKnife.bind(this);
-        deviceDetailInfo = (DeviceInfoResponse.UserinfoBean.DevinfoBean) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        deviceDetailInfo = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         initView(deviceDetailInfo);
         switchFindBtnStyle();
         IntentFilter filter=new IntentFilter();
@@ -74,7 +71,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
         this.registerReceiver(cmdResponseReceiver,filter);
     }
 
-    private void initView(DeviceInfoResponse.UserinfoBean.DevinfoBean devlistBean) {
+    private void initView(DeviceInfo devlistBean) {
         initMyTitleBar(titlebar, "");
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions() {
@@ -84,7 +81,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
                 finish();
             }
         });
-        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
             updateMapLocalView((Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO));
         }else{
             updateMapLocalView(null);
@@ -122,19 +119,19 @@ public class DeviceMapDetailActivity extends BaseActivity {
 
     private void doFindOrBell() {
         Intent intent = new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-        if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceDetailInfo.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
+        if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceDetailInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
             intent.putExtra("cmd", IntentExtras.CMD.CMD_DEVICE_ALERT_START);
         } else {
             intent.putExtra("cmd", IntentExtras.CMD.CMD_DEVICE_ALERT_STOP);
         }
-        intent.putExtra("address", Common.formatDevId2Mac(deviceDetailInfo.getDevid()));
+        intent.putExtra("address", Common.formatDevId2Mac(deviceDetailInfo.getDevidX()));
         sendBroadcast(intent);
     }
 
     private void switchFindBtnStyle() {
-        String mac = Common.formatDevId2Mac(deviceDetailInfo.getDevid());
+        String mac = Common.formatDevId2Mac(deviceDetailInfo.getDevidX());
         if(BleManager.getInstance().isConnected(mac)) {
-            if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceDetailInfo.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
+            if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceDetailInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
                 rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
                 imgFindButten.setImageResource(R.drawable.ic_device_find);
             } else {
@@ -179,32 +176,32 @@ public class DeviceMapDetailActivity extends BaseActivity {
                 int ret = intent.getIntExtra("ret", -1);
                 switch (ret){
                     case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
                             LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_MODE_WORK_FAIL:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
                             LogUtils.d("RET_DEVICE_CONNECT_FAILED");
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_ALERT_STARTED:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
-                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevid(), SPConst.ALET_STATUE.STATUS_BELLING);
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
+                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_BELLING);
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_ALERT_STOPED:
-                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
-                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL);
+                        if(address.equals(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
+                            SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceDetailInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL);
                             switchFindBtnStyle();
                         }
                         break;
                     case IntentExtras.RET.LOCATION:
                         Locinfo locinfo = (Locinfo) intent.getSerializableExtra("data");
-                        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevid()))) {
+                        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
                             updateMapLocalView(locinfo);
                         }
                         break;

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -121,10 +122,19 @@
             android:textColor="@color/black"
             android:textSize="18dp"/>
     </RelativeLayout>
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        android:id="@+id/refreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/ll_tips"
-        android:visibility="gone"/>
+        app:srlPrimaryColor="#b7b7b7"
+        app:srlAccentColor="@color/white"
+        app:srlEnablePreviewInEditMode="true">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/ll_tips"
+            android:visibility="gone"/>
+    </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 </RelativeLayout>

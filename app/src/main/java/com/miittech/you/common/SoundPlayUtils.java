@@ -3,10 +3,12 @@ package com.miittech.you.common;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.SoundPool;
+import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 
 import com.miittech.you.App;
@@ -40,10 +42,10 @@ public class SoundPlayUtils {
         }
         // 初始化声音
         mContext = context;
-        mSoundPlayer.load(mContext, R.raw.bluesforslim, 1);// 1
-        mSoundPlayer.load(mContext, R.raw.countryfair, 1);// 2
-        mSoundPlayer.load(mContext, R.raw.donotcry, 1);// 3
-        mSoundPlayer.load(mContext, R.raw.theclassiccall, 1);// 4
+        mSoundPlayer.load(mContext, R.raw.donotcry, 1);// 1
+        mSoundPlayer.load(mContext, R.raw.theclassiccall, 1);// 2
+        mSoundPlayer.load(mContext, R.raw.bluesforslim, 1);// 3
+        mSoundPlayer.load(mContext, R.raw.countryfair, 1);// 4
         return soundPlayUtils;
     }
 
@@ -52,22 +54,17 @@ public class SoundPlayUtils {
      * 
      * @param soundID
      */
-    public static void playSound(int soundID,boolean loop,int duration) {
+    public static void playSound(int soundID) {
         stopAll();
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
         soundIds.add(playId);
-        if(!loop) {
-            timer.schedule(new MyTimerTask(mSoundPlayer, playId), 1000, duration);
-        }
     }
-    public static void play(int soundID,boolean loop,int duration) {
+    public static void play(int soundID,int duration,boolean isShake) {
         stopAll();
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
         soundIds.add(playId);
-        if(!loop) {
-            timer.schedule(new MyTimerTask(mSoundPlayer, playId), 1000, duration);
-        }
-        localNotify(App.getInstance(),playId);
+        localNotify(App.getInstance().getApplicationContext(),playId,isShake);
+        timer.schedule(new MyTimerTask(), duration);
     }
 
     public static void stopAll(){
@@ -84,22 +81,13 @@ public class SoundPlayUtils {
     }
 
     static class MyTimerTask extends TimerTask {
-        private SoundPool mSoundPlayer;
-        private int soundId;
-        public MyTimerTask(SoundPool mSoundPlayer,int soundId) {
-            this.mSoundPlayer = mSoundPlayer;
-            this.soundId = soundId;
-        }
-
         @Override
         public void run() {
-            if(mSoundPlayer!=null){
-                mSoundPlayer.stop(soundId);
-            }
+            stopAll();
         }
     };
 
-    private static void localNotify(Context context,int playId) {
+    private static void localNotify(Context context, int playId, boolean isShake) {
         NotificationManager manager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
         mBuilder.setContentTitle("有物查找手机报警中")//设置通知栏标题
@@ -107,11 +95,14 @@ public class SoundPlayUtils {
                 .setTicker("手机报警中") //通知首次出现在通知栏，带上升动画效果的
                 .setWhen(System.currentTimeMillis())//通知产生的时间，会在通知信息里显示，一般是系统获取到的时间
                 .setPriority(Notification.PRIORITY_DEFAULT) //设置该通知优先级
-//  .setAutoCancel(true)//设置这个标志当用户单击面板就可以让通知将自动取消
-                .setOngoing(false)//ture，设置他为一个正在进行的通知。他们通常是用来表示一个后台任务,用户积极参与(如播放音乐)或以某种方式正在等待,因此占用设备(如一个文件下载,同步操作,主动网络连接)
-                .setDefaults(Notification.DEFAULT_VIBRATE)//向通知添加声音、闪灯和振动效果的最简单、最一致的方式是使用当前的用户默认设置，使用defaults属性，可以组合
-                //Notification.DEFAULT_ALL  Notification.DEFAULT_SOUND 添加声音 // requires VIBRATE permission
+                .setOngoing(false)//ture，设置他为一个正在进行的通知。他们通常是用来表示一个后台任务,用户积极参与(如播放音乐)或以某种方式正在等待,因此占用设备(如一个文件下载,同步操作,主动网络连接
                 .setSmallIcon(R.mipmap.ic_launcher);//设置通知小ICON
+        if(isShake){
+            mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
+        }else{
+            long[] vibrate = {};
+            mBuilder.setVibrate(vibrate);
+        }
 
         Intent intent = new Intent(IntentExtras.ACTION.ACTION_SOUND_PLAY_ONCLICK);
         intent.putExtra("soundId", playId);

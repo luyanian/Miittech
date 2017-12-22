@@ -6,12 +6,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
 import com.miittech.you.R;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 
 import java.util.ArrayList;
@@ -56,8 +56,8 @@ public class MapDeviceUsersListAdapter extends RecyclerView.Adapter {
                     .placeholder(R.drawable.ic_header_img)
                     .into(viewHolder.itemIcon);
         }
-        if(object instanceof DeviceResponse.DevlistBean){
-            DeviceResponse.DevlistBean device = (DeviceResponse.DevlistBean) object;
+        if(object instanceof DeviceInfo){
+            DeviceInfo device = (DeviceInfo) object;
             GlideApp.with(context)
                     .load(device.getDevimg())
                     .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))

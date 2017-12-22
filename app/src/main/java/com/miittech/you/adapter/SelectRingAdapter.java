@@ -10,13 +10,11 @@ import android.widget.TextView;
 
 import com.miittech.you.R;
 import com.miittech.you.common.SoundPlayUtils;
-import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.DeviceInfoResponse;
+import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.net.response.SoundListResponse;
-import com.ryon.mutils.StringUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,11 +78,10 @@ public class SelectRingAdapter extends RecyclerView.Adapter {
                 value.imgItem.setVisibility(View.GONE);
             }
         }
-        int index = (currentItem+1+2)%4;
-        SoundPlayUtils.playSound(index,true,10000);
+        SoundPlayUtils.playSound(++currentItem);
     }
 
-    public void initSelectAlerName(DeviceInfoResponse.UserinfoBean.DevinfoBean deviceInfo) {
+    public void initSelectAlerName(DeviceInfo deviceInfo) {
         if(deviceInfo!=null&&deviceInfo.getAlertinfo()!=null){
             for(int i=0;i<mData.size();i++){
                 if(mData.get(i).getId()==deviceInfo.getAlertinfo().getId()){

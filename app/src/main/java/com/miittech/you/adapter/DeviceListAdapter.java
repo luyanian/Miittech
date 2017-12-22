@@ -5,22 +5,21 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.drawable.AnimationDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import com.bumptech.glide.Glide;
+
 import com.clj.fastble.BleManager;
 import com.miittech.you.R;
 import com.miittech.you.common.Common;
+import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.TimeUtils;
@@ -41,7 +40,7 @@ import butterknife.ButterKnife;
 
 public class DeviceListAdapter extends RecyclerView.Adapter {
 
-    private List<DeviceResponse.DevlistBean> mData = new ArrayList<>();
+    private List<DeviceInfo> mData = new ArrayList<>();
     private Activity activity;
     private OnListItemClick onDeviceItemClick;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
@@ -67,41 +66,43 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, final int i) {
-        final DeviceResponse.DevlistBean devlistBean = mData.get(i);
+        final DeviceInfo deviceInfo = mData.get(i);
         final ViewHolder holder = (ViewHolder) viewHolder;
-        holders.put(Common.formatDevId2Mac(devlistBean.getDevidX()),holder);
-        holder.itemTitle.setText(Common.decodeBase64(devlistBean.getDevname()));
+        holders.put(Common.formatDevId2Mac(deviceInfo.getDevidX()),holder);
+        holder.itemTitle.setText(Common.decodeBase64(deviceInfo.getDevname()));
         holder.tvIsShared.setVisibility(View.GONE);
-        if(TextUtils.isEmpty(devlistBean.getFriendname())){
+        if(TextUtils.isEmpty(deviceInfo.getFriendname())){
             holder.itemShared.setVisibility(View.GONE);
         }else{
             if(i==0){
                 holder.tvIsShared.setVisibility(View.VISIBLE);
             }else{
-                DeviceResponse.DevlistBean lastItem = mData.get(i-1);
+                DeviceInfo lastItem = mData.get(i-1);
                 if(TextUtils.isEmpty(lastItem.getFriendname())){
                     holder.tvIsShared.setVisibility(View.VISIBLE);
                 }
             }
             holder.itemShared.setVisibility(View.VISIBLE);
-            holder.itemShared.setText("分享自"+Common.decodeBase64(devlistBean.getFriendname()));
+            holder.itemShared.setText("分享自"+Common.decodeBase64(deviceInfo.getFriendname()));
         }
-        if(!BleManager.getInstance().isConnected(Common.formatDevId2Mac(devlistBean.getDevidX()))){
-            holder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
-            setTimeText(holder.itemTime,devlistBean.getLasttime());
+        if(!BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
+            holder.itemLocation.setText(Common.decodeBase64(deviceInfo.getLocinfo().getAddr()));
+            setTimeText(holder.itemTime,deviceInfo.getLasttime());
+        }else{
+            holder.itemTime.setText("现在");
         }
-        setConnectStatusStyle(Common.formatDevId2Mac(devlistBean.getDevidX()));
+        setConnectStatusStyle(Common.formatDevId2Mac(deviceInfo.getDevidX()));
         GlideApp.with(activity)
-                .load(devlistBean.getDevimg())
-                .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(devlistBean.getGroupname())))
-                .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(devlistBean.getGroupname())))
+                .load(deviceInfo.getDevimg())
+                .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceInfo.getGroupname())))
+                .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceInfo.getGroupname())))
                 .into(holder.itemIcon);
         holder.rlItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(onDeviceItemClick!=null){
-                    ViewHolder viewHolder = holders.get(Common.formatDevId2Mac(devlistBean.getDevidX()));
-                    onDeviceItemClick.onItemClick(devlistBean,viewHolder.itemLocation.getText().toString());
+                    ViewHolder viewHolder = holders.get(Common.formatDevId2Mac(deviceInfo.getDevidX()));
+                    onDeviceItemClick.onItemClick(deviceInfo,viewHolder.itemLocation.getText().toString());
                 }
             }
         });
@@ -138,14 +139,14 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         return mData.size();
     }
 
-    public void updateData(List<DeviceResponse.DevlistBean> devlist) {
+    public void updateData(List<DeviceInfo> devlist) {
         mData.clear();
         ArrayList<String> tempList = new ArrayList<>();
         tempList.clear();
         if(devlist!=null){
-            Collections.sort(devlist, new Comparator<DeviceResponse.DevlistBean>() {
+            Collections.sort(devlist, new Comparator<DeviceInfo>() {
                 @Override
-                public int compare(DeviceResponse.DevlistBean o1, DeviceResponse.DevlistBean o2) {
+                public int compare(DeviceInfo o1, DeviceInfo o2) {
                     if(TextUtils.isEmpty(o1.getFriendname())){
                         return -1;
                     }
@@ -154,7 +155,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             });
             mData.addAll(devlist);
             notifyDataSetChanged();
-            for(DeviceResponse.DevlistBean devlistBean : devlist){
+            for(DeviceInfo devlistBean : devlist){
                 if(TextUtils.isEmpty(devlistBean.getFriendname())) {
                     tempList.add(Common.formatDevId2Mac(devlistBean.getDevidX()));
                 }
@@ -223,7 +224,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     private void updateItemData(String address) {
         ViewHolder viewHolder = holders.get(address);
         if(viewHolder!=null&&viewHolder.itemLocation!=null){
-            for(DeviceResponse.DevlistBean devlistBean : mData){
+            for(DeviceInfo devlistBean : mData){
                 if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
                     viewHolder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
                     setTimeText(viewHolder.itemTime,devlistBean.getLasttime());

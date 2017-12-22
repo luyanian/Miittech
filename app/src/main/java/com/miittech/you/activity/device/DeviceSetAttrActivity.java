@@ -2,16 +2,13 @@ package com.miittech.you.activity.device;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
@@ -22,10 +19,9 @@ import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
-import com.miittech.you.net.response.DeviceResponse;
+import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
-import com.ryon.mutils.ConvertUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
@@ -211,9 +207,9 @@ public class DeviceSetAttrActivity extends BaseActivity {
         ApiServiceManager.getInstance().buildApiService(this).postDeviceOption(path, requestBody)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DeviceResponse>() {
+                .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
-                    public void accept(DeviceResponse response) throws Exception {
+                    public void accept(DeviceListResponse response) throws Exception {
                         if(response.isSuccessful()){
                             GlideApp.with(DeviceSetAttrActivity.this)
                                     .load(iconUrl)

@@ -309,32 +309,27 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
     }
 
     private void initIgnoreConfig(UserInfoResponse response) {
-//        addAreaIgnore(response.getConfig().getDonotdisturb().getArealist());
+        llIgnoreAreas.removeAllViews();
+        llIgnoreSsids.removeAllViews();
+        llIgnoreTimes.removeAllViews();
+        tvSettingIgnoreArea.setVisibility(View.GONE);
+        tvSettingIgnoreSsid.setVisibility(View.GONE);
         if (response.getConfig() == null) {
             return;
-        } else if (response.getConfig().getDonotdisturb() == null) {
-            tvSettingIgnoreArea.setVisibility(View.GONE);
-            tvSettingIgnoreSsid.setVisibility(View.GONE);
+        }else if(response.getConfig().getDonotdisturb() == null){
             return;
         }
         List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist = response.getConfig().getDonotdisturb().getArealist();
-        if (arealist == null||arealist.size()<=0) {
-
-        }else{
+        if (arealist != null) {
             updateAreaList(arealist);
         }
         List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist = response.getConfig().getDonotdisturb().getTimelist();
-        if (timelist == null || timelist.size() <= 0) {
-        } else{
+        if (timelist != null) {
             updateTimeList(timelist);
         }
     }
 
     private void updateAreaList(List<UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean> arealist) {
-        llIgnoreAreas.removeAllViews();
-        llIgnoreSsids.removeAllViews();
-        tvSettingIgnoreArea.setVisibility(View.GONE);
-        tvSettingIgnoreSsid.setVisibility(View.GONE);
         for (final UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean:arealist){
             View view = View.inflate(this,R.layout.item_ignore_point,null);
             RelativeLayout rlItem = view.findViewById(R.id.rl_item);
@@ -380,7 +375,6 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
     }
 
     private void updateTimeList(List<UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean> timelist) {
-        llIgnoreTimes.removeAllViews();
         for (final UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean:timelist){
             View view = View.inflate(this,R.layout.item_ignore_time,null);
             RelativeLayout rlItem = view.findViewById(R.id.rl_item);
@@ -502,13 +496,13 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
                         if(response.isSuccessful()){
                             delObject=null;
                             isEdit = false;
+                            getIgnoreSetting();
                             toggleAllCheck(false);
                             if(typeSelector.getSelectItem()==0){
                                 btnAddText.setText(getResources().getString(R.string.text_setting_ignore_area_add));
                             }else{
                                 btnAddText.setText(getResources().getString(R.string.text_setting_ignore_time_add));
                             }
-                            getIgnoreSetting();
                         }else{
                             response.onError(IgnoreSettingActivity.this);
                         }
