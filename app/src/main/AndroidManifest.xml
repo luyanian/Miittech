@@ -56,7 +56,7 @@
         <!-- ............................百度地图配置start.................... -->
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="eA32DSeForR8YOTkvDM6LhUcFaHwrwVR" />
+            android:value="wqqGY9TTTHVqnOa5YPWZvcyBMLCvECZR" />
 
         <service
             android:name="com.baidu.location.f"
@@ -89,8 +89,8 @@
             android:exported="true"
             android:screenOrientation="portrait" />
         <!-- 填写您从Mob开发者后台中得到的Appkey和AppSecret -->
-        <meta-data android:name="Mob-AppKey" android:value="0f9c88770d1cba50d02e2047"/>
-        <meta-data android:name="Mob-AppSecret" android:value="6ce26bdfe2f5a30d780770e4"/>
+        <meta-data android:name="Mob-AppKey" android:value="23311d1f1b15c"/>
+        <meta-data android:name="Mob-AppSecret" android:value="1a60b62d60385fba6ed4851a50d761e5"/>
         <!-- ............................ShareSDK配置end.................... -->
 
         <!-- ............................JPUSH配置start.................... -->

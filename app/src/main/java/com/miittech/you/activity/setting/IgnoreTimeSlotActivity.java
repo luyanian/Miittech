@@ -27,8 +27,10 @@ import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
+import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,11 +94,27 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
             etName.setText(Common.decodeBase64(timelistBean.getTitle()));
             startTime = timelistBean.getStime();
             endTime = timelistBean.getEtime();
-            DateFormat dateFormat = new SimpleDateFormat("HHmmss");
-            DateFormat dateFormat1 = new SimpleDateFormat("HH:mm:ss");
-            String sTime = dateFormat1.format(TimeUtils.string2Date(startTime,dateFormat));
-            String eTime = dateFormat1.format(TimeUtils.string2Date(endTime,dateFormat));
-            tvTime.setText( sTime + " - " + eTime);
+
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+            Date date = new Date();
+            String ymd = simpleDateFormat.format(date);
+
+            String sstime = Common.repairStrLen(timelistBean.getStime());
+            String eetime = Common.repairStrLen(timelistBean.getEtime());
+
+            DateFormat dateFormat1 = new SimpleDateFormat("yyyyMMddHHmmss");
+            long millisStart = TimeUtils.string2Millis(ymd+sstime,dateFormat1);
+            long millisEnd = TimeUtils.string2Millis(ymd+eetime,dateFormat1);
+
+            DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            String sTime = TimeUtils.millis2String(millisStart,dateFormat);
+            String eTime = TimeUtils.millis2String(millisEnd,dateFormat);
+
+            if(millisEnd<millisStart) {
+                tvTime.setText(sTime + " - 次日" + eTime);
+            }else{
+                tvTime.setText(sTime + " - " + eTime);
+            }
             week = timelistBean.getDayofweek();
             tvIsRepeat.setText(Common.formatWeekRepeat(timelistBean.getDayofweek()));
         }
@@ -110,7 +128,12 @@ public class IgnoreTimeSlotActivity extends BaseActivity {
                 if(resultCode==RESULT_OK){
                     startTime = data.getStringExtra("startTime");
                     endTime = data.getStringExtra("endTime");
-                    tvTime.setText(startTime+" - "+endTime);
+                    DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                    if(TimeUtils.string2Millis(endTime,dateFormat)<TimeUtils.string2Millis(startTime,dateFormat)){
+                        tvTime.setText(startTime + " - 次日" + endTime);
+                    }else {
+                        tvTime.setText(startTime + " - " + endTime);
+                    }
                 }
                 break;
             case REQUEST_CODE_REPEAT:

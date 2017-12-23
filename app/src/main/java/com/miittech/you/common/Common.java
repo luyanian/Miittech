@@ -539,17 +539,30 @@ public class Common {
                     for(UserInfoResponse.ConfigBean.DonotdisturbBean.TimelistBean timelistBean : donotdisturbBean.getTimelist()){
                         int index = TimeUtils.getWeekIndex(new Date());
                         index = (index+7-1)%7;
+                        if(index==0){
+                            index+=7;
+                        }
                         String week = timelistBean.getDayofweek();
                         if(!TextUtils.isEmpty(week)&&week.contains(index+"")){
                             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
                             Date date = new Date();
                             String ymd = simpleDateFormat.format(date);
+
+                            String sstime = Common.repairStrLen(timelistBean.getStime());
+                            String eetime = Common.repairStrLen(timelistBean.getEtime());
+
                             SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
-                            long stime = TimeUtils.string2Millis(ymd+timelistBean.getStime(),format);
-                            long etime = TimeUtils.string2Millis(ymd+timelistBean.getEtime(),format);
+                            long stime = TimeUtils.string2Millis(ymd+sstime,format);
+                            long etime = TimeUtils.string2Millis(ymd+eetime,format);
                             long curTime = TimeUtils.getNowMills();
-                            if(curTime>stime&&curTime<etime){
-                                return true;
+                            if(etime<stime){
+                                if(curTime>stime||curTime<etime){
+                                    return true;
+                                }
+                            }else{
+                                if(curTime>stime&&curTime<etime){
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -654,5 +667,16 @@ public class Common {
         }else{
             return keyStr.substring(1);
         }
+    }
+
+    public static String repairStrLen(String str) {
+        if(TextUtils.isEmpty(str)){
+            return "";
+        }
+        int ne = 6-str.length();
+        for(int i=0;i<ne;i++){
+            str = "0"+str;
+        }
+        return str;
     }
 }

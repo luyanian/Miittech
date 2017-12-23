@@ -248,10 +248,6 @@ public class DeviceDetailActivity extends BaseActivity {
     }
 
     private void doFindOrBell() {
-        if(!Common.isBell()){
-            ToastUtils.showShort("贴片在勿扰范围内");
-            return;
-        }
         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         if(SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceInfo.getDevidX(),SPConst.ALET_STATUE.STATUS_UNBELL)== SPConst.ALET_STATUE.STATUS_UNBELL){
             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_ALERT_START);

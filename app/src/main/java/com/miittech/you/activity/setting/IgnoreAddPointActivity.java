@@ -67,7 +67,8 @@ public class IgnoreAddPointActivity extends BaseActivity {
     private PoiSearch mPoiSearch;
     private PoiResultAdapter poiResultAdapter;
     private int progress=200;
-    private PoiInfo poiInfo;
+    private Locinfo locinfo;
+    private boolean isLocUpdate = false;
     private UserInfoResponse.ConfigBean.DonotdisturbBean.ArealistBean arealistBean;
 
     @Override
@@ -89,9 +90,17 @@ public class IgnoreAddPointActivity extends BaseActivity {
             @Override
             public void onComplete() {
                 super.onComplete();
-                if(IgnoreAddPointActivity.this.poiInfo==null){
-                    if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)&&arealistBean!=null) {
-                        Intent intent = new Intent(IgnoreAddPointActivity.this,IgnoreNameEditActivity.class);
+                Intent intent = new Intent(IgnoreAddPointActivity.this,IgnoreNameEditActivity.class);
+                if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)&&arealistBean!=null) {
+                    if(isLocUpdate&&locinfo!=null){
+                        intent.putExtra("id",arealistBean.getId());
+                        intent.putExtra("name",Common.decodeBase64(arealistBean.getTitle()));
+                        intent.putExtra("lat",locinfo.getLat());
+                        intent.putExtra("lng",locinfo.getLng());
+                        intent.putExtra("addr",locinfo.getAddr());
+                        intent.putExtra("progress",progress);
+                        startActivity(intent);
+                    }else{
                         intent.putExtra("id",arealistBean.getId());
                         intent.putExtra("name",Common.decodeBase64(arealistBean.getTitle()));
                         intent.putExtra("lat",arealistBean.getArea().getLat());
@@ -99,22 +108,20 @@ public class IgnoreAddPointActivity extends BaseActivity {
                         intent.putExtra("addr",Common.decodeBase64(arealistBean.getArea().getAddr()));
                         intent.putExtra("progress",progress);
                         startActivity(intent);
-                        return;
-                    }else{
-                        ToastUtils.showShort("没有获取到合法的位置");
-                        return;
                     }
+                    return;
                 }
-                Intent intent = new Intent(IgnoreAddPointActivity.this,IgnoreNameEditActivity.class);
-                if(getIntent().hasExtra(IntentExtras.IGNORE.DATA)&&arealistBean!=null) {
-                    intent.putExtra("id",arealistBean.getId());
-                    intent.putExtra("name",Common.decodeBase64(arealistBean.getTitle()));
+                if(IgnoreAddPointActivity.this.locinfo==null){
+                    ToastUtils.showShort("没有获取到合法的位置");
+                    return;
+
+                }else {
+                    intent.putExtra("lat",locinfo.getLat());
+                    intent.putExtra("lng",locinfo.getLng());
+                    intent.putExtra("addr",locinfo.getAddr());
+                    intent.putExtra("progress", progress);
+                    startActivity(intent);
                 }
-                intent.putExtra("lat",poiInfo.location.latitude);
-                intent.putExtra("lng",poiInfo.location.longitude);
-                intent.putExtra("addr",poiInfo.address);
-                intent.putExtra("progress",progress);
-                startActivity(intent);
             }
         });
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -135,9 +142,16 @@ public class IgnoreAddPointActivity extends BaseActivity {
             @Override
             public void onItemClick(Object o) {
                 super.onItemClick(o);
+                isLocUpdate = true;
                 poiResultAdapter.clearData();
                 PoiInfo poiInfo = (PoiInfo) o;
-                IgnoreAddPointActivity.this.poiInfo = poiInfo;
+                if(locinfo==null){
+                    locinfo = new Locinfo();
+                }
+                locinfo.setLat(poiInfo.location.latitude);
+                locinfo.setLng(poiInfo.location.longitude);
+                locinfo.setAddr(poiInfo.address);
+                locinfo.setCity(poiInfo.city);
                 updateMapLocalView(poiInfo.location);
             }
         });
@@ -177,7 +191,7 @@ public class IgnoreAddPointActivity extends BaseActivity {
             }
         }
 
-        final Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+        locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
         if(locinfo!=null) {
             if(islocation) {
                 updateMapLocalView(new LatLng(locinfo.getLat(), locinfo.getLng()));
@@ -200,8 +214,10 @@ public class IgnoreAddPointActivity extends BaseActivity {
                     }
                     mPoiSearch.searchInCity((new PoiCitySearchOption())
                             .city(locinfo.getCity())
+                            .isReturnAddr(true)
                             .keyword(s.toString())
-                            .pageNum(6));
+                            .pageCapacity(12)
+                            .pageNum(1));
                 }
             });
             String temp = etSerchText.getText().toString().trim();
@@ -209,7 +225,8 @@ public class IgnoreAddPointActivity extends BaseActivity {
                 mPoiSearch.searchInCity((new PoiCitySearchOption())
                         .city(locinfo.getCity())
                         .keyword(temp)
-                        .pageNum(6));
+                        .pageCapacity(12)
+                        .pageNum(1));
             }
         }
     }

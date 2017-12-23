@@ -153,22 +153,30 @@ public  class BleService extends Service {
         }
     }
 
-
+    StringBuilder stringBuilder = new StringBuilder();
     class CmdReceiver extends BroadcastReceiver {
         @Override
         public synchronized void onReceive(Context context, Intent intent) {
-            LogUtils.d("bleService","收到广播："+intent.getAction()+"----->"+intent.getIntExtra("cmd", -1));
+            stringBuilder.delete(0,stringBuilder.length());
+            stringBuilder.append("收到广播 cmd==>");
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_BLE_COMMAND)){
                 int cmd = intent.getIntExtra("cmd", -1);//获取Extra信息
                 switch (cmd) {
                     case IntentExtras.CMD.CMD_DEVICE_LIST_ADD:
+                        stringBuilder.append("CMD_DEVICE_LIST_ADD   macList==>"+intent.getStringArrayListExtra("macList"));
                         addDeviceList(intent.getStringArrayListExtra("macList"));
                         break;
+                    case IntentExtras.CMD.CMD_DEVICE_SCANING:
+                        stringBuilder.append("CMD_DEVICE_SCANING   mac==>"+intent.getStringExtra("address"));
+                        connectDevice(mDeviceMap.get(intent.getStringExtra("address")));
+                        break;
                     case IntentExtras.CMD.CMD_DEVICE_BIND_SCAN:
+                        stringBuilder.append("CMD_DEVICE_BIND_SCAN");
                         isBind = true;
                         mBindMap.clear();
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR:
+                        stringBuilder.append("CMD_DEVICE_UNBIND_ERROR   mac==>"+intent.getStringExtra("address"));
                         String address = intent.getStringExtra("address");
                         if(mDeviceMap.containsKey(address)){
                             mDeviceMap.remove(address);
@@ -178,22 +186,28 @@ public  class BleService extends Service {
                         }
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND:
+                        stringBuilder.append("CMD_DEVICE_CONNECT_BIND   mac==>"+intent.getStringExtra("address"));
                         BleDevice bleDevice = mBindMap.get(intent.getStringExtra("address"));
                         connectDevice(bleDevice);
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_ALERT_START:
+                        stringBuilder.append("CMD_DEVICE_ALERT_START   mac==>"+intent.getStringExtra("address"));
                         startAlert(intent.getStringExtra("address"));
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_ALERT_STOP:
+                        stringBuilder.append("CMD_DEVICE_ALERT_STOP   mac==>"+intent.getStringExtra("address"));
                         stopAlert(intent.getStringExtra("address"));
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_UNBIND:
+                        stringBuilder.append("CMD_DEVICE_UNBIND   mac==>"+intent.getStringExtra("address"));
                         unbindDevice(intent.getStringExtra("address"));
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR:
+                        stringBuilder.append("CMD_DEVICE_LIST_CLEAR");
                         clearAllConnect(false);
                         break;
                     case IntentExtras.CMD.CMD_TASK_EXCE:
+                        stringBuilder.append("CMD_TASK_EXCE");
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -206,19 +220,24 @@ public  class BleService extends Service {
                 int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
                 switch (blueState) {
                     case BluetoothAdapter.STATE_TURNING_ON:
+                        stringBuilder.append("STATE_TURNING_ON");
                         break;
                     case BluetoothAdapter.STATE_ON:
+                        stringBuilder.append("STATE_ON");
                         scanDevice();
                         exceCalibrationDevice();
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
+                        stringBuilder.append("STATE_TURNING_OFF");
                         break;
                     case BluetoothAdapter.STATE_OFF:
+                        stringBuilder.append("STATE_OFF");
                         BleManager.getInstance().cancelScan();
                         clearAllConnect(true);
                         break;
                 }
             }
+            LogUtils.d("bleService",stringBuilder.toString());
         }
     }
 
@@ -353,12 +372,16 @@ public  class BleService extends Service {
                     return;
                 }
                 mDeviceMap.put(result.getMac(),result);
-                connectDevice(result);
+                Intent intent2= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                intent2.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_SCANING);
+                intent2.putExtra("address",result.getMac());
+                sendBroadcast(intent2);
             }
 
             @Override
             public void onScanFinished(List<BleDevice> scanResultList) {
                 LogUtils.d("bleService","贴片扫描结束----->");
+//                BleManager.getInstance().cancelScan();
             }
         });
     }

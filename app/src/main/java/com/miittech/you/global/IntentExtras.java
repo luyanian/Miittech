@@ -43,6 +43,7 @@ public class IntentExtras {
         public final static int CMD_TASK_EXCE=0x016;
         public final static int CMD_DEVICE_BIND_SCAN=0x017;
         public final static int CMD_DEVICE_UNBIND_ERROR=0x018;
+        public final static int CMD_DEVICE_SCANING=0x019;
     }
     public static class RET{
         public final static int RET_BLE_SCAN_START=0x20;

@@ -88,11 +88,11 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
             ToastUtils.showShort("请设置结束时间！");
             return;
         }
-        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-        if(TimeUtils.string2Millis(endTime,dateFormat)<=TimeUtils.string2Millis(startTime,dateFormat)){
-            ToastUtils.showShort("结束时间不能小于开始时间！");
-            return;
-        }
+//        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+//        if(TimeUtils.string2Millis(endTime,dateFormat)<=TimeUtils.string2Millis(startTime,dateFormat)){
+//            ToastUtils.showShort("结束时间不能小于开始时间！");
+//            return;
+//        }
         Intent data = new Intent();
         data.putExtra("startTime",startTime);
         data.putExtra("endTime",endTime);
@@ -111,6 +111,7 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
                         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
                         startTime = TimeUtils.date2String(date,simpleDateFormat)+":00";
                         tvStartTime.setText(startTime);
+                        correctTimesShow();
                     }
                 }).setType(new boolean[]{false, false, false, true, true, false})// 默认全部显示
                     .setCancelText("取消")//取消按钮文字
@@ -134,6 +135,7 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
                         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
                         endTime = TimeUtils.date2String(date,simpleDateFormat)+":00";
                         tvEndTime.setText(endTime);
+                        correctTimesShow();
                     }
                 }).setType(new boolean[]{false, false, false, true, true, false})// 默认全部显示
                 .setCancelText("取消")//取消按钮文字
@@ -150,6 +152,22 @@ public class IgnoreTimeSelectActivity extends BaseActivity {
                 pvEndTime.setDate(Calendar.getInstance());//注：根据需求来决定是否使用该方法（一般是精确到秒的情况），此项可以在弹出选择器的时候重新设置当前时间，避免在初始化之后由于时间已经设定，导致选中时间与当前时间不匹配的问题。
                 pvEndTime.show();
                 break;
+        }
+    }
+
+    private void correctTimesShow() {
+        if(TextUtils.isEmpty(startTime)||TextUtils.isEmpty(endTime)){
+            return;
+        }
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        if(TimeUtils.string2Millis(endTime,dateFormat)<TimeUtils.string2Millis(startTime,dateFormat)){
+            String tvEndTimeStr = tvEndTime.getText().toString().trim();
+            if(!tvEndTimeStr.contains("次日")) {
+                tvEndTime.setText("次日" + tvEndTimeStr);
+            }
+        }else{
+            String tvEndTimeStr = tvEndTime.getText().toString().replace("次日","").trim();
+            tvEndTime.setText(tvEndTimeStr);
         }
     }
 }

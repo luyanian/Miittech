@@ -38,6 +38,7 @@ import com.ryon.mutils.ToastUtils;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -385,11 +386,25 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             ignoreCheckList.add(itemCheck);
             itemName.setText(Common.decodeBase64(timelistBean.getTitle()));
             try {
-                DateFormat dateFormat = new SimpleDateFormat("HHmmss");
-                DateFormat dateFormat1 = new SimpleDateFormat("HH:mm:ss");
-                String sTime = dateFormat1.format(TimeUtils.string2Date(timelistBean.getStime(), dateFormat));
-                String eTime = dateFormat1.format(TimeUtils.string2Date(timelistBean.getEtime(), dateFormat));
-                itemTime.setText( sTime + " - " + eTime);
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+                Date date = new Date();
+                String ymd = simpleDateFormat.format(date);
+
+                String sstime = Common.repairStrLen(timelistBean.getStime());
+                String eetime = Common.repairStrLen(timelistBean.getEtime());
+
+                DateFormat dateFormat1 = new SimpleDateFormat("yyyyMMddHHmmss");
+                long millisStart = TimeUtils.string2Millis(ymd+sstime,dateFormat1);
+                long millisEnd = TimeUtils.string2Millis(ymd+eetime,dateFormat1);
+
+                DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                String sTime = TimeUtils.millis2String(millisStart,dateFormat);
+                String eTime = TimeUtils.millis2String(millisEnd,dateFormat);
+                if(millisEnd<millisStart) {
+                    itemTime.setText( sTime + " - 次日" + eTime);
+                }else{
+                    itemTime.setText( sTime + " - " + eTime);
+                }
             }catch (Exception e){
                 String sTime = timelistBean.getStime();
                 String eTime = timelistBean.getEtime();
