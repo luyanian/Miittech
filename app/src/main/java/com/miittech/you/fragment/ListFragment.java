@@ -96,6 +96,7 @@ public class ListFragment extends Fragment {
         mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setHasFixedSize(true);
+        recyclerView.setItemViewCacheSize(10);
 
         refreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override

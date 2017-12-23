@@ -187,10 +187,8 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             }
             if(SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1)==1){
                 checkSettingIgnore.setChecked(true);
-                updateIngnoreSettingValid(1);
             }else{
                 checkSettingIgnore.setChecked(false);
-                updateIngnoreSettingValid(0);
             }
         } else if (item == 1) {
             tvSettingTitle.setText(getResources().getString(R.string.text_setting_ignore_time));
@@ -204,10 +202,8 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
             }
             if(SPUtils.getInstance().getInt(SPConst.DISTURB.ISTIMEDISTURB,1)==1){
                 checkSettingIgnore.setChecked(true);
-                updateIngnoreSettingValid(1);
             }else{
                 checkSettingIgnore.setChecked(false);
-                updateIngnoreSettingValid(0);
             }
         }
     }
@@ -270,7 +266,7 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
 
     private void getIgnoreSetting() {
         if(!NetworkUtils.isConnected()){
-            UserInfoResponse userInfoResponse = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
+            UserInfoResponse userInfoResponse = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
             if(userInfoResponse!=null){
                 initIgnoreConfig(userInfoResponse);
             }
@@ -294,8 +290,8 @@ public class IgnoreSettingActivity extends BaseActivity implements TypeSelectorC
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
                         if(response.isSuccessful()) {
-                            SPUtils.getInstance().readObject(SPConst.USER_INFO);
-                            SPUtils.getInstance().saveObject(SPConst.USER_INFO, response);
+                            SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
+                            SPUtils.getInstance().saveObject(SPConst.DATA.USERINFO, response);
                             initIgnoreConfig(response);
                         }else {
                             response.onError(IgnoreSettingActivity.this);

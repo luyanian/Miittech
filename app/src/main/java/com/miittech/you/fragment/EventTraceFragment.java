@@ -75,6 +75,7 @@ public class EventTraceFragment extends Fragment {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         recyclerview.setLayoutManager(layoutManager);
         recyclerview.setHasFixedSize(true);
+        recyclerview.setItemViewCacheSize(10);
         mDeviceListAdapter = new DeviceListAdapter(getActivity(),new OnListItemClick(){
             @Override
             public void onItemClick(Object o,String flag) {

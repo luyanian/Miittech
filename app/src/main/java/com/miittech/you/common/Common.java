@@ -342,6 +342,40 @@ public class Common {
                     }
                 });
     }
+    public static synchronized void updateIngnoreSettingValid() {
+        Map userattr = new HashMap();
+        userattr.put("isAreaDisturb", SPUtils.getInstance().getInt(SPConst.DISTURB.ISAREADISTURB,1));
+        userattr.put("isTimeDisturb", SPUtils.getInstance().getInt(SPConst.DISTURB.ISTIMEDISTURB,1));
+
+        Map param = new HashMap();
+        param.put("method", "EF");
+        param.put("userattr", userattr);
+        if(!NetworkUtils.isConnected()){
+            return;
+        }
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "userattr/" + pubParam.toUrlParam(sign);
+        RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(App.getInstance()).postNetRequest(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BaseResponse>() {
+                    @Override
+                    public void accept(BaseResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+
+                        } else {
+                            ToastUtils.showShort(response.getErrmsg());
+                        }
+                    }
+                });
+    }
     public static void ValidToken(final Context context) {
         if(!NetworkUtils.isConnected()){
             return;
@@ -499,7 +533,7 @@ public class Common {
         if(!isPointIgnore){
             return false;
         }
-        UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
+        UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
         if(response!=null&&response.getConfig()!=null){
             UserInfoResponse.ConfigBean configBean = response.getConfig();
             if(configBean.getDonotdisturb()!=null){
@@ -530,7 +564,7 @@ public class Common {
         if(!isTimeIgnore){
             return false;
         }
-        UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.USER_INFO);
+        UserInfoResponse response = (UserInfoResponse) SPUtils.getInstance().readObject(SPConst.DATA.USERINFO);
         if(response!=null&&response.getConfig()!=null) {
             UserInfoResponse.ConfigBean configBean = response.getConfig();
             if (configBean.getDonotdisturb() != null) {

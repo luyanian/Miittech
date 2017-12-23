@@ -22,43 +22,73 @@
     <LinearLayout
         android:id="@+id/tab_menus"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="50dp"
         android:layout_alignParentBottom="true"
         android:background="@color/white"
         android:orientation="horizontal"
         android:gravity="center_vertical">
-        <TextView
+        <LinearLayout
             android:id="@+id/tab_list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableTop="@drawable/sl_tab_img_list"
-            android:layout_centerHorizontal="true"
-            android:textColor="@drawable/sl_tab_text_color"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
             android:gravity="center"
-            android:textSize="12dp"
-            android:text="@string/text_tab_list"/>
-        <TextView
+            android:layout_weight="1">
+            <ImageView
+                android:id="@+id/img_list"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/sl_tab_img_list"/>
+            <TextView
+                android:id="@+id/tv_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@drawable/sl_tab_text_color"
+                android:textSize="12dp"
+                android:text="@string/text_tab_list"/>
+        </LinearLayout>
+        <LinearLayout
             android:id="@+id/tab_map"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableTop="@drawable/sl_tab_img_map"
-            android:layout_centerHorizontal="true"
-            android:textColor="@drawable/sl_tab_text_color"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
             android:gravity="center"
-            android:textSize="12dp"
-            android:text="@string/text_tab_map"/>
-        <TextView
+            android:layout_weight="1">
+            <ImageView
+                android:id="@+id/img_map"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/sl_tab_img_map"/>
+            <TextView
+                android:id="@+id/tv_map"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@drawable/sl_tab_text_color"
+                android:textSize="12dp"
+                android:layout_marginTop="2dp"
+                android:text="@string/text_tab_map"/>
+        </LinearLayout>
+        <LinearLayout
             android:id="@+id/tab_events"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableTop="@drawable/sl_tab_img_events"
-            android:layout_centerHorizontal="true"
-            android:textColor="@drawable/sl_tab_text_color"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
             android:gravity="center"
-            android:textSize="12dp"
-            android:text="@string/text_tab_events"/>
+            android:layout_weight="1">
+            <ImageView
+                android:id="@+id/img_events"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/sl_tab_img_events"/>
+            <TextView
+                android:id="@+id/tv_events"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@drawable/sl_tab_text_color"
+                android:layout_marginTop="2dp"
+                android:textSize="12dp"
+                android:text="@string/text_tab_events"/>
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>
