@@ -308,6 +308,9 @@ public  class BleService extends Service {
     }
 
     private void exceCalibrationDevice() {
+        if(TextUtils.isEmpty(Common.getTocken())){
+            return;
+        }
         DeviceListResponse deviceResponse = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
         if(deviceResponse!=null&&deviceResponse.getDevlist()!=null){
             for (DeviceInfo devlistBean : deviceResponse.getDevlist()){

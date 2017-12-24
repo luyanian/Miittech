@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -229,25 +230,27 @@ public class MyReceiver extends BroadcastReceiver {
 				}
 				msgTipDialog.show();
 			}else if("login".equals(jpushMsg.getContent_type())){
+				Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+				cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
+				activity.sendBroadcast(cmd);
+				SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
+
 				DialogUtils.getInstance().createMsgTipDialog(activity)
 						.setTitle(jpushMsg.getTitle())
 						.setMsg(jpushMsg.getMsg_content())
 						.hideLeftBtn()
 						.setRightBtnText("知道了")
-						.setOnMsgTipOptions(new OnMsgTipOptions(){
+						.setOnMsgTipOptions(new OnMsgTipOptions() {
 							@Override
 							public void onSure() {
 								super.onSure();
-								Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-								cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
-								activity.sendBroadcast(cmd);
-								SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
 								Intent intent = new Intent(activity,LoginRegisteActivity.class);
 								activity.startActivity(intent);
 								ActivityPools.finishAllExcept(LoginRegisteActivity.class);
 							}
 						})
 						.show();
+
 			}else if("normal".equals(jpushMsg.getContent_type())){
 				MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(activity);
 				msgTipDialog.setTitle(jpushMsg.getTitle());
