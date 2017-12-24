@@ -78,6 +78,7 @@ public class ListFragment extends Fragment {
     @BindView(R.id.refreshLayout)
     SmartRefreshLayout refreshLayout;
 
+    private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
     private LinearLayoutManager mLayoutManager;
     private DeviceListAdapter mDeviceListAdapter;
 
@@ -117,15 +118,17 @@ public class ListFragment extends Fragment {
             }
         });
         recyclerView.setAdapter(mDeviceListAdapter);
-        initServiceStateListening();
         initState();
+        IntentFilter filter=new IntentFilter();
+        filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+        getActivity().registerReceiver(cmdResponseReceiver,filter);
     }
 
     public void initState() {
-        if (!BleManager.getInstance().isBlueEnable()) {
-            llBluetoothDisabled.setVisibility(View.VISIBLE);
-        } else {
+        if (BleManager.getInstance().isBlueEnable()) {
             llBluetoothDisabled.setVisibility(View.GONE);
+        } else {
+            llBluetoothDisabled.setVisibility(View.VISIBLE);
         }
         RxPermissions rxPermissions = new RxPermissions(getActivity());
         if (rxPermissions.isGranted(Manifest.permission.ACCESS_FINE_LOCATION) || rxPermissions.isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
@@ -139,33 +142,6 @@ public class ListFragment extends Fragment {
         } else {
             llNotifyServiceDisabled.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void initServiceStateListening() {
-        IntentFilter statusFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        getActivity().registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                switch (intent.getAction()) {
-                    case BluetoothAdapter.ACTION_STATE_CHANGED:
-                        int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
-                        switch (blueState) {
-                            case BluetoothAdapter.STATE_TURNING_ON:
-                                break;
-                            case BluetoothAdapter.STATE_ON:
-                                llBluetoothDisabled.setVisibility(View.GONE);
-                                break;
-                            case BluetoothAdapter.STATE_TURNING_OFF:
-                                break;
-                            case BluetoothAdapter.STATE_OFF:
-                                llBluetoothDisabled.setVisibility(View.VISIBLE);
-                                BleManager.getInstance().disconnectAllDevice();
-                                break;
-                        }
-                        break;
-                }
-            }
-        }, statusFilter);
     }
 
     @Override
@@ -257,6 +233,26 @@ public class ListFragment extends Fragment {
         if (mDeviceListAdapter != null) {
             mDeviceListAdapter.unregist();
         }
+        getActivity().unregisterReceiver(cmdResponseReceiver);
         unbinder.unbind();
+    }
+
+    private class CmdResponseReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
+                int ret = intent.getIntExtra("ret", -1);//获取Extra信息
+                String address = intent.getStringExtra("address");
+                switch (ret){
+                    case IntentExtras.RET.RET_BLE_STATE_ON:
+                        llBluetoothDisabled.setVisibility(View.GONE);
+                        break;
+                    case IntentExtras.RET.RET_BLE_STATE_OFF:
+                        llBluetoothDisabled.setVisibility(View.VISIBLE);
+                        break;
+                }
+
+            }
+        }
     }
 }

@@ -177,6 +177,7 @@ public  class BleService extends Service {
                         break;
                     case IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR:
                         stringBuilder.append("CMD_DEVICE_UNBIND_ERROR   mac==>"+intent.getStringExtra("address"));
+                        isBind=false;
                         String address = intent.getStringExtra("address");
                         if(mDeviceMap.containsKey(address)){
                             mDeviceMap.remove(address);
@@ -224,6 +225,9 @@ public  class BleService extends Service {
                         break;
                     case BluetoothAdapter.STATE_ON:
                         stringBuilder.append("STATE_ON");
+                        Intent bleOnIntent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        bleOnIntent.putExtra("ret", IntentExtras.RET.RET_BLE_STATE_ON);
+                        sendBroadcast(bleOnIntent);
                         scanDevice();
                         exceCalibrationDevice();
                         break;
@@ -232,6 +236,9 @@ public  class BleService extends Service {
                         break;
                     case BluetoothAdapter.STATE_OFF:
                         stringBuilder.append("STATE_OFF");
+                        Intent bleOffIntent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        bleOffIntent.putExtra("ret", IntentExtras.RET.RET_BLE_STATE_OFF);
+                        sendBroadcast(bleOffIntent);
                         BleManager.getInstance().cancelScan();
                         clearAllConnect(true);
                         break;
@@ -273,17 +280,21 @@ public  class BleService extends Service {
                     DeviceInfo.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
                     if (alertinfoBean != null) {
                         byte[] data = new byte[1];
-//                        if (alertinfoBean.getIsRepeat() == 0 || !Common.isBell()) {
+//                        if (!Common.isBell()) {
 //                           data[0] = 0x00;
 //                        }else{
 //                            data[0] = 0x02;
 //                        }
-//                        BLEClientManager.getClient().write(mac,BleCommon.linkLossUUID,BleCommon.characteristicUUID,data,new BleWriteResponse(){
-//                            @Override
-//                            public void onResponse(int code) {
-//                                if(code == REQUEST_SUCCESS){
+//                        BleManager.getInstance().write(bleDevice,BleCommon.linkLossUUID,BleCommon.characteristicUUID,data,new BleWriteCallback(){
 //
-//                                }
+//                            @Override
+//                            public void onWriteSuccess(BleDevice bleDevice) {
+//
+//                            }
+//
+//                            @Override
+//                            public void onWriteFailure(BleDevice bleDevice, BleException exception) {
+//
 //                            }
 //                        });
                     }

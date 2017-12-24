@@ -360,6 +360,7 @@ public class UserCenterActivity extends BaseActivity {
                 }
                 break;
             case R.id.btn_logout:
+                Common.updateIngnoreSettingValid();
                 DialogUtils.getInstance().showLogoutDialog(this)
                     .onClickSure(new OnMsgTipOptions() {
                         @Override
@@ -430,6 +431,7 @@ public class UserCenterActivity extends BaseActivity {
                             cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
                             sendBroadcast(cmd);
                             SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
+                            SPUtils.getInstance().clear();
                             Intent intent = new Intent(UserCenterActivity.this,LoginRegisteActivity.class);
                             startActivity(intent);
                             ActivityPools.finishAllExcept(LoginRegisteActivity.class);

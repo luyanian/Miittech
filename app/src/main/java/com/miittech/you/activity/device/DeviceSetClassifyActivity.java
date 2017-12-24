@@ -11,6 +11,7 @@ import com.miittech.you.common.Common;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceListResponse;
@@ -153,9 +154,13 @@ public class DeviceSetClassifyActivity extends BaseActivity {
                                 Intent data = new Intent();
                                 data.putExtra(IntentExtras.DEVICE.CLASSIFY,classfy);
                                 setResult(RESULT_OK,data);
-                                Common.getDeviceDetailInfo(DeviceSetClassifyActivity.this,devId,null);
                                 Common.initDeviceList(DeviceSetClassifyActivity.this,null);
-                                DeviceSetClassifyActivity.this.finish();
+                                Common.getDeviceDetailInfo(DeviceSetClassifyActivity.this, devId, new OnNetRequestCallBack() {
+                                    @Override
+                                    public void OnRequestComplete() {
+                                        DeviceSetClassifyActivity.this.finish();
+                                    }
+                                });
                             }else {
                                 startActivity(intent);
                             }

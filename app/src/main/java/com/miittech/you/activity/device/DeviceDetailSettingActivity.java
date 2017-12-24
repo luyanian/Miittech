@@ -90,7 +90,16 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         deviceInfo = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(deviceInfo.getDevidX()));
+        if(response!=null&&response.getUserinfo()!=null&&response.getUserinfo().getDevinfo()!=null){
+            deviceInfo = response.getUserinfo().getDevinfo();
+        }
         initData(deviceInfo);
     }
 

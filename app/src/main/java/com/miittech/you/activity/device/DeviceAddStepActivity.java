@@ -217,15 +217,16 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                             tvConnectStatus.setText("绑定成功");
                             tvConnectMsg.setVisibility(View.GONE);
                             Common.doCommitEvents(DeviceAddStepActivity.this,response.getDevid(),Params.EVENT_TYPE.DEVICE_ADD,null);
+                            Common.initDeviceList(DeviceAddStepActivity.this,null);
                             Intent intent = new Intent(DeviceAddStepActivity.this,DeviceSetClassifyActivity.class);
                             intent.putExtra(IntentExtras.DEVICE.ID,Common.formatMac2DevId(mac));
                             startActivity(intent);
                         }else{
-                            outBindError();
                             Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
                             intent.putExtra("address",mac);
                             sendBroadcast(intent);
+                            outBindError();
                         }
                     }
                 }, new Consumer<Throwable>() {

@@ -26,6 +26,7 @@ import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
+import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
 
 import java.util.HashMap;
@@ -82,6 +83,10 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
             }
         });
         deviceInfo = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
+        DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(deviceInfo.getDevidX()));
+        if(response!=null&&response.getUserinfo()!=null&&response.getUserinfo().getDevinfo()!=null){
+            deviceInfo = response.getUserinfo().getDevinfo();
+        }
         initViews(deviceInfo);
         checkDisconnectRepeatedRemind.setOnCheckedChangeListener(this);
         checkRepeatedRemind.setOnCheckedChangeListener(this);

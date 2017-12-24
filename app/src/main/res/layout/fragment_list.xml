@@ -126,6 +126,7 @@
         android:id="@+id/refreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/ll_tips"
         app:srlPrimaryColor="#b7b7b7"
         app:srlAccentColor="@color/white"
         app:srlEnablePreviewInEditMode="true">
@@ -134,7 +135,6 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/ll_tips"
             android:visibility="gone"/>
     </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 </RelativeLayout>

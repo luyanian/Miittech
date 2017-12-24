@@ -322,10 +322,9 @@ public class Common {
                 .subscribe(new Consumer<DeviceListResponse>() {
                     @Override
                     public void accept(DeviceListResponse response) throws Exception {
-                        if(response.isSuccessful()) {
-                            SPUtils.getInstance().remove(SPConst.DATA.DEVICELIST);
-                            SPUtils.getInstance().saveObject(SPConst.DATA.DEVICELIST, response);
-                        }else{
+                        SPUtils.getInstance().remove(SPConst.DATA.DEVICELIST);
+                        SPUtils.getInstance().saveObject(SPConst.DATA.DEVICELIST, response);
+                        if(!response.isSuccessful()) {
                             response.onError(context);
                         }
                         if(onNetRequestCallBack!=null){

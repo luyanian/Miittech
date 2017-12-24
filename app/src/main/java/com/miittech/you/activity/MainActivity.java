@@ -80,7 +80,6 @@ public class MainActivity extends BaseActivity {
         tvMap.setSelected(true);
         imgMap.setSelected(true);
         onViewClicked(tabList);
-        Common.updateIngnoreSettingValid();
         Common.getUserInfo(this, null);
         Common.initDeviceList(this, null);
     }

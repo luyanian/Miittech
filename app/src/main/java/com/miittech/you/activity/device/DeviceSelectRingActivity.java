@@ -237,19 +237,19 @@ public class DeviceSelectRingActivity extends BaseActivity{
                         data.putExtra(IntentExtras.SOURND.ID,sourndlistBean.getId());
                         data.putExtra(IntentExtras.SOURND.NAME,sourndlistBean.getName());
                         setResult(RESULT_OK,data);
-                        if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
-                            Common.initDeviceList(DeviceSelectRingActivity.this,null);
-                            Common.getDeviceDetailInfo(DeviceSelectRingActivity.this, deviceInfo.getDevidX(), new OnNetRequestCallBack() {
-                                @Override
-                                public void OnRequestComplete() {
+                        Common.initDeviceList(DeviceSelectRingActivity.this,null);
+                        Common.getDeviceDetailInfo(DeviceSelectRingActivity.this, devId, new OnNetRequestCallBack() {
+                            @Override
+                            public void OnRequestComplete() {
+                                if(intent.hasExtra(IntentExtras.DEVICE.DATA)){
                                     ActivityPools.finishActivity(DeviceSetClassifyActivity.class);
                                     ActivityPools.finishActivity(DeviceSetAttrActivity.class);
                                     ActivityPools.finishActivity(DeviceSelectRingActivity.class);
+                                }else{
+                                    ActivityPools.finishAllExcept(MainActivity.class);
                                 }
-                            });
-                        }else{
-                            ActivityPools.finishAllExcept(MainActivity.class);
-                        }
+                            }
+                        });
                     } else {
                         response.onError(DeviceSelectRingActivity.this);
                     }

@@ -9,6 +9,7 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.common.Common;
 import com.miittech.you.global.IntentExtras;
+import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
@@ -100,12 +101,16 @@ public class DeviceEditNameActivity extends BaseActivity {
                     @Override
                     public void accept(DeviceListResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            Common.getDeviceDetailInfo(DeviceEditNameActivity.this,devId,null);
                             Common.initDeviceList(DeviceEditNameActivity.this,null);
-                            Intent data = new Intent();
-                            data.putExtra(IntentExtras.DEVICE.NAME,devName);
-                            setResult(RESULT_OK,data);
-                            finish();
+                            Common.getDeviceDetailInfo(DeviceEditNameActivity.this, devId, new OnNetRequestCallBack() {
+                                @Override
+                                public void OnRequestComplete() {
+                                    Intent data = new Intent();
+                                    data.putExtra(IntentExtras.DEVICE.NAME,devName);
+                                    setResult(RESULT_OK,data);
+                                    finish();
+                                }
+                            });
                         }else {
                             response.onError(DeviceEditNameActivity.this);
                         }

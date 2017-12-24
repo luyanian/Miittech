@@ -63,5 +63,7 @@ public class IntentExtras {
         public final static int RET_BLE_READ_RSSI=0x034;
         public final static int RET_BLE_READ_BATTERY=0x035;
         public final static int LOCATION=0x036;
+        public final static int RET_BLE_STATE_ON=0x037;
+        public final static int RET_BLE_STATE_OFF=0x038;
     }
 }
