@@ -23,16 +23,6 @@ public class LoginRegisteActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_registe);
         ButterKnife.bind(this);
-        if(!TextUtils.isEmpty(Common.getTocken())){
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Intent intent = new Intent(LoginRegisteActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-            },200);
-        }
     }
 
     @OnClick({R.id.btn_play, R.id.btn_register, R.id.btn_login})

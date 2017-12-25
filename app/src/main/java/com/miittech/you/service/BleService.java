@@ -90,6 +90,7 @@ public  class BleService extends Service {
     private List<String> mConnectMac=new ArrayList<>();
     private boolean isBind = false;
     private Map<String,Boolean> isNeedAlerts = new HashMap<>();
+    private long lastScanningTime=0;
 
     @Override  
     public IBinder onBind(Intent intent) {
@@ -321,6 +322,14 @@ public  class BleService extends Service {
                         if (mConnectMac.contains(mac)) {
                             mConnectMac.remove(mac);
                         }
+                    }else{
+                        BleDevice bleDevice = mDeviceMap.get(mac);
+                        if(!BleManager.getInstance().isConnected(bleDevice)){
+                            BleManager.getInstance().disconnect(mDeviceMap.get(mac));
+                        }
+                    }
+                    if(TimeUtils.getTimeSpan(lastScanningTime,TimeUtils.getNowMills(),TimeConstants.MIN)>5){
+                        BleManager.getInstance().cancelScan();
                     }
                 }
             }
@@ -369,6 +378,7 @@ public  class BleService extends Service {
 
             @Override
             public void onScanning(BleDevice result) {
+                lastScanningTime = TimeUtils.getNowMills();
                 LogUtils.d("bleService","扫描到有效贴片----->"+result.getMac());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCANING);
@@ -402,7 +412,7 @@ public  class BleService extends Service {
         });
     }
     long lastConnectTime =0;
-    public synchronized void connectDevice(BleDevice bleDevice){
+    public synchronized void connectDevice(final BleDevice bleDevice){
         if(bleDevice==null||mConnectMac.contains(bleDevice.getMac())||(!mDeviceMap.containsKey(bleDevice.getMac())&&!mBindMap.containsKey(bleDevice.getMac()))){
             return;
         }
@@ -461,7 +471,6 @@ public  class BleService extends Service {
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
                     intent.putExtra("address", device.getMac());
                     sendBroadcast(intent);
-
                     if(mConnectMac.contains(device.getMac())){
                         mConnectMac.remove(device.getMac());
                     }

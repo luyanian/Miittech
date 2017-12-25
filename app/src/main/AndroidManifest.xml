@@ -212,8 +212,13 @@
 
         <activity android:name=".activity.MainActivity"
             android:hardwareAccelerated="true"/>
-        <activity android:name=".activity.StartActivity" />
-        <activity android:name=".activity.WelComeActivity" />
+        <activity android:name=".activity.StartActivity"
+            android:theme="@style/Theme.AppStartLoadTranslucent">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name=".activity.BaseActivity" />
         <activity android:name=".activity.user.LoginActivity" />
         <activity android:name=".activity.setting.SettingActivity" />
@@ -223,14 +228,7 @@
         <activity android:name=".activity.user.ForgetEmailPasswordActivity" />
         <activity android:name=".activity.user.ResetPasswordActivity" />
         <activity android:name=".activity.user.LoginRegisteActivity"
-            android:launchMode="singleTask"
-            android:theme="@style/Theme.AppStartLoadTranslucent">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:launchMode="singleTask"/>
         <activity android:name=".activity.user.RegisteActivity" />
         <activity android:name=".activity.user.BindPhoneActivity"/>
         <activity android:name=".activity.user.BindEmailActivity"/>
