@@ -245,7 +245,7 @@ public class Common {
                     public void accept(DeviceDetailResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             SPUtils.getInstance().remove(Common.formatDevId2Mac(devId));
-                            SPUtils.getInstance().saveObject(Common.formatDevId2Mac(devId),response);
+                            SPUtils.getInstance().saveObject(Common.formatDevId2Mac(devId),response.getUserinfo().getDevinfo());
                         } else {
                             response.onError(context);
                         }

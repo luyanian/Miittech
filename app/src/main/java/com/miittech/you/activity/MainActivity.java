@@ -17,6 +17,7 @@ import com.miittech.you.common.Common;
 import com.miittech.you.fragment.EventsFragment;
 import com.miittech.you.fragment.ListFragment;
 import com.miittech.you.fragment.MapFragment;
+import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
@@ -79,9 +80,13 @@ public class MainActivity extends BaseActivity {
         });
         tvMap.setSelected(true);
         imgMap.setSelected(true);
-        onViewClicked(tabList);
         Common.getUserInfo(this, null);
-        Common.initDeviceList(this, null);
+        Common.initDeviceList(this, new OnNetRequestCallBack() {
+            @Override
+            public void OnRequestComplete() {
+                onViewClicked(tabList);
+            }
+        });
     }
 
     @OnClick({R.id.tab_list, R.id.tab_map, R.id.tab_events})

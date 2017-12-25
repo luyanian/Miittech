@@ -96,9 +96,9 @@ public class DeviceDetailSettingActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
         deviceInfo = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(deviceInfo.getDevidX()));
-        if(response!=null&&response.getUserinfo()!=null&&response.getUserinfo().getDevinfo()!=null){
-            deviceInfo = response.getUserinfo().getDevinfo();
+        DeviceInfo response = (DeviceInfo) SPUtils.getInstance().readObject(Common.formatDevId2Mac(deviceInfo.getDevidX()));
+        if(response!=null){
+            deviceInfo = response;
         }
         initData(deviceInfo);
     }

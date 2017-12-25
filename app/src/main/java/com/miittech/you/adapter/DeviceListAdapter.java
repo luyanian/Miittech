@@ -22,6 +22,7 @@ import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -80,6 +81,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 DeviceInfo lastItem = mData.get(i-1);
                 if(TextUtils.isEmpty(lastItem.getFriendname())){
                     holder.tvIsShared.setVisibility(View.VISIBLE);
+                }else{
+                    holder.tvIsShared.setVisibility(View.GONE);
                 }
             }
             holder.itemShared.setVisibility(View.VISIBLE);
@@ -158,6 +161,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             for(DeviceInfo devlistBean : devlist){
                 if(TextUtils.isEmpty(devlistBean.getFriendname())) {
                     tempList.add(Common.formatDevId2Mac(devlistBean.getDevidX()));
+                    SPUtils.getInstance().remove(Common.formatDevId2Mac(devlistBean.getDevidX()));
+                    SPUtils.getInstance().saveObject(Common.formatDevId2Mac(devlistBean.getDevidX()),devlistBean);
                 }
             }
         }

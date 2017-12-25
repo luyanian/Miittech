@@ -140,9 +140,9 @@ public class DeviceDetailActivity extends BaseActivity {
     }
     private void initDeviceInfoFromList() {
         DeviceInfo devlistBean = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(devlistBean.getDevidX()));
-        if(response!=null&&response.getUserinfo()!=null&&response.getUserinfo().getDevinfo()!=null){
-            initDeviceInfo(response.getUserinfo().getDevinfo());
+        DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(Common.formatDevId2Mac(devlistBean.getDevidX()));
+        if(deviceInfo!=null){
+            initDeviceInfo(deviceInfo);
         }else{
             initDeviceInfo(devlistBean);
         }

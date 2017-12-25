@@ -98,7 +98,7 @@ public class SoundPlayUtils {
                 .setOngoing(false)//ture，设置他为一个正在进行的通知。他们通常是用来表示一个后台任务,用户积极参与(如播放音乐)或以某种方式正在等待,因此占用设备(如一个文件下载,同步操作,主动网络连接
                 .setSmallIcon(R.mipmap.ic_launcher);//设置通知小ICON
         if(isShake){
-            long[] vibrate = {100, 300, 500, 300, 500, 300, 500};
+            long[] vibrate = {100, 300, 800, 300, 800, 300, 800};
             mBuilder.setVibrate(vibrate);
         }else{
             long[] unVibrate = {};

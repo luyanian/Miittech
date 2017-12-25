@@ -275,9 +275,9 @@ public  class BleService extends Service {
                     }
                 });
 
-                DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(bleDevice.getMac());
-                if(response!=null) {
-                    DeviceInfo.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(bleDevice.getMac());
+                if(deviceInfo!=null) {
+                    DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
                     if (alertinfoBean != null) {
                         byte[] data = new byte[1];
 //                        if (!Common.isBell()) {
@@ -314,11 +314,13 @@ public  class BleService extends Service {
         DeviceListResponse deviceResponse = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
         if(deviceResponse!=null&&deviceResponse.getDevlist()!=null){
             for (DeviceInfo devlistBean : deviceResponse.getDevlist()){
-                String mac = Common.formatDevId2Mac(devlistBean.getDevidX());
-                if(!mDeviceMap.containsKey(mac)){
-                    mDeviceMap.put(mac,null);
-                    if(mConnectMac.contains(mac)){
-                        mConnectMac.remove(mac);
+                if(TextUtils.isEmpty(devlistBean.getFriendname())) {
+                    String mac = Common.formatDevId2Mac(devlistBean.getDevidX());
+                    if (!mDeviceMap.containsKey(mac)) {
+                        mDeviceMap.put(mac, null);
+                        if (mConnectMac.contains(mac)) {
+                            mConnectMac.remove(mac);
+                        }
                     }
                 }
             }
@@ -373,7 +375,7 @@ public  class BleService extends Service {
                 intent.putExtra("address",result.getMac());
                 sendBroadcast(intent);
                 if(!mDeviceMap.containsKey((result.getMac()))){
-                    if(isBind&&result.getRssi()>-70){
+                    if(isBind&&result.getRssi()>-50){
                         if(mBindMap.size()==0) {
                             mBindMap.put(result.getMac(), result);
                             LogUtils.d("bleService", "开始绑定贴片----->" + result.getMac());
@@ -465,12 +467,12 @@ public  class BleService extends Service {
                     }
                     if(!isActiveDisConnected) {
                         Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(device.getMac()), Params.EVENT_TYPE.DEVICE_LOSE, null);
-                        DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(device.getMac());
-                        if (response != null) {
-                            DeviceInfo.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                        DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(device.getMac());
+                        if (deviceInfo != null) {
+                            DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
                             if (alertinfoBean != null) {
                                 if (alertinfoBean.getIsRepeat() == 1 && Common.isBell()) {
-                                    doPlay(response);
+                                    doPlay(deviceInfo);
                                 }
                             }
                         }
@@ -587,12 +589,12 @@ public  class BleService extends Service {
                 }
                 if(isNeedAlerts.get(device.getMac())) {
                     Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(device.getMac()), Params.EVENT_TYPE.DEVICE_REDISCOVER, null);
-                    final DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(device.getMac());
-                    if (response != null) {
-                        DeviceInfo.AlertinfoBean alertinfoBean = response.getUserinfo().getDevinfo().getAlertinfo();
+                    final DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(device.getMac());
+                    if (deviceInfo != null) {
+                        DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
                         if (alertinfoBean != null) {
                             if (alertinfoBean.getIsReconnect() == 1 && Common.isBell()) {
-                                doPlay(response);
+                                doPlay(deviceInfo);
                             }
                         }
                     }
@@ -631,7 +633,11 @@ public  class BleService extends Service {
                     intent.putExtra("rssi", rssi);
                     sendBroadcast(intent);
                     mapRssi.put(device.getMac(), rssi);
-
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     notfyAlert(device);
                 }
             });
@@ -643,12 +649,18 @@ public  class BleService extends Service {
             @Override
             public void onNotifySuccess() {
                 LogUtils.d("bleService", "设置监测贴片按钮事件成功");
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 notifyBattery(bleDevice);
             }
 
             @Override
             public void onNotifyFailure(BleException exception) {
                 LogUtils.d("bleService", exception.getDescription());
+                notfyAlert(bleDevice);
             }
 
             @Override
@@ -659,11 +671,13 @@ public  class BleService extends Service {
                         LogUtils.d("贴片在勿扰范围内,报警忽略！");
                         return;
                     }
-                    DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(device.getMac());
-                    if (response != null) {
+                    DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(device.getMac());
+                    if (deviceInfo != null) {
                         if(Common.isBell()) {
-                            doPlay(response);
+                            doPlay(deviceInfo);
                         }
+                    }else{
+
                     }
 
                 }
@@ -681,6 +695,7 @@ public  class BleService extends Service {
             @Override
             public void onNotifyFailure(BleException exception) {
                 LogUtils.d("bleService", exception.getDescription());
+                notifyBattery(bleDevice);
             }
 
             @Override
@@ -698,10 +713,10 @@ public  class BleService extends Service {
         });
     }
 
-    private void doPlay(DeviceDetailResponse response) {
-        String url = response.getUserinfo().getDevinfo().getAlertinfo().getUrlX();
-        boolean isShake = (response.getUserinfo().getDevinfo().getAlertinfo().getIsShake()==1)?true:false;
-        int duration = response.getUserinfo().getDevinfo().getAlertinfo().getDuration();
+    private void doPlay(DeviceInfo deviceInfo) {
+        String url = deviceInfo.getAlertinfo().getUrlX();
+        boolean isShake = (deviceInfo.getAlertinfo().getIsShake()==1)?true:false;
+        int duration = deviceInfo.getAlertinfo().getDuration();
         duration*=1000;
         if(url.contains("bluesforslim")){
             SoundPlayUtils.play(3,duration,isShake);

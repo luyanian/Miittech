@@ -83,9 +83,9 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
             }
         });
         deviceInfo = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
-        DeviceDetailResponse response = (DeviceDetailResponse) SPUtils.getInstance().readObject(Common.formatDevId2Mac(deviceInfo.getDevidX()));
-        if(response!=null&&response.getUserinfo()!=null&&response.getUserinfo().getDevinfo()!=null){
-            deviceInfo = response.getUserinfo().getDevinfo();
+        DeviceInfo response = (DeviceInfo) SPUtils.getInstance().readObject(Common.formatDevId2Mac(deviceInfo.getDevidX()));
+        if(response!=null){
+            deviceInfo = response;
         }
         initViews(deviceInfo);
         checkDisconnectRepeatedRemind.setOnCheckedChangeListener(this);
