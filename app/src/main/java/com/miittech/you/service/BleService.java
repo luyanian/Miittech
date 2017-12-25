@@ -358,6 +358,9 @@ public  class BleService extends Service {
 
 
     public synchronized  void scanDevice(){
+        if(TextUtils.isEmpty(Common.getTocken())){
+            return;
+        }
         if(BleManager.getInstance().getScanSate()==BleScanState.STATE_SCANNING){
             return;
         }
@@ -413,6 +416,9 @@ public  class BleService extends Service {
     }
     long lastConnectTime =0;
     public synchronized void connectDevice(final BleDevice bleDevice){
+        if(TextUtils.isEmpty(Common.getTocken())){
+            return;
+        }
         if(bleDevice==null||mConnectMac.contains(bleDevice.getMac())||(!mDeviceMap.containsKey(bleDevice.getMac())&&!mBindMap.containsKey(bleDevice.getMac()))){
             return;
         }
