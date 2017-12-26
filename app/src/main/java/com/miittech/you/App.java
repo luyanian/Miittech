@@ -1,23 +1,18 @@
 package com.miittech.you;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.multidex.MultiDex;
 
 import com.baidu.mapapi.SDKInitializer;
-import com.miittech.you.common.BingGoPlayUtils;
-import com.miittech.you.common.SoundPlayUtils;
-import com.miittech.you.global.SPConst;
+import com.miittech.you.utils.BingGoPlayUtils;
+import com.miittech.you.utils.SoundPlayUtils;
 import com.miittech.you.service.BleService;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
-import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.Utils;
 
 import cn.jpush.android.api.JPushInterface;

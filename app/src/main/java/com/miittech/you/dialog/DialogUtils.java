@@ -77,7 +77,7 @@ public class DialogUtils {
     static SoundCloseDialog soundCloseDialog;
     public synchronized SoundCloseDialog showSoundCloseDialog(Context context) {
         if(soundCloseDialog!=null){
-            if(!soundCloseDialog.isShowing()){
+            if(soundCloseDialog.isShowing()){
                 soundCloseDialog.dismiss();
             }
             soundCloseDialog=null;
@@ -85,6 +85,18 @@ public class DialogUtils {
         soundCloseDialog = new SoundCloseDialog(context);
         soundCloseDialog.show();
         return soundCloseDialog;
+    }
+
+    static UpdateDialog updateDialog;
+    public synchronized  UpdateDialog showUpdateDialog(Context context,boolean canCancle){
+        if(updateDialog!=null){
+            if(updateDialog.isShowing()){
+                updateDialog.dismiss();
+            }
+            updateDialog=null;
+        }
+        updateDialog = new UpdateDialog(context,canCancle);
+        return updateDialog;
     }
 
 }

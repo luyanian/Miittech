@@ -19,7 +19,7 @@ import com.baidu.mapapi.model.LatLng;
 import com.clj.fastble.BleManager;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;

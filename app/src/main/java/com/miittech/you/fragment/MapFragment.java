@@ -31,7 +31,7 @@ import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.activity.event.FriendTraceDetailActivity;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MapDeviceUsersListDialog;
 import com.miittech.you.entity.DeviceInfo;

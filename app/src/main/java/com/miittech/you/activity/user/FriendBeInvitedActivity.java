@@ -7,15 +7,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import com.daimajia.swipe.util.Attributes;
 import com.google.gson.Gson;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.FriendsBeInvitedAdapter;
-import com.miittech.you.adapter.MyFriendsAdapter;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -32,7 +29,6 @@ import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
-import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import java.util.HashMap;
@@ -41,7 +37,6 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;

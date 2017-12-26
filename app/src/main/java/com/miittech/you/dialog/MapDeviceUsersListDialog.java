@@ -10,10 +10,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import com.miittech.you.R;
 import com.miittech.you.adapter.MapDeviceUsersListAdapter;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package com.miittech.you.common;
+package com.miittech.you.impl;
 
 /**
  * Created by Administrator on 2017/9/21.

@@ -8,7 +8,7 @@ import android.text.TextUtils;
 
 import com.miittech.you.R;
 import com.miittech.you.activity.user.LoginRegisteActivity;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 
 public class StartActivity extends AppCompatActivity {
 

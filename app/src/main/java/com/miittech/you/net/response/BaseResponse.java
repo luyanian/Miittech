@@ -5,11 +5,9 @@ import android.content.Intent;
 import android.text.TextUtils;
 
 import com.google.gson.annotations.SerializedName;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.user.LoginRegisteActivity;
-import com.miittech.you.activity.user.UserCenterActivity;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.net.code.ResponseCode;

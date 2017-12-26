@@ -1,7 +1,6 @@
 package com.miittech.you.activity.user;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
@@ -11,8 +10,8 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.common.Common;
-import com.miittech.you.common.OnGetVerCodeComplete;
+import com.miittech.you.utils.Common;
+import com.miittech.you.impl.OnGetVerCodeComplete;
 import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;

@@ -9,10 +9,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.miittech.you.R;
-import com.miittech.you.common.SoundPlayUtils;
+import com.miittech.you.utils.SoundPlayUtils;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.net.response.SoundListResponse;
 
 import java.util.HashMap;

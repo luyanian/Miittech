@@ -2,15 +2,10 @@ package com.miittech.you.activity.user;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.text.TextUtils;
 import android.view.View;
 
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.activity.MainActivity;
-import com.miittech.you.common.Common;
 import com.ryon.mutils.ActivityPools;
 
 import butterknife.ButterKnife;

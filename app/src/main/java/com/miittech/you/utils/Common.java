@@ -1,6 +1,8 @@
-package com.miittech.you.common;
+package com.miittech.you.utils;
 
+import android.app.DownloadManager;
 import android.content.Context;
+import android.net.Uri;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -10,23 +12,26 @@ import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
-import com.miittech.you.activity.device.DeviceDetailActivity;
+import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.entity.Detailinfo;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
-import com.miittech.you.global.SPConst;
-import com.miittech.you.impl.OnNetRequestCallBack;
-import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
+import com.miittech.you.global.SPConst;
+import com.miittech.you.impl.OnGetVerCodeComplete;
+import com.miittech.you.impl.OnMsgTipOptions;
+import com.miittech.you.impl.OnNetRequestCallBack;
+import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.AppVersionResponse;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.service.BleService;
-import com.miittech.you.utils.HexUtil;
+import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
@@ -47,6 +52,8 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+
+import static android.content.Context.DOWNLOAD_SERVICE;
 
 /**
  * Created by Administrator on 2017/9/21.
@@ -263,6 +270,79 @@ public class Common {
                     }
                 });
     }
+    public synchronized static void getAppVersion(final Context context, final boolean isAuto){
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort("网络链接断开，请检查网络");
+            return;
+        }
+        Map param = new HashMap();
+        param.put("ostype", "android");
+        param.put("ver", AppUtils.getAppVersionName());
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "appversion/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(App.getInstance()).postGetAppVersion(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<AppVersionResponse>() {
+                    @Override
+                    public void accept(final AppVersionResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+
+                            String curVersion = AppUtils.getAppVersionName();
+                            if(curVersion.compareTo(response.getVersion().getMin())<0){//强制升级
+                                DialogUtils.getInstance().showUpdateDialog(context,false)
+                                    .setTitle("版本更新")
+                                    .setMsg("检查到新的版本 v"+response.getVersion().getLast()+",请及时更新")
+                                    .hideLeftBtn()
+                                    .setRightBtnText("立即更新")
+                                    .setOnMsgTipOptions(new OnMsgTipOptions(){
+                                        @Override
+                                        public void onSure() {
+                                            super.onSure();
+                                            Common.download(context,response.getVersion().getLasturl());
+                                        }
+                                    }).show();
+                                return;
+                            }
+                            if(curVersion.compareTo(response.getVersion().getLast())<0&&isAuto){//不强制升级
+                                DialogUtils.getInstance().showUpdateDialog(context,true)
+                                        .setTitle("版本更新")
+                                        .setMsg("检查到新的版本 v"+response.getVersion().getLast()+",请及时更新")
+                                        .setLeftBtnText("取消")
+                                        .setRightBtnText("更新")
+                                        .setOnMsgTipOptions(new OnMsgTipOptions(){
+                                            @Override
+                                            public void onSure() {
+                                                super.onSure();
+                                                Common.download(context,response.getVersion().getLasturl());
+                                            }
+                                        }).show();
+                                return;
+                            }
+                        } else {
+                            response.onError(context);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+
+    private static void download(Context context,String lasturl) {
+        DownloadManagerUtil downloadManagerUtil = new DownloadManagerUtil(context);
+        downloadManagerUtil.download(lasturl, AppUtils.getAppName(), AppUtils.getAppPackageName());
+    }
+
     public synchronized static void AddFriendConfirm(final Context context, String friendId, String method) {
         if(!NetworkUtils.isConnected()){
             ToastUtils.showShort(R.string.msg_net_error);

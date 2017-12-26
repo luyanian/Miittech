@@ -1,19 +1,13 @@
 package com.miittech.you.receiver;
 
 import android.app.Activity;
-import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.app.NotificationCompat;
 
 import com.miittech.you.App;
-import com.miittech.you.R;
-import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.common.Common;
-import com.miittech.you.common.SoundPlayUtils;
+import com.miittech.you.utils.SoundPlayUtils;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.service.BleService;

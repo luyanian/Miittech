@@ -1,4 +1,4 @@
-package com.miittech.you.location;
+package com.miittech.you.utils;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;

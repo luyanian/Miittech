@@ -14,12 +14,11 @@ import android.widget.TextView;
 
 import com.clj.fastble.BleManager;
 import com.miittech.you.R;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;

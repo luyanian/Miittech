@@ -7,11 +7,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.miittech.you.R;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.impl.OnListItemClick;
-import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 
 import java.util.ArrayList;

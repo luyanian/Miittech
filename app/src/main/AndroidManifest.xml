@@ -270,7 +270,12 @@
                 <action android:name="com.mittech.you.task.send" />
             </intent-filter>
         </receiver>
-
+        <receiver android:name=".receiver.DownloadReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+                <action android:name="android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED" />
+            </intent-filter>
+        </receiver>
         <service
             android:name="com.miittech.you.service.BleService"
             android:exported="true"

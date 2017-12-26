@@ -9,15 +9,10 @@ import android.widget.TextView;
 import com.bigkoo.pickerview.TimePickerView;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.common.Common;
-import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
-
-import org.w3c.dom.Text;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

@@ -35,11 +35,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.miittech.you.App;
-import com.miittech.you.R;
-import com.miittech.you.common.BingGoPlayUtils;
-import com.miittech.you.common.BleCommon;
-import com.miittech.you.common.Common;
-import com.miittech.you.common.SoundPlayUtils;
+import com.miittech.you.global.BleUUIDS;
+import com.miittech.you.utils.BingGoPlayUtils;
+import com.miittech.you.utils.Common;
+import com.miittech.you.utils.SoundPlayUtils;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
@@ -48,7 +47,6 @@ import com.miittech.you.global.Params;
 import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.ryon.constant.TimeConstants;
@@ -57,7 +55,6 @@ import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
-import com.ryon.mutils.ToastUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -72,10 +69,10 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import static com.miittech.you.common.BleCommon.characteristicUUID;
-import static com.miittech.you.common.BleCommon.serviceUUID;
-import static com.miittech.you.common.BleCommon.userCharacteristicLogUUID;
-import static com.miittech.you.common.BleCommon.userServiceUUID;
+import static com.miittech.you.global.BleUUIDS.characteristicUUID;
+import static com.miittech.you.global.BleUUIDS.serviceUUID;
+import static com.miittech.you.global.BleUUIDS.userCharacteristicLogUUID;
+import static com.miittech.you.global.BleUUIDS.userServiceUUID;
 
 public  class BleService extends Service {
     public LocationClient mLocationClient = null;
@@ -286,7 +283,7 @@ public  class BleService extends Service {
 //                        }else{
 //                            data[0] = 0x02;
 //                        }
-//                        BleManager.getInstance().write(bleDevice,BleCommon.linkLossUUID,BleCommon.characteristicUUID,data,new BleWriteCallback(){
+//                        BleManager.getInstance().write(bleDevice,BleUUIDS.linkLossUUID,BleUUIDS.characteristicUUID,data,new BleWriteCallback(){
 //
 //                            @Override
 //                            public void onWriteSuccess(BleDevice bleDevice) {
@@ -660,7 +657,7 @@ public  class BleService extends Service {
     }
 
     public synchronized void notfyAlert(final BleDevice bleDevice) {
-        BleManager.getInstance().notify(bleDevice, BleCommon.userServiceUUID, BleCommon.userCharactButtonStateUUID, new BleNotifyCallback() {
+        BleManager.getInstance().notify(bleDevice, BleUUIDS.userServiceUUID, BleUUIDS.userCharactButtonStateUUID, new BleNotifyCallback() {
             @Override
             public void onNotifySuccess() {
                 LogUtils.d("bleService", "设置监测贴片按钮事件成功");
@@ -701,7 +698,7 @@ public  class BleService extends Service {
 
     }
     public synchronized void notifyBattery(final BleDevice bleDevice){
-        BleManager.getInstance().notify(bleDevice, BleCommon.batServiceUUID, BleCommon.batCharacteristicUUID, new BleNotifyCallback() {
+        BleManager.getInstance().notify(bleDevice, BleUUIDS.batServiceUUID, BleUUIDS.batCharacteristicUUID, new BleNotifyCallback() {
             @Override
             public void onNotifySuccess() {
                 LogUtils.d("bleService", "设置监测电量广播成功");
@@ -749,7 +746,7 @@ public  class BleService extends Service {
             return;
         }
         byte[] bind = Common.formatBleMsg(Params.BLEMODE.MODE_BIND,Common.getUserId());
-        BleManager.getInstance().write(bleDevice, BleCommon.userServiceUUID, BleCommon.userCharacteristicLogUUID, bind, new BleWriteCallback() {
+        BleManager.getInstance().write(bleDevice, BleUUIDS.userServiceUUID, BleUUIDS.userCharacteristicLogUUID, bind, new BleWriteCallback() {
             @Override
             public void onWriteSuccess(BleDevice device) {
                 LogUtils.d("bleService","贴片设置绑定模式成功----->"+device.getMac());

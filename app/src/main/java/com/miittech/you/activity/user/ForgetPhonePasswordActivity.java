@@ -9,8 +9,8 @@ import android.widget.TextView;
 
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
-import com.miittech.you.common.Common;
-import com.miittech.you.common.OnGetVerCodeComplete;
+import com.miittech.you.utils.Common;
+import com.miittech.you.impl.OnGetVerCodeComplete;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.utils.CountDownTimerUtils;
 import com.miittech.you.weight.Titlebar;

@@ -1,9 +1,8 @@
-package com.miittech.you.common;
+package com.miittech.you.utils;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Vector;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
@@ -65,7 +63,6 @@ public class SoundPlayUtils {
         stopAll();
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
         soundIds.add(playId);
-
         if(isShake) {
             long[] patter = {800, 800};
             vibrator.vibrate(patter, 0);

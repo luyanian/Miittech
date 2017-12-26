@@ -15,7 +15,7 @@ import com.google.gson.Gson;
 import com.miittech.you.R;
 import com.miittech.you.activity.event.EventTraceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
@@ -32,7 +32,6 @@ import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
-import com.scwang.smartrefresh.layout.listener.OnLoadmoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import java.util.LinkedHashMap;

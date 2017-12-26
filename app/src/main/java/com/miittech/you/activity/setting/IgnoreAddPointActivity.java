@@ -29,7 +29,7 @@ import com.baidu.mapapi.search.poi.PoiSearch;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.PoiResultAdapter;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;

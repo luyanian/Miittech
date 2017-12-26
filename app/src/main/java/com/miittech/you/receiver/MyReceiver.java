@@ -5,15 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
-import com.miittech.you.R;
-import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.user.LoginRegisteActivity;
-import com.miittech.you.activity.user.UserCenterActivity;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
 import com.miittech.you.entity.JpushMsg;
@@ -31,7 +27,6 @@ import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
-import com.ryon.mutils.ToastUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;

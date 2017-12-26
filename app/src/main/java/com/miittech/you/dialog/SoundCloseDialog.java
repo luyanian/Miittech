@@ -10,8 +10,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.miittech.you.R;
-import com.miittech.you.common.SoundPlayUtils;
-import com.miittech.you.impl.OnMsgTipOptions;
+import com.miittech.you.utils.SoundPlayUtils;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;

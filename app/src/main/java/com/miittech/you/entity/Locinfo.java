@@ -1,7 +1,5 @@
 package com.miittech.you.entity;
 
-import com.miittech.you.common.Common;
-
 import java.io.Serializable;
 
 /**

@@ -6,41 +6,21 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.google.gson.Gson;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.user.MyFriendsActivity;
 import com.miittech.you.activity.user.UserCenterActivity;
-import com.miittech.you.common.Common;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.TitleBarOptions;
-import com.miittech.you.net.ApiServiceManager;
-import com.miittech.you.global.HttpUrl;
-import com.miittech.you.global.Params;
-import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.UserInfoResponse;
 import com.miittech.you.weight.CircleImageView;
 import com.miittech.you.weight.Titlebar;
-import com.ryon.mutils.EncryptUtils;
-import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
-import com.ryon.mutils.ToastUtils;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 
 /**
  * Created by Administrator on 2017/9/14.

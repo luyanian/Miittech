@@ -22,7 +22,7 @@ import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.setting.SettingActivity;
 import com.miittech.you.adapter.TraceDalySelectAdapter;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;

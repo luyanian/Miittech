@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.miittech.you.R;
+import com.miittech.you.utils.Common;
 import com.miittech.you.weight.Titlebar;
 
 public class BaseActivity extends AppCompatActivity{

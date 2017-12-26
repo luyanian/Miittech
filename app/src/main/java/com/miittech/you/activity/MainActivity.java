@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceAddActivity;
 import com.miittech.you.activity.setting.SettingActivity;
-import com.miittech.you.common.Common;
+import com.miittech.you.utils.Common;
 import com.miittech.you.fragment.EventsFragment;
 import com.miittech.you.fragment.ListFragment;
 import com.miittech.you.fragment.MapFragment;
@@ -87,6 +87,7 @@ public class MainActivity extends BaseActivity {
                 onViewClicked(tabList);
             }
         });
+//        Common.getAppVersion(this,false);
     }
 
     @OnClick({R.id.tab_list, R.id.tab_map, R.id.tab_events})
