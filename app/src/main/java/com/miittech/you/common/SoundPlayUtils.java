@@ -19,12 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
 public class SoundPlayUtils {
     // SoundPool对象
     public static SoundPool mSoundPlayer = new SoundPool(10,AudioManager.STREAM_SYSTEM, 5);
+    private static Vibrator vibrator = (Vibrator)App.getInstance().getSystemService(App.getInstance().VIBRATOR_SERVICE);
     public static SoundPlayUtils soundPlayUtils;
     static Timer timer = new Timer();
     // 上下文
@@ -63,7 +65,12 @@ public class SoundPlayUtils {
         stopAll();
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
         soundIds.add(playId);
-        localNotify(App.getInstance().getApplicationContext(),playId,isShake);
+
+        if(isShake) {
+            long[] patter = {800, 800};
+            vibrator.vibrate(patter, 0);
+        }
+        localNotify(App.getInstance().getApplicationContext(), playId,isShake);
         timer.schedule(new MyTimerTask(), duration);
     }
 
@@ -71,12 +78,18 @@ public class SoundPlayUtils {
         for (int soundId : soundIds){
             mSoundPlayer.stop(soundId);
         }
+        if(vibrator!=null){
+            vibrator.cancel();
+        }
         soundIds.clear();
     }
     public static void stop(int soundId) {
         mSoundPlayer.stop(soundId);
         if(soundIds.contains(soundId)) {
             soundIds.remove(soundId);
+        }
+        if(vibrator!=null){
+            vibrator.cancel();
         }
     }
 
@@ -97,12 +110,10 @@ public class SoundPlayUtils {
                 .setPriority(Notification.PRIORITY_DEFAULT) //设置该通知优先级
                 .setOngoing(false)//ture，设置他为一个正在进行的通知。他们通常是用来表示一个后台任务,用户积极参与(如播放音乐)或以某种方式正在等待,因此占用设备(如一个文件下载,同步操作,主动网络连接
                 .setSmallIcon(R.mipmap.ic_launcher);//设置通知小ICON
-        if(isShake){
-            long[] vibrate = {100, 300, 800, 300, 800, 300, 800};
-            mBuilder.setVibrate(vibrate);
-        }else{
-            long[] unVibrate = {};
-            mBuilder.setVibrate(unVibrate);
+        if (isShake) {
+            mBuilder.setVibrate(new long[]{});
+        } else{
+            mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
         }
 
         Intent intent = new Intent(IntentExtras.ACTION.ACTION_SOUND_PLAY_ONCLICK);
