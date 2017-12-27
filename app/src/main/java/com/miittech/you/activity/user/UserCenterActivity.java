@@ -326,20 +326,42 @@ public class UserCenterActivity extends BaseActivity {
                 break;
             case R.id.btn_user_wechat:
                 if(userinfoBean.getIsBindWx()==0){
-                    Platform wechat = ShareSDK.getPlatform(Wechat.NAME);
-                    wechat.SSOSetting(false);  //设置false表示使用SSO授权方式
-                    wechat.setPlatformActionListener(platformActionListener); // 设置分享事件回调
-                    wechat.authorize();//单独授权
-                    wechat.showUser(null);//授权并获取用户信息
+                    DialogUtils.getInstance().createMsgTipDialog(this)
+                            .setTitle("绑定微信")
+                            .setMsg("有物想要打开微信")
+                            .setLeftBtnText("取消")
+                            .setRightBtnText("打开")
+                            .setOnMsgTipOptions(new OnMsgTipOptions(){
+                                @Override
+                                public void onSure() {
+                                    super.onSure();
+                                    Platform wechat = ShareSDK.getPlatform(Wechat.NAME);
+                                    wechat.SSOSetting(false);  //设置false表示使用SSO授权方式
+                                    wechat.setPlatformActionListener(platformActionListener); // 设置分享事件回调
+                                    wechat.authorize();//单独授权
+                                    wechat.showUser(null);//授权并获取用户信息
+                                }
+                            }).show();
                 }
                 break;
             case R.id.btn_user_qq:
                 if (userinfoBean.getIsBindQQ() == 0) {
-                    Platform qq = ShareSDK.getPlatform(QQ.NAME);
-                    qq.SSOSetting(false);  //设置false表示使用SSO授权方式
-                    qq.setPlatformActionListener(platformActionListener); // 设置分享事件回调
-                    qq.authorize();//单独授权
-                    qq.showUser(null);//授权并获取用户信息
+                    DialogUtils.getInstance().createMsgTipDialog(this)
+                            .setTitle("绑定QQ")
+                            .setMsg("有物想要打开QQ")
+                            .setLeftBtnText("取消")
+                            .setRightBtnText("打开")
+                            .setOnMsgTipOptions(new OnMsgTipOptions(){
+                                @Override
+                                public void onSure() {
+                                    super.onSure();
+                                    Platform qq = ShareSDK.getPlatform(QQ.NAME);
+                                    qq.SSOSetting(false);  //设置false表示使用SSO授权方式
+                                    qq.setPlatformActionListener(platformActionListener); // 设置分享事件回调
+                                    qq.authorize();//单独授权
+                                    qq.showUser(null);//授权并获取用户信息
+                                }
+                            }).show();
                 }
                 break;
             case R.id.btn_user_location:
