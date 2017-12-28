@@ -100,6 +100,11 @@ public class DeviceSelectRingActivity extends BaseActivity{
         initViews();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SoundPlayUtils.stopAll();
+    }
 
     private void initViews() {
         intent = getIntent();

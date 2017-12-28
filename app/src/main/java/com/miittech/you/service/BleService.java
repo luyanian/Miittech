@@ -278,23 +278,23 @@ public  class BleService extends Service {
                     DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
                     if (alertinfoBean != null) {
                         byte[] data = new byte[1];
-//                        if (!Common.isBell()) {
-//                           data[0] = 0x00;
-//                        }else{
-//                            data[0] = 0x02;
-//                        }
-//                        BleManager.getInstance().write(bleDevice,BleUUIDS.linkLossUUID,BleUUIDS.characteristicUUID,data,new BleWriteCallback(){
-//
-//                            @Override
-//                            public void onWriteSuccess(BleDevice bleDevice) {
-//
-//                            }
-//
-//                            @Override
-//                            public void onWriteFailure(BleDevice bleDevice, BleException exception) {
-//
-//                            }
-//                        });
+                        if (!Common.isBell()) {
+                           data[0] = 0x00;
+                        }else{
+                            data[0] = 0x02;
+                        }
+                        BleManager.getInstance().write(bleDevice,BleUUIDS.linkLossUUID,BleUUIDS.characteristicUUID,data,new BleWriteCallback(){
+
+                            @Override
+                            public void onWriteSuccess(BleDevice bleDevice) {
+
+                            }
+
+                            @Override
+                            public void onWriteFailure(BleDevice bleDevice, BleException exception) {
+
+                            }
+                        });
                     }
                 }
             }else{
