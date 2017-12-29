@@ -87,7 +87,7 @@ public class MainActivity extends BaseActivity {
                 onViewClicked(tabList);
             }
         });
-//        Common.getAppVersion(this,false);
+        Common.getAppVersion(this,false);
     }
 
     @OnClick({R.id.tab_list, R.id.tab_map, R.id.tab_events})

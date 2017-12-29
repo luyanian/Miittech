@@ -84,6 +84,7 @@ public  class BleService extends Service {
     private BDLocation lastLocation;
     private Map<String,BleDevice> mDeviceMap = new HashMap<>();
     private Map<String,BleDevice> mBindMap = new HashMap<>();
+    private Map<String,Boolean> mAlertingMap = new HashMap<>();
     private List<String> mConnectMac=new ArrayList<>();
     private boolean isBind = false;
     private Map<String,Boolean> isNeedAlerts = new HashMap<>();
@@ -275,6 +276,9 @@ public  class BleService extends Service {
 
                 DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(bleDevice.getMac());
                 if(deviceInfo!=null) {
+                    if(!mAlertingMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
+                        return;
+                    }
                     DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
                     if (alertinfoBean != null) {
                         byte[] data = new byte[1];
@@ -546,6 +550,7 @@ public  class BleService extends Service {
         BleManager.getInstance().write(bleDevice, serviceUUID, characteristicUUID, options, new BleWriteCallback() {
             @Override
             public void onWriteSuccess(BleDevice device) {
+                mAlertingMap.put(device.getMac(),true);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 LogUtils.d("bleService","贴片开始报警----->"+device.getMac());
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_ALERT_STARTED);
@@ -569,6 +574,7 @@ public  class BleService extends Service {
         BleManager.getInstance().write(bleDevice, serviceUUID, characteristicUUID, options, new BleWriteCallback() {
             @Override
             public void onWriteSuccess(BleDevice device) {
+                mAlertingMap.put(device.getMac(),false);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 LogUtils.d("bleService","贴片结束报警----->"+device.getMac());
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_ALERT_STOPED);

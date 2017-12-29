@@ -326,6 +326,9 @@ public class Common {
                                         }).show();
                                 return;
                             }
+                            if(curVersion.compareTo(response.getVersion().getLast())>=0&&isAuto) {//不强制升级
+                                ToastUtils.showShort("当前已是最新版本");
+                            }
                         } else {
                             response.onError(context);
                         }
