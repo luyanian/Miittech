@@ -85,6 +85,7 @@ public  class BleService extends Service {
     private Map<String,BleDevice> mDeviceMap = new HashMap<>();
     private Map<String,BleDevice> mBindMap = new HashMap<>();
     private Map<String,Boolean> mAlertingMap = new HashMap<>();
+    private Map<String,Byte> mLinkLoseMap = new HashMap<>();
     private List<String> mConnectMac=new ArrayList<>();
     private boolean isBind = false;
     private Map<String,Boolean> isNeedAlerts = new HashMap<>();
@@ -147,6 +148,7 @@ public  class BleService extends Service {
         mapRssi.clear();
         mapBattery.clear();
         mBindMap.clear();
+        mLinkLoseMap.clear();
         if(mLocationClient!=null){
             mLocationClient.stop();
         }
@@ -281,24 +283,26 @@ public  class BleService extends Service {
                     }
                     DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
                     if (alertinfoBean != null) {
-                        byte[] data = new byte[1];
+                        final byte[] data = new byte[1];
                         if (!Common.isBell()) {
                            data[0] = 0x00;
                         }else{
                             data[0] = 0x02;
                         }
-                        BleManager.getInstance().write(bleDevice,BleUUIDS.linkLossUUID,BleUUIDS.characteristicUUID,data,new BleWriteCallback(){
+                        if(!mLinkLoseMap.containsKey(Common.formatDevId2Mac(deviceInfo.getDevidX()))||data[0]!=mLinkLoseMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
+                            BleManager.getInstance().write(bleDevice, BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data, new BleWriteCallback() {
 
-                            @Override
-                            public void onWriteSuccess(BleDevice bleDevice) {
+                                @Override
+                                public void onWriteSuccess(BleDevice bleDevice) {
+                                    mLinkLoseMap.put(bleDevice.getMac(), data[0]);
+                                }
 
-                            }
+                                @Override
+                                public void onWriteFailure(BleDevice bleDevice, BleException exception) {
 
-                            @Override
-                            public void onWriteFailure(BleDevice bleDevice, BleException exception) {
-
-                            }
-                        });
+                                }
+                            });
+                        }
                     }
                 }
             }else{
@@ -481,6 +485,9 @@ public  class BleService extends Service {
                     if(mConnectMac.contains(device.getMac())){
                         mConnectMac.remove(device.getMac());
                     }
+                    if(mLinkLoseMap.containsKey(device.getMac())){
+                        mLinkLoseMap.remove(device.getMac());
+                    }
                     if(!isActiveDisConnected) {
                         Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(device.getMac()), Params.EVENT_TYPE.DEVICE_LOSE, null);
                         DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(device.getMac());
@@ -518,6 +525,9 @@ public  class BleService extends Service {
                 }
                 if(mConnectMac.contains(device.getMac())){
                     mConnectMac.remove(device.getMac());
+                }
+                if(mLinkLoseMap.containsKey(device.getMac())){
+                    mLinkLoseMap.remove(device.getMac());
                 }
                 mBindMap.clear();
                 isBind=false;
