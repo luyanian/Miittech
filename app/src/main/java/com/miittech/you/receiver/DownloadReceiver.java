@@ -6,9 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.LogUtils;
+
+import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
 
 public class DownloadReceiver extends BroadcastReceiver {
     @Override
@@ -34,11 +37,12 @@ public class DownloadReceiver extends BroadcastReceiver {
     private static void installApk(Context context, long downloadApkId) {
         DownloadManager dManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         Intent install = new Intent(Intent.ACTION_VIEW);
+
         Uri downloadFileUri = dManager.getUriForDownloadedFile(downloadApkId);
         if (downloadFileUri != null) {
             LogUtils.d("DownloadManager", downloadFileUri.toString());
             install.setDataAndType(downloadFileUri, "application/vnd.android.package-archive");
-            install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            install.addFlags(FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(install);
         } else {
             LogUtils.e("DownloadManager", "download error");

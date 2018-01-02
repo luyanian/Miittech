@@ -88,7 +88,7 @@ public  class BleService extends Service {
     private List<String> mConnectMac=new ArrayList<>();
     private boolean isBind = false;
     private Map<String,Boolean> isNeedAlerts = new HashMap<>();
-    private long lastScanningTime=0;
+    private long lastScanningTime=TimeUtils.getNowMills();
 
     @Override  
     public IBinder onBind(Intent intent) {
@@ -141,12 +141,12 @@ public  class BleService extends Service {
         super.onDestroy();
         LogUtils.d("bleService-onDestroy()");
         this.unregisterReceiver(cmdReceiver);
+        BleManager.getInstance().disconnectAllDevice();
         mConnectMac.clear();
         mDeviceMap.clear();
         mapRssi.clear();
         mapBattery.clear();
         mBindMap.clear();
-        BleManager.getInstance().disconnectAllDevice();
         if(mLocationClient!=null){
             mLocationClient.stop();
         }
@@ -276,7 +276,7 @@ public  class BleService extends Service {
 
                 DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(bleDevice.getMac());
                 if(deviceInfo!=null) {
-                    if(!mAlertingMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
+                    if(mAlertingMap.containsKey(Common.formatDevId2Mac(deviceInfo.getDevidX()))&&mAlertingMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
                         return;
                     }
                     DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
@@ -678,7 +678,6 @@ public  class BleService extends Service {
             @Override
             public void onNotifyFailure(BleException exception) {
                 LogUtils.d("bleService", exception.getDescription());
-                notfyAlert(bleDevice);
             }
 
             @Override
@@ -713,7 +712,6 @@ public  class BleService extends Service {
             @Override
             public void onNotifyFailure(BleException exception) {
                 LogUtils.d("bleService", exception.getDescription());
-                notifyBattery(bleDevice);
             }
 
             @Override

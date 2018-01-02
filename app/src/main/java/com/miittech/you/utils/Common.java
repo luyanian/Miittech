@@ -294,7 +294,6 @@ public class Common {
                     @Override
                     public void accept(final AppVersionResponse response) throws Exception {
                         if (response.isSuccessful()) {
-
                             String curVersion = AppUtils.getAppVersionName();
                             if(curVersion.compareTo(response.getVersion().getMin())<0){//强制升级
                                 DialogUtils.getInstance().showUpdateDialog(context,false)

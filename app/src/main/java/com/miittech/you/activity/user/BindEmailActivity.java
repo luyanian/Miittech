@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.utils.ButtonUtils;
 import com.miittech.you.utils.Common;
 import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.net.ApiServiceManager;
@@ -82,6 +83,10 @@ public class BindEmailActivity extends BaseActivity {
 
     @OnClick(R.id.btn_ok)
     public void onViewClicked() {
+        if (ButtonUtils.isFastDoubleClick(R.id.btn_ok)) {
+            ToastUtils.showShort("正在发送验证邮件，请不要重复操作");
+            return;
+        }
         String email = etUserEmail.getText().toString().trim();
         if (!RegexUtils.isEmail(email)) {
             ToastUtils.showShort(getResources().getString(R.string.tip_ver_email_faild));
@@ -113,10 +118,12 @@ public class BindEmailActivity extends BaseActivity {
                             Common.getUserInfo(App.getInstance(), new OnNetRequestCallBack() {
                                 @Override
                                 public void OnRequestComplete() {
+                                    ToastUtils.showShort("验证邮件已发出");
                                     BindEmailActivity.this.finish();
                                 }
                             });
-                            ToastUtils.showShort(getResources().getString(R.string.msg_device_bind_success));
+
+
                         } else {
                             response.onError(BindEmailActivity.this);
                         }
