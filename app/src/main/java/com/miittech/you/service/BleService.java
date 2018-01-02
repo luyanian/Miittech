@@ -374,6 +374,7 @@ public  class BleService extends Service {
         BleManager.getInstance().scan(new BleScanCallback() {
             @Override
             public void onScanStarted(boolean success) {
+                lastScanningTime = TimeUtils.getNowMills();
                 LogUtils.d("bleService","贴片扫描开始----->");
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCAN_START);
@@ -411,7 +412,6 @@ public  class BleService extends Service {
             @Override
             public void onScanFinished(List<BleDevice> scanResultList) {
                 LogUtils.d("bleService","贴片扫描结束----->");
-//                BleManager.getInstance().cancelScan();
             }
         });
     }
