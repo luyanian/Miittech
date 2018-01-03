@@ -108,10 +108,10 @@ public  class BleService extends Service {
         LocationClientOption option = new LocationClientOption();
         option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
         option.setCoorType("bd09ll");
-        option.setScanSpan(60000);
+        option.setScanSpan(5000);
         option.setOpenGps(true);
         option.setIsNeedAddress(true);
-        option.setIgnoreKillProcess(false);
+        option.setIgnoreKillProcess(true);
         option.setWifiCacheTimeOut(5*60*1000);
         mLocationClient.setLocOption(option);
         mLocationClient.start();
