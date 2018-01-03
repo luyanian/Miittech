@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import com.miittech.you.R;
 import com.miittech.you.utils.Common;
@@ -45,7 +46,7 @@ public class MapDeviceUsersListAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        ViewHolder viewHolder = (ViewHolder) holder;
+        final ViewHolder viewHolder = (ViewHolder) holder;
         final Object object = mData.get(position);
         if(object instanceof FriendsResponse.FriendlistBean) {
             FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) object;
@@ -63,11 +64,11 @@ public class MapDeviceUsersListAdapter extends RecyclerView.Adapter {
                     .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(device.getGroupname())))
                     .into(viewHolder.itemIcon);
         }
-        viewHolder.itemIcon.setOnClickListener(new View.OnClickListener() {
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(onListItemClick!=null){
-                    onListItemClick.onItemClick(object);
+                    onListItemClick.onItemClick(viewHolder.itemIcon,object);
                 }
             }
         });
@@ -85,6 +86,8 @@ public class MapDeviceUsersListAdapter extends RecyclerView.Adapter {
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder{
+        @BindView(R.id.item_view)
+        RelativeLayout itemView;
         @BindView(R.id.item_icon)
         ImageView itemIcon;
 

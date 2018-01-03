@@ -142,6 +142,7 @@ public  class BleService extends Service {
         super.onDestroy();
         LogUtils.d("bleService-onDestroy()");
         this.unregisterReceiver(cmdReceiver);
+        BleManager.getInstance().cancelScan();
         BleManager.getInstance().disconnectAllDevice();
         mConnectMac.clear();
         mDeviceMap.clear();
@@ -329,8 +330,11 @@ public  class BleService extends Service {
                         }
                     }else{
                         BleDevice bleDevice = mDeviceMap.get(mac);
-                        if(!BleManager.getInstance().isConnected(bleDevice)){
-                            BleManager.getInstance().disconnect(mDeviceMap.get(mac));
+                        if(bleDevice!=null&&!BleManager.getInstance().isConnected(bleDevice)){
+                            if (mConnectMac.contains(mac)) {
+                                mConnectMac.remove(mac);
+                            }
+                            BleManager.getInstance().disconnect(bleDevice);
                         }
                     }
                     if(TimeUtils.getTimeSpan(lastScanningTime,TimeUtils.getNowMills(),TimeConstants.MIN)>5){
@@ -363,10 +367,7 @@ public  class BleService extends Service {
 
 
     public synchronized  void scanDevice(){
-        if(TextUtils.isEmpty(Common.getTocken())){
-            return;
-        }
-        if(BleManager.getInstance().getScanSate()==BleScanState.STATE_SCANNING){
+        if(TextUtils.isEmpty(Common.getTocken())||BleManager.getInstance().getScanSate()==BleScanState.STATE_SCANNING){
             return;
         }
         BleScanRuleConfig scanRuleConfig = new BleScanRuleConfig.Builder()
@@ -615,7 +616,7 @@ public  class BleService extends Service {
                 if(!mDeviceMap.containsKey(device.getMac())) {
                     return;
                 }
-                if(isNeedAlerts.get(device.getMac())) {
+                if(isNeedAlerts.containsKey(device.getMac())&&isNeedAlerts.get(device.getMac())) {
                     Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(device.getMac()), Params.EVENT_TYPE.DEVICE_REDISCOVER, null);
                     final DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(device.getMac());
                     if (deviceInfo != null) {
