@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.miittech.you.R;
@@ -19,6 +20,7 @@ import com.miittech.you.fragment.ListFragment;
 import com.miittech.you.fragment.MapFragment;
 import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
+import com.miittech.you.utils.MapDeviceUsersPopWindowOptions;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.ToastUtils;
@@ -159,6 +161,10 @@ public class MainActivity extends BaseActivity {
      * @param trans
      */
     private void setFragment(int vID, FragmentTransaction trans) {
+        PopupWindow popupWindow = MapDeviceUsersPopWindowOptions.getInstance().getPopupWindow();
+        if(popupWindow!=null&&popupWindow.isShowing()){
+            popupWindow.dismiss();
+        }
         switch (vID) {
             case R.id.tab_list:
                 if (fragmentList == null) {

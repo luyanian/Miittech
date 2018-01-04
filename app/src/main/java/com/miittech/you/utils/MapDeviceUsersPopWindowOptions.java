@@ -27,6 +27,7 @@ import java.util.List;
 
 public class MapDeviceUsersPopWindowOptions<T>{
     static MapDeviceUsersPopWindowOptions mapDeviceUsersListOptions;
+    PopupWindow window;
     RecyclerView recyclerview;
     private MapDeviceUsersListAdapter mapAdapter;
 
@@ -39,16 +40,15 @@ public class MapDeviceUsersPopWindowOptions<T>{
         return mapDeviceUsersListOptions;
     }
 
-    public PopupWindow initPopWindow(@NonNull Context context) {
+    public void initWindow(@NonNull Context context) {
         View contentView= View.inflate(context,R.layout.dialog_map_device_users_list, null);
         recyclerview = contentView.findViewById(R.id.recyclerview);
-        PopupWindow window=new PopupWindow(contentView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        window=new PopupWindow(contentView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         window.setTouchable(true); // 设置popupwindow可点击
         window.setOutsideTouchable(false); // 设置popupwindow外部可点击
         window.setFocusable(false); // 获取焦点
         init(context);
-        return window;
     }
 
     private void init(Context context) {
@@ -60,6 +60,9 @@ public class MapDeviceUsersPopWindowOptions<T>{
         recyclerview.setItemViewCacheSize(20);
         mapAdapter = new MapDeviceUsersListAdapter(context);
         recyclerview.setAdapter(mapAdapter);
+    }
+    public PopupWindow getPopupWindow(){
+        return window;
     }
 
     public void initData(String type,List<Object> list,OnListItemClick onListItemClick){

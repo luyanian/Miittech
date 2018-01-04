@@ -96,7 +96,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         super.onViewCreated(view, savedInstanceState);
         initMapView();
         mapDeviceUsersListOptions = MapDeviceUsersPopWindowOptions.getInstance();
-        popupWindow = mapDeviceUsersListOptions.initPopWindow(getActivity());
+        mapDeviceUsersListOptions.initWindow(getActivity());
+        popupWindow = mapDeviceUsersListOptions.getPopupWindow();
     }
 
     @Override
