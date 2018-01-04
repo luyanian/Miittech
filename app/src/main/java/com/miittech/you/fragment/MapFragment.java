@@ -23,6 +23,7 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
@@ -311,17 +312,32 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 
     private void initMapDevicePoint(final DeviceInfo device,BitmapDescriptor bitmapDescriptor) {
         final DeviceInfo.LocinfoBean locInfo = device.getLocinfo();
+        final Locinfo appLocInfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
         currentObject = device;
-        if (locInfo == null) {
+        LatLng llCircle = null;
+        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(device.getDevidX()))){
+            if (appLocInfo != null) {
+                llCircle = new LatLng(appLocInfo.getLat(), appLocInfo.getLng());
+            }else{
+                if (locInfo != null) {
+                    llCircle = new LatLng(locInfo.getLat(), locInfo.getLng());
+                }
+            }
+        }else{
+            if (locInfo != null) {
+                llCircle = new LatLng(locInfo.getLat(), locInfo.getLng());
+            }
+        }
+        if(llCircle==null){
             return;
         }
         mBaiduMap.clear();
-        final LatLng llCircle = new LatLng(locInfo.getLat(), locInfo.getLng());
         MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(bitmapDescriptor).zIndex(5);
         Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
         MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
         mBaiduMap.setMapStatus(u);
 
+        final LatLng finalLlCircle = llCircle;
         mBaiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
@@ -338,7 +354,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                         mBaiduMap.hideInfoWindow();
                     }
                 };
-                InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -110, listener);
+                InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), finalLlCircle, -110, listener);
                 mBaiduMap.showInfoWindow(mInfoWindow);
                 return false;
             }
@@ -394,11 +410,6 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         if(!NetworkUtils.isConnected()){
             return;
         }
-//        final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance().createDevicesUsersDialog(getActivity());
-//        if (mapDialog != null && mapDialog.isShowing()) {
-//            mapDialog.dismiss();
-//            return;
-//        }
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
