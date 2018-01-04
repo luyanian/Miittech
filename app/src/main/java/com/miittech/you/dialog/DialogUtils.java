@@ -1,6 +1,11 @@
 package com.miittech.you.dialog;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.PopupWindow;
 
 /**
  * Created by Administrator on 2017/9/21.
@@ -62,17 +67,6 @@ public class DialogUtils {
         }
         selectDialog = new SelectTimeDialog(context);
         return selectDialog;
-    }
-
-    static MapDeviceUsersListDialog mapDialog;
-    public synchronized MapDeviceUsersListDialog createDevicesUsersDialog(Context context){
-        if(mapDialog!=null){
-            if(mapDialog.isShowing()){
-                mapDialog.dismiss();
-            }
-        }
-        mapDialog = new MapDeviceUsersListDialog(context);
-        return mapDialog;
     }
     static SoundCloseDialog soundCloseDialog;
     public synchronized SoundCloseDialog showSoundCloseDialog(Context context) {

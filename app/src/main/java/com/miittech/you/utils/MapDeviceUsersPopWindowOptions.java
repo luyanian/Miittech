@@ -1,16 +1,18 @@
-package com.miittech.you.dialog;
-import android.app.Dialog;
+package com.miittech.you.utils;
+
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.view.Gravity;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.PopupWindow;
+
 import com.miittech.you.R;
 import com.miittech.you.adapter.MapDeviceUsersListAdapter;
-import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.response.FriendsResponse;
@@ -18,38 +20,35 @@ import com.miittech.you.net.response.FriendsResponse;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * Created by Administrator on 2017/11/8.
  */
 
-public class MapDeviceUsersListDialog<T> extends Dialog {
-
-    @BindView(R.id.recyclerview)
+public class MapDeviceUsersPopWindowOptions<T>{
+    static MapDeviceUsersPopWindowOptions mapDeviceUsersListOptions;
     RecyclerView recyclerview;
-    private Context context;
     private MapDeviceUsersListAdapter mapAdapter;
 
-    public MapDeviceUsersListDialog(@NonNull Context context) {
-        super(context, R.style.DialogTransStyle);
-        setContentView(R.layout.dialog_map_device_users_list);
-        ButterKnife.bind(this);
-        this.context = context;
-        this.setCancelable(true);
-        this.setCanceledOnTouchOutside(true);
-        Window window = this.getWindow();
-        window.getDecorView().setPadding(20, 20, 20, 20);
-        WindowManager.LayoutParams attr = window.getAttributes();
-        if (attr != null) {
-            attr.height = WindowManager.LayoutParams.WRAP_CONTENT;
-            attr.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            attr.gravity = Gravity.BOTTOM|Gravity.LEFT;
-            attr.y=400;
-            window.setAttributes(attr);
+    public static MapDeviceUsersPopWindowOptions getInstance(){
+        if(mapDeviceUsersListOptions==null){
+            synchronized (MapDeviceUsersPopWindowOptions.class){
+                mapDeviceUsersListOptions = new MapDeviceUsersPopWindowOptions();
+            }
         }
+        return mapDeviceUsersListOptions;
+    }
+
+    public PopupWindow initPopWindow(@NonNull Context context) {
+        View contentView= View.inflate(context,R.layout.dialog_map_device_users_list, null);
+        recyclerview = contentView.findViewById(R.id.recyclerview);
+        PopupWindow window=new PopupWindow(contentView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        window.setTouchable(true); // 设置popupwindow可点击
+        window.setOutsideTouchable(false); // 设置popupwindow外部可点击
+        window.setFocusable(false); // 获取焦点
         init(context);
+        return window;
     }
 
     private void init(Context context) {
@@ -58,7 +57,8 @@ public class MapDeviceUsersListDialog<T> extends Dialog {
         recyclerview.setLayoutManager(mLayoutManager);
         //如果可以确定每个item的高度是固定的，设置这个选项可以提高性能
         recyclerview.setHasFixedSize(true);
-        mapAdapter = new MapDeviceUsersListAdapter(this.context);
+        recyclerview.setItemViewCacheSize(20);
+        mapAdapter = new MapDeviceUsersListAdapter(context);
         recyclerview.setAdapter(mapAdapter);
     }
 

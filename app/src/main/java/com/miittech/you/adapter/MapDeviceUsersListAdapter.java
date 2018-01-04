@@ -1,12 +1,16 @@
 package com.miittech.you.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.miittech.you.R;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
@@ -68,7 +72,8 @@ public class MapDeviceUsersListAdapter extends RecyclerView.Adapter {
             @Override
             public void onClick(View v) {
                 if(onListItemClick!=null){
-                    onListItemClick.onItemClick(viewHolder.itemIcon,object);
+                    final BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromBitmap(loadBitmapFromView(viewHolder.itemIcon));
+                    onListItemClick.onItemClick(mCurrentMarker,object);
                 }
             }
         });
@@ -86,14 +91,26 @@ public class MapDeviceUsersListAdapter extends RecyclerView.Adapter {
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder{
-        @BindView(R.id.item_view)
-        RelativeLayout itemView;
+
         @BindView(R.id.item_icon)
         ImageView itemIcon;
+//        RoundedImageView itemIcon;
 
         ViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
         }
     }
+    private Bitmap loadBitmapFromView(View v) {
+        int w=v.getWidth();
+        int h=v.getHeight();
+        Bitmap bmp=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);
+        Canvas c=new Canvas(bmp);
+//        c.drawColor(Color.WHITE);
+        v.layout(0,0,w,h);
+        v.draw(c);
+        return bmp;
+
+    }
 }
+

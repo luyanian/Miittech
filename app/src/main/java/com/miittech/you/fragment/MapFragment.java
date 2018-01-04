@@ -1,18 +1,16 @@
 package com.miittech.you.fragment;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
@@ -25,20 +23,15 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.model.LatLng;
-import com.bumptech.glide.load.resource.bitmap.CircleCrop;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.activity.event.FriendTraceDetailActivity;
+import com.miittech.you.utils.MapDeviceUsersPopWindowOptions;
 import com.miittech.you.utils.Common;
-import com.miittech.you.dialog.DialogUtils;
-import com.miittech.you.dialog.MapDeviceUsersListDialog;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
-import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
@@ -60,7 +53,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -85,6 +77,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     ImageView imgUsers;
     private BaiduMap mBaiduMap;
     private Object currentObject;
+    private MapDeviceUsersPopWindowOptions mapDeviceUsersListOptions;
+    private PopupWindow popupWindow;
 //    private float radius = 200f;
 
     @Nullable
@@ -100,6 +94,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initMapView();
+        mapDeviceUsersListOptions = MapDeviceUsersPopWindowOptions.getInstance();
+        popupWindow = mapDeviceUsersListOptions.initPopWindow(getActivity());
     }
 
     @Override
@@ -144,6 +140,10 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 
     @OnClick(R.id.img_device)
     public void onClickDevice() {
+        if(popupWindow!=null&&popupWindow.isShowing()){
+            popupWindow.dismiss();
+            return;
+        }
         imgUsers.setImageResource(R.drawable.ic_users);
         imgDevice.setImageResource(R.drawable.ic_devece_hr);
         getDeviceList();
@@ -151,6 +151,10 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 
     @OnClick(R.id.img_users)
     public void onClickFriends() {
+        if(popupWindow!=null&&popupWindow.isShowing()){
+            popupWindow.dismiss();
+            return;
+        }
         imgDevice.setImageResource(R.drawable.ic_devece);
         imgUsers.setImageResource(R.drawable.ic_users_hr);
         getFrentList();
@@ -158,11 +162,6 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 
     private void getFrentList() {
         if(!NetworkUtils.isConnected()){
-            return;
-        }
-        final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance().createDevicesUsersDialog(getActivity());
-        if(mapDialog!=null&&mapDialog.isShowing()){
-            mapDialog.dismiss();
             return;
         }
         Map param = new HashMap();
@@ -184,19 +183,21 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                     public void accept(FriendsResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             if (response.getFriendlist() != null) {
-                                mapDialog.initData("friend", response.getFriendlist(), new OnListItemClick() {
+                                mapDeviceUsersListOptions.initData("friend", response.getFriendlist(), new OnListItemClick() {
                                     @Override
-                                    public void onItemClick(View view,Object o) {
-                                        super.onItemClick(view,o);
+                                    public void onItemClick(BitmapDescriptor bitmapDescriptor,Object o) {
+                                        super.onItemClick(bitmapDescriptor,o);
                                         FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) o;
                                         if (!Common.getUserId().equals(friend.getFriendid())) {
-                                            getFriendLocation(friend,view);
+                                            getFriendLocation(friend,bitmapDescriptor);
                                         } else {
-                                            initMapFriendPoint(friend,view);
+                                            initMapFriendPoint(friend,bitmapDescriptor);
                                         }
                                     }
                                 });
-                                mapDialog.show();
+                                if(popupWindow!=null) {
+                                    popupWindow.showAsDropDown(imgDevice, 0, -(imgDevice.getHeight() * 2));
+                                }
                             }
                         } else {
                             response.onError(getActivity());
@@ -222,13 +223,6 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         mBaiduMap.setOnMyLocationClickListener(this);
         final Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
         if (locinfo != null) {
-//            MyLocationData locData = new MyLocationData.Builder()
-//                    .accuracy(30)
-//                    .direction(0).latitude(locinfo.getLat())
-//                    .longitude(locinfo.getLng()).build();
-//
-//            // 设置定位数据
-//            mBaiduMap.setMyLocationData(locData);
             LatLng ll = new LatLng(locinfo.getLat(), locinfo.getLng());
             MapStatus.Builder builder = new MapStatus.Builder();
             builder.target(ll).zoom(18.0f);
@@ -237,7 +231,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         }
     }
 
-    private void initMapView(final FriendsResponse.FriendlistBean friend, List<FriendLocInfoResponse.FriendlistBean> friendInfos,View view) {
+    private void initMapView(final FriendsResponse.FriendlistBean friend, List<FriendLocInfoResponse.FriendlistBean> friendInfos,BitmapDescriptor bitmapDescriptor) {
         boolean isContain = false;
         if (friendInfos != null && friendInfos.size() > 0) {
             for (final FriendLocInfoResponse.FriendlistBean friendInfo : friendInfos) {
@@ -245,9 +239,8 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                     isContain = true;
                     currentObject = friendInfo;
                     mBaiduMap.clear();
-                    BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromView(view);
                     final LatLng llCircle = new LatLng(friendInfo.getLocinfo().getLat(), friendInfo.getLocinfo().getLng());
-                    MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
+                    MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(bitmapDescriptor).zIndex(5);
                     Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
                     MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
                     mBaiduMap.setMapStatus(u);
@@ -270,7 +263,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                                     }
                                 }
                             };
-                            InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -47, listener);
+                            InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -110, listener);
                             mBaiduMap.showInfoWindow(mInfoWindow);
                             return false;
                         }
@@ -285,14 +278,13 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         }
     }
 
-    private void initMapFriendPoint(final FriendsResponse.FriendlistBean friend,View view) {
+    private void initMapFriendPoint(final FriendsResponse.FriendlistBean friend,BitmapDescriptor bitmapDescriptor) {
         final Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
         if (locinfo == null) {
             return;
         }
-        BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromView(view);
         final LatLng llCircle = new LatLng(locinfo.getLat(), locinfo.getLng());
-        MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
+        MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(bitmapDescriptor).zIndex(5);
         Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
         MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
         mBaiduMap.setMapStatus(u);
@@ -310,23 +302,22 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 
                     }
                 };
-                InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -47, listener);
+                InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -110, listener);
                 mBaiduMap.showInfoWindow(mInfoWindow);
                 return false;
             }
         });
     }
 
-    private void initMapDevicePoint(final DeviceInfo device,View view) {
+    private void initMapDevicePoint(final DeviceInfo device,BitmapDescriptor bitmapDescriptor) {
         final DeviceInfo.LocinfoBean locInfo = device.getLocinfo();
         currentObject = device;
         if (locInfo == null) {
             return;
         }
         mBaiduMap.clear();
-        BitmapDescriptor mCurrentMarker = BitmapDescriptorFactory.fromView(view);
         final LatLng llCircle = new LatLng(locInfo.getLat(), locInfo.getLng());
-        MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(mCurrentMarker).zIndex(5);
+        MarkerOptions ooB = new MarkerOptions().position(llCircle).icon(bitmapDescriptor).zIndex(5);
         Marker mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
         MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(llCircle);
         mBaiduMap.setMapStatus(u);
@@ -347,14 +338,14 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                         mBaiduMap.hideInfoWindow();
                     }
                 };
-                InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -47, listener);
+                InfoWindow mInfoWindow = new InfoWindow(BitmapDescriptorFactory.fromView(button), llCircle, -110, listener);
                 mBaiduMap.showInfoWindow(mInfoWindow);
                 return false;
             }
         });
     }
 
-    private void getFriendLocation(final FriendsResponse.FriendlistBean friend, final View view) {
+    private void getFriendLocation(final FriendsResponse.FriendlistBean friend, final BitmapDescriptor bitmapDescriptor) {
         if(!NetworkUtils.isConnected()){
             ToastUtils.showShort(R.string.msg_net_error);
             return;
@@ -383,7 +374,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                     public void accept(FriendLocInfoResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             if(response.getFriendlist()!=null&&response.getFriendlist().size()>0) {
-                                initMapView(friend,response.getFriendlist(),view);
+                                initMapView(friend,response.getFriendlist(),bitmapDescriptor);
                             }else{
                                 response.onError(getActivity());
                             }
@@ -403,11 +394,11 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         if(!NetworkUtils.isConnected()){
             return;
         }
-        final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance().createDevicesUsersDialog(getActivity());
-        if (mapDialog != null && mapDialog.isShowing()) {
-            mapDialog.dismiss();
-            return;
-        }
+//        final MapDeviceUsersListDialog mapDialog = DialogUtils.getInstance().createDevicesUsersDialog(getActivity());
+//        if (mapDialog != null && mapDialog.isShowing()) {
+//            mapDialog.dismiss();
+//            return;
+//        }
         Map param = new LinkedHashMap();
         param.put("qrytype", Params.QRY_TYPE.ALL);
         String json = new Gson().toJson(param);
@@ -427,15 +418,17 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                     public void accept(DeviceListResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             if (response.getDevlist() != null && response.getDevlist().size() > 0) {
-                                mapDialog.initData("device", response.getDevlist(), new OnListItemClick() {
+                                mapDeviceUsersListOptions.initData("device", response.getDevlist(), new OnListItemClick() {
                                     @Override
-                                    public void onItemClick(View view,Object o) {
-                                        super.onItemClick(view,o);
+                                    public void onItemClick(BitmapDescriptor bitmapDescriptor,Object o) {
+                                        super.onItemClick(bitmapDescriptor,o);
                                         DeviceInfo device = (DeviceInfo) o;
-                                        initMapDevicePoint(device,view);
+                                        initMapDevicePoint(device,bitmapDescriptor);
                                     }
                                 });
-                                mapDialog.show();
+                                if(popupWindow!=null) {
+                                    popupWindow.showAsDropDown(imgDevice, 0, -(imgDevice.getHeight() * 2));
+                                }
                             }
                         } else {
                             response.onError(getActivity());
@@ -465,4 +458,5 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         }
         return false;
     }
+
 }
