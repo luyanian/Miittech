@@ -364,8 +364,6 @@ public  class BleService extends Service {
         }
     }
 
-
-
     public synchronized  void scanDevice(){
         if(TextUtils.isEmpty(Common.getTocken())||BleManager.getInstance().getScanSate()==BleScanState.STATE_SCANNING){
             return;
