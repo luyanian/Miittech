@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
 
+import com.baidu.mapapi.map.BaiduMap;
 import com.miittech.you.R;
 import com.miittech.you.adapter.MapDeviceUsersListAdapter;
 import com.miittech.you.entity.DeviceInfo;
@@ -90,6 +91,19 @@ public class MapDeviceUsersPopWindowOptions<T>{
             }
             mapAdapter.setOnListItemClick(onListItemClick);
             mapAdapter.setData(list);
+        }
+    }
+    BaiduMap mBaiduMap;
+    public void setBaiduMap(BaiduMap baiduMap){
+        this.mBaiduMap = baiduMap;
+    }
+
+    public void dismiss() {
+        if(mBaiduMap!=null) {
+            mBaiduMap.clear();
+        }
+        if(window!=null&&window.isShowing()){
+            window.dismiss();
         }
     }
 }

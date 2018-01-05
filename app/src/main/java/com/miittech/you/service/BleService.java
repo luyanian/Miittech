@@ -115,6 +115,7 @@ public  class BleService extends Service {
         option.setWifiCacheTimeOut(5*60*1000);
         mLocationClient.setLocOption(option);
         mLocationClient.start();
+        mLocationClient.requestLocation();
 
         cmdReceiver = new CmdReceiver();
         IntentFilter filter = new IntentFilter();

@@ -8,6 +8,11 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.clj.fastble.BleManager;
+import com.clj.fastble.callback.BleWriteCallback;
+import com.clj.fastble.data.BleConnectState;
+import com.clj.fastble.data.BleDevice;
+import com.clj.fastble.exception.BleException;
 import com.google.gson.Gson;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
@@ -15,6 +20,7 @@ import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.global.BleUUIDS;
 import com.miittech.you.utils.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
@@ -449,6 +455,27 @@ public class UserCenterActivity extends BaseActivity {
                         if (!response.isSuccessful()) {
                             ToastUtils.showShort(response.getErrmsg());
                         }else{
+                            List<BleDevice> list = BleManager.getInstance().getMultipleBluetoothController().getDeviceList();
+                            if(list.size()<=0){
+                                return;
+                            }
+                            for(final BleDevice bleDevice : list) {
+                                if (BleManager.getInstance().getConnectState(bleDevice) == BleConnectState.CONNECT_CONNECTED) {
+                                    final byte[] data = new byte[]{0x00};
+                                    BleManager.getInstance().write(bleDevice, BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data, new BleWriteCallback() {
+
+                                        @Override
+                                        public void onWriteSuccess(BleDevice bleDevice) {
+                                            BleManager.getInstance().disconnect(bleDevice);
+                                        }
+
+                                        @Override
+                                        public void onWriteFailure(BleDevice bleDevice, BleException exception) {
+                                            BleManager.getInstance().disconnect(bleDevice);
+                                        }
+                                    });
+                                }
+                            }
                             Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                             cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
                             sendBroadcast(cmd);

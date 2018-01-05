@@ -161,10 +161,7 @@ public class MainActivity extends BaseActivity {
      * @param trans
      */
     private void setFragment(int vID, FragmentTransaction trans) {
-        PopupWindow popupWindow = MapDeviceUsersPopWindowOptions.getInstance().getPopupWindow();
-        if(popupWindow!=null&&popupWindow.isShowing()){
-            popupWindow.dismiss();
-        }
+        MapDeviceUsersPopWindowOptions.getInstance().dismiss();
         switch (vID) {
             case R.id.tab_list:
                 if (fragmentList == null) {
@@ -216,7 +213,7 @@ public class MainActivity extends BaseActivity {
             }, 2000);
         } else {
             ActivityPools.finishAllActivity();
-            System.exit(0);
+//            System.exit(0);
         }
     }
 }

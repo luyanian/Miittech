@@ -97,6 +97,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         initMapView();
         mapDeviceUsersListOptions = MapDeviceUsersPopWindowOptions.getInstance();
         mapDeviceUsersListOptions.initWindow(getActivity());
+        mapDeviceUsersListOptions.setBaiduMap(mBaiduMap);
         popupWindow = mapDeviceUsersListOptions.getPopupWindow();
     }
 
@@ -142,6 +143,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 
     @OnClick(R.id.img_device)
     public void onClickDevice() {
+        mBaiduMap.clear();
         if(popupWindow!=null&&popupWindow.isShowing()){
             popupWindow.dismiss();
             return;
@@ -153,6 +155,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
 
     @OnClick(R.id.img_users)
     public void onClickFriends() {
+        mBaiduMap.clear();
         if(popupWindow!=null&&popupWindow.isShowing()){
             popupWindow.dismiss();
             return;
@@ -189,6 +192,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                                     @Override
                                     public void onItemClick(BitmapDescriptor bitmapDescriptor,Object o) {
                                         super.onItemClick(bitmapDescriptor,o);
+                                        mBaiduMap.clear();
                                         FriendsResponse.FriendlistBean friend = (FriendsResponse.FriendlistBean) o;
                                         if (!Common.getUserId().equals(friend.getFriendid())) {
                                             getFriendLocation(friend,bitmapDescriptor);
@@ -434,6 +438,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
                                     @Override
                                     public void onItemClick(BitmapDescriptor bitmapDescriptor,Object o) {
                                         super.onItemClick(bitmapDescriptor,o);
+                                        mBaiduMap.clear();
                                         DeviceInfo device = (DeviceInfo) o;
                                         initMapDevicePoint(device,bitmapDescriptor);
                                     }
