@@ -59,7 +59,7 @@ public class SoundPlayUtils {
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
         soundIds.add(playId);
     }
-    public static void play(int soundID,int duration,boolean isShake) {
+    public static void play(int soundID,int duration,boolean isShake,String devName) {
         stopAll();
         int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
         soundIds.add(playId);
@@ -67,7 +67,7 @@ public class SoundPlayUtils {
             long[] patter = {800, 800};
             vibrator.vibrate(patter, 0);
         }
-        localNotify(App.getInstance().getApplicationContext(), playId,isShake);
+        localNotify(App.getInstance().getApplicationContext(), playId,isShake,devName);
         timer.schedule(new MyTimerTask(), duration);
     }
 
@@ -97,7 +97,7 @@ public class SoundPlayUtils {
         }
     };
 
-    private static void localNotify(Context context, int playId, boolean isShake) {
+    private static void localNotify(Context context, int playId, boolean isShake,String devName) {
         NotificationManager manager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
         mBuilder.setContentTitle("有物查找手机报警中")//设置通知栏标题
@@ -115,6 +115,7 @@ public class SoundPlayUtils {
 
         Intent intent = new Intent(IntentExtras.ACTION.ACTION_SOUND_PLAY_ONCLICK);
         intent.putExtra("soundId", playId);
+        intent.putExtra("devName",devName);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context,0,intent,0);
         mBuilder.setContentIntent(pendingIntent);
         Notification notification = mBuilder.build();
@@ -122,6 +123,7 @@ public class SoundPlayUtils {
 
         Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG);
         intent1.putExtra("soundId", 1);
+        intent1.putExtra("devName",devName);
         context.sendBroadcast(intent1);
     }
 

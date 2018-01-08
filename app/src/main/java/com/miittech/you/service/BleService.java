@@ -286,28 +286,25 @@ public  class BleService extends Service {
                     if(mAlertingMap.containsKey(Common.formatDevId2Mac(deviceInfo.getDevidX()))&&mAlertingMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
                         return;
                     }
-                    DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
-                    if (alertinfoBean != null) {
-                        final byte[] data = new byte[1];
-                        if (!Common.isBell()) {
-                           data[0] = 0x00;
-                        }else{
-                            data[0] = 0x02;
-                        }
-                        if(!mLinkLoseMap.containsKey(Common.formatDevId2Mac(deviceInfo.getDevidX()))||data[0]!=mLinkLoseMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
-                            BleManager.getInstance().write(bleDevice, BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data, new BleWriteCallback() {
+                    final byte[] data = new byte[1];
+                    if (!Common.isBell()) {
+                       data[0] = 0x00;
+                    }else{
+                        data[0] = 0x02;
+                    }
+                    if(!mLinkLoseMap.containsKey(Common.formatDevId2Mac(deviceInfo.getDevidX()))||data[0]!=mLinkLoseMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
+                        BleManager.getInstance().write(bleDevice, BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data, new BleWriteCallback() {
 
-                                @Override
-                                public void onWriteSuccess(BleDevice bleDevice) {
-                                    mLinkLoseMap.put(bleDevice.getMac(), data[0]);
-                                }
+                            @Override
+                            public void onWriteSuccess(BleDevice bleDevice) {
+                                mLinkLoseMap.put(bleDevice.getMac(), data[0]);
+                            }
 
-                                @Override
-                                public void onWriteFailure(BleDevice bleDevice, BleException exception) {
+                            @Override
+                            public void onWriteFailure(BleDevice bleDevice, BleException exception) {
 
-                                }
-                            });
-                        }
+                            }
+                        });
                     }
                 }
             }else{
@@ -777,13 +774,13 @@ public  class BleService extends Service {
         int duration = deviceInfo.getAlertinfo().getDuration();
         duration*=1000;
         if(url.contains("bluesforslim")){
-            SoundPlayUtils.play(3,duration,isShake);
+            SoundPlayUtils.play(3,duration,isShake,Common.decodeBase64(deviceInfo.getDevname()));
         }else if(url.contains("countryfair")){
-            SoundPlayUtils.play(4,duration,isShake);
+            SoundPlayUtils.play(4,duration,isShake,Common.decodeBase64(deviceInfo.getDevname()));
         }else if(url.contains("theclassiccall")){
-            SoundPlayUtils.play(2,duration,isShake);
+            SoundPlayUtils.play(2,duration,isShake,Common.decodeBase64(deviceInfo.getDevname()));
         }else{
-            SoundPlayUtils.play(1,duration,isShake);
+            SoundPlayUtils.play(1,duration,isShake,Common.decodeBase64(deviceInfo.getDevname()));
         }
     }
 

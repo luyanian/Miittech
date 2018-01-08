@@ -13,8 +13,7 @@
             android:textSize="16dp"
             android:layout_marginTop="16dp"
             android:textColor="@color/black"
-            android:lines="1"
-            android:text="关闭报警"/>
+            android:lines="1"/>
         <TextView
             android:id="@+id/msg_info"
             android:layout_width="match_parent"

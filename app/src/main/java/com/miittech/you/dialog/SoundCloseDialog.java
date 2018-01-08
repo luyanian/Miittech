@@ -4,16 +4,21 @@ import android.app.Dialog;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextClock;
+import android.widget.TextView;
 
 import com.miittech.you.R;
 import com.miittech.you.utils.SoundPlayUtils;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import cn.sharesdk.framework.utils.Escaper;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
@@ -23,7 +28,9 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 
 public class SoundCloseDialog extends Dialog {
 
-    private int setSoundId=-100;
+    @BindView(R.id.msg_title)
+    TextView msgTitle;
+    private int setSoundId = -100;
     private Context context;
 
     public SoundCloseDialog(@NonNull Context context) {
@@ -49,13 +56,22 @@ public class SoundCloseDialog extends Dialog {
 
     @OnClick(R.id.ll_btn_sure)
     public void onViewClicked() {
-        if(setSoundId!=-100){
+        if (setSoundId != -100) {
             SoundPlayUtils.stopAll();
-            NotificationManager notificationManager = (NotificationManager)context.getSystemService(NOTIFICATION_SERVICE);
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
             notificationManager.cancel(1);
-            if(this.isShowing()){
+            if (this.isShowing()) {
                 this.dismiss();
             }
         }
+    }
+
+    public SoundCloseDialog setDevTitle(String devName) {
+        if(TextUtils.isEmpty(devName)){
+            msgTitle.setText("关闭贴片报警");
+        }else {
+            msgTitle.setText(devName);
+        }
+        return this;
     }
 }

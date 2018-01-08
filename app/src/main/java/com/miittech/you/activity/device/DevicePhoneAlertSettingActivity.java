@@ -96,8 +96,8 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
         tvBell.setText(this.deviceInfo.getAlertinfo().getName());
         checkVibrate.setChecked((this.deviceInfo.getAlertinfo().getIsShake()==1)?true:false);
         tvDisconnectReminderTime.setText(this.deviceInfo.getAlertinfo().getDuration()+"s");
-        checkDisconnectRepeatedRemind.setChecked((this.deviceInfo.getAlertinfo().getIsReconnect()==1)?true:false);
-        checkRepeatedRemind.setChecked((this.deviceInfo.getAlertinfo().getIsRepeat()==1)?true:false);
+        checkDisconnectRepeatedRemind.setChecked((this.deviceInfo.getAlertinfo().getIsRepeat()==1)?true:false);
+        checkRepeatedRemind.setChecked((this.deviceInfo.getAlertinfo().getIsReconnect()==1)?true:false);
         String info1 ="手机与“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”断开连接时响铃时长";
         String info2 = "锁屏时手机和“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”断开连接后多次提醒，解锁手机或打开APP即可停止提醒";
         String info3 = "手机与“"+Common.decodeBase64(this.deviceInfo.getDevname())+"”重新连接时手机提醒";
@@ -168,10 +168,10 @@ public class DevicePhoneAlertSettingActivity extends BaseActivity implements Com
         this.deviceInfo.getAlertinfo().setVol(31);
         alertinfo.put("isShake",checkVibrate.isChecked()?1:0);//是否振东
         this.deviceInfo.getAlertinfo().setIsShake(checkVibrate.isChecked()?1:0);
-        alertinfo.put("isRepeat",checkRepeatedRemind.isChecked()?1:0);//是否重复提醒，选填
-        this.deviceInfo.getAlertinfo().setIsRepeat(checkRepeatedRemind.isChecked()?1:0);
-        alertinfo.put("isReconnect",checkDisconnectRepeatedRemind.isChecked()?1:0);//是否重连提醒，选填
-        this.deviceInfo.getAlertinfo().setIsReconnect(checkDisconnectRepeatedRemind.isChecked()?1:0);
+        alertinfo.put("isRepeat",checkDisconnectRepeatedRemind.isChecked()?1:0);//是否重复提醒，选填
+        this.deviceInfo.getAlertinfo().setIsRepeat(checkDisconnectRepeatedRemind.isChecked()?1:0);
+        alertinfo.put("isReconnect",checkRepeatedRemind.isChecked()?1:0);//是否重连提醒，选填
+        this.deviceInfo.getAlertinfo().setIsReconnect(checkRepeatedRemind.isChecked()?1:0);
         int duration = Integer.valueOf(tvDisconnectReminderTime.getText().toString().replaceAll("s",""));
         alertinfo.put("duration",duration);//响铃时长
         this.deviceInfo.getAlertinfo().setDuration(duration);

@@ -162,7 +162,7 @@ public class EventLogFragment extends Fragment {
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            if("0".equals(dir)){
+                            if("1".equals(dir)){
                                 eventLogAdapter.refreshEventLog(response.getEventlist());
                             }else if("2".equals(dir)){
                                 List<UserInfoResponse.EventlistBean> list = response.getEventlist();

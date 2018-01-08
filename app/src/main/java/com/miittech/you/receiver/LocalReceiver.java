@@ -24,6 +24,7 @@ public class LocalReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         int soundId = intent.getIntExtra("soundId",0);
+        String devName = intent.getStringExtra("devName");
         if(intent.getAction()== IntentExtras.ACTION.ACTION_SOUND_PLAY_ONCLICK){
             SoundPlayUtils.stopAll();
             NotificationManager notificationManager = (NotificationManager) App.getInstance().getSystemService(NOTIFICATION_SERVICE);
@@ -31,7 +32,7 @@ public class LocalReceiver extends BroadcastReceiver {
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG){
             Activity activity = ActivityPools.getTopActivity();
             if(activity!=null){
-                DialogUtils.getInstance().showSoundCloseDialog(activity).setSoundId(soundId);
+                DialogUtils.getInstance().showSoundCloseDialog(activity).setSoundId(soundId).setDevTitle(devName);
             }
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_TASK_SEND){
             if(!ServiceUtils.isServiceRunning("BleService")){
