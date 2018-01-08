@@ -34,7 +34,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@drawable/ic_header_img"
-            app:civ_border_color="@color/white"
+            app:civ_border_color="@color/windowBg"
             android:layout_marginTop="10dp"
             android:adjustViewBounds="true"
             android:scaleType="centerInside"

@@ -386,21 +386,21 @@ public class DeviceDetailActivity extends BaseActivity {
         if(imgDeviceIcon==null){
             return;
         }
-//        if(BleManager.getInstance().isConnected(mac)){
-//            if(rssi>-50) {
-//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect1));
-//            }else if(rssi<=-50&&rssi>-65){
-//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect2));
-//            }else if(rssi<=-65&&rssi>-85){
-//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect3));
-//            }else if(rssi<=-85&&rssi>-100){
-//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect4));
-//            }else if(rssi<=-100){
-//                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect5));
-//            }
-//        }else{
-//            imgDeviceIcon.setBorderColor(getResources().getColor(R.color.windowBg));
-//        }
+        if(BleManager.getInstance().isConnected(mac)){
+            if(rssi>-50) {
+                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect1));
+            }else if(rssi<=-50&&rssi>-65){
+                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect2));
+            }else if(rssi<=-65&&rssi>-85){
+                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect3));
+            }else if(rssi<=-85&&rssi>-100){
+                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect4));
+            }else if(rssi<=-100){
+                imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect5));
+            }
+        }else{
+            imgDeviceIcon.setBorderColor(getResources().getColor(R.color.windowBg));
+        }
     }
     private void updateItemRssi(int rssi) {
         if (tvDeviceLocation != null) {
