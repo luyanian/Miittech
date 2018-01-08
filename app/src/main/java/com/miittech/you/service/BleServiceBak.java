@@ -35,12 +35,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.miittech.you.App;
-import com.miittech.you.global.BleUUIDS;
-import com.miittech.you.utils.BingGoPlayUtils;
-import com.miittech.you.utils.Common;
-import com.miittech.you.utils.SoundPlayUtils;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
+import com.miittech.you.global.BleUUIDS;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
@@ -49,6 +46,9 @@ import com.miittech.you.global.SPConst;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
+import com.miittech.you.utils.BingGoPlayUtils;
+import com.miittech.you.utils.Common;
+import com.miittech.you.utils.SoundPlayUtils;
 import com.ryon.constant.TimeConstants;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
@@ -64,17 +64,19 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+
 import static com.miittech.you.global.BleUUIDS.characteristicUUID;
 import static com.miittech.you.global.BleUUIDS.serviceUUID;
 import static com.miittech.you.global.BleUUIDS.userCharacteristicLogUUID;
 import static com.miittech.you.global.BleUUIDS.userServiceUUID;
 
-public  class BleService extends Service {
+public  class BleServiceBak extends Service {
     public LocationClient mLocationClient = null;
     private MyLocationListener myListener = new MyLocationListener();
     private long lastMillins=0;
@@ -90,6 +92,7 @@ public  class BleService extends Service {
     private Map<String,Boolean> mNotFirstConnect = new HashMap<>();
     private Map<String,Boolean> mNotFirstDisConnect = new HashMap<>();
     private boolean isBind = false;
+    private long lastScanningTime=TimeUtils.getNowMills();
 
     @Override  
     public IBinder onBind(Intent intent) {
@@ -337,9 +340,9 @@ public  class BleService extends Service {
                             BleManager.getInstance().disconnect(bleDevice);
                         }
                     }
-//                    if(TimeUtils.getTimeSpan(lastScanningTime,TimeUtils.getNowMills(),TimeConstants.MIN)>5){
-//                        BleManager.getInstance().cancelScan();
-//                    }
+                    if(TimeUtils.getTimeSpan(lastScanningTime,TimeUtils.getNowMills(),TimeConstants.MIN)>5){
+                        BleManager.getInstance().cancelScan();
+                    }
                 }
             }
         }
@@ -374,7 +377,7 @@ public  class BleService extends Service {
         BleManager.getInstance().scan(new BleScanCallback() {
             @Override
             public void onScanStarted(boolean success) {
-//                lastScanningTime = TimeUtils.getNowMills();
+                lastScanningTime = TimeUtils.getNowMills();
                 LogUtils.d("bleService","贴片扫描开始----->");
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCAN_START);
@@ -383,7 +386,7 @@ public  class BleService extends Service {
 
             @Override
             public void onScanning(BleDevice result) {
-//                lastScanningTime = TimeUtils.getNowMills();
+                lastScanningTime = TimeUtils.getNowMills();
                 LogUtils.d("bleService","扫描到有效贴片----->"+result.getMac());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCANING);
@@ -472,12 +475,6 @@ public  class BleService extends Service {
                 }
 
                 @Override
-                public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                    super.onServicesDiscovered(gatt, status);
-                    LogUtils.d("bleService", "onServicesDiscovered----->" + gatt.getDevice().getAddress());
-                }
-
-                @Override
                 public void onDisConnected(boolean isActiveDisConnected, BleDevice device, BluetoothGatt gatt, int status) {
                     LogUtils.d("bleService", "贴片连接断开----->" + device.getMac()+"   isActiveDisConnected--->"+isActiveDisConnected);
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
@@ -563,9 +560,12 @@ public  class BleService extends Service {
         mNotFirstConnect.clear();
         mNotFirstDisConnect.clear();
         isBind=false;
-        for (Map.Entry<String, BleDevice> entry : mDeviceMap.entrySet()) {
-            final BleDevice device = entry.getValue();
-            if (BleManager.getInstance().isConnected(device)) {
+        List<BleDevice> list = BleManager.getInstance().getMultipleBluetoothController().getDeviceList();
+        if(list.size()<=0){
+            return;
+        }
+        for(final BleDevice device : list) {
+            if (BleManager.getInstance().getConnectState(device) == BleConnectState.CONNECT_CONNECTED) {
                 final byte[] data = new byte[]{0x00};
                 BleManager.getInstance().write(device, BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data, new BleWriteCallback() {
 
