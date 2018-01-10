@@ -125,21 +125,33 @@ public class ListFragment extends Fragment {
 
     public void initState() {
         if (BleManager.getInstance().isBlueEnable()) {
-            llBluetoothDisabled.setVisibility(View.GONE);
+            if(llBluetoothDisabled!=null) {
+                llBluetoothDisabled.setVisibility(View.GONE);
+            }
         } else {
-            llBluetoothDisabled.setVisibility(View.VISIBLE);
+            if(llBluetoothDisabled!=null) {
+                llBluetoothDisabled.setVisibility(View.VISIBLE);
+            }
         }
         RxPermissions rxPermissions = new RxPermissions(getActivity());
         if (rxPermissions.isGranted(Manifest.permission.ACCESS_FINE_LOCATION) || rxPermissions.isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
-            llLocationServiceDisabled.setVisibility(View.GONE);
+            if(llLocationServiceDisabled!=null) {
+                llLocationServiceDisabled.setVisibility(View.GONE);
+            }
         } else {
-            llLocationServiceDisabled.setVisibility(View.VISIBLE);
+            if(llLocationServiceDisabled!=null) {
+                llLocationServiceDisabled.setVisibility(View.VISIBLE);
+            }
         }
         NotificationManagerCompat manager = NotificationManagerCompat.from(App.getInstance().getApplicationContext());
         if (manager.areNotificationsEnabled()) {
-            llNotifyServiceDisabled.setVisibility(View.GONE);
+            if(llNotifyServiceDisabled!=null) {
+                llNotifyServiceDisabled.setVisibility(View.GONE);
+            }
         } else {
-            llNotifyServiceDisabled.setVisibility(View.VISIBLE);
+            if(llNotifyServiceDisabled!=null) {
+                llNotifyServiceDisabled.setVisibility(View.VISIBLE);
+            }
         }
     }
 

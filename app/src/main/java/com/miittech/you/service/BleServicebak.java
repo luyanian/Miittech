@@ -76,10 +76,12 @@ import static com.miittech.you.global.BleUUIDS.serviceUUID;
 import static com.miittech.you.global.BleUUIDS.userCharacteristicLogUUID;
 import static com.miittech.you.global.BleUUIDS.userServiceUUID;
 
-public  class BleServiceBak extends Service {
+public  class BleServicebak extends Service {
     public LocationClient mLocationClient = null;
     private MyLocationListener myListener = new MyLocationListener();
     private long lastMillins=0;
+    private long lastScanningTime = 0;
+    private long scanStopTime = 0;
     CmdReceiver cmdReceiver;
     private Map<String, Integer> mapRssi = new HashMap<String, Integer>();
     private Map<String,String> mapBattery = new HashMap<>();
@@ -92,7 +94,6 @@ public  class BleServiceBak extends Service {
     private Map<String,Boolean> mNotFirstConnect = new HashMap<>();
     private Map<String,Boolean> mNotFirstDisConnect = new HashMap<>();
     private boolean isBind = false;
-    private long lastScanningTime=TimeUtils.getNowMills();
 
     @Override  
     public IBinder onBind(Intent intent) {
@@ -340,11 +341,12 @@ public  class BleServiceBak extends Service {
                             BleManager.getInstance().disconnect(bleDevice);
                         }
                     }
-                    if(TimeUtils.getTimeSpan(lastScanningTime,TimeUtils.getNowMills(),TimeConstants.MIN)>5){
-                        BleManager.getInstance().cancelScan();
-                    }
                 }
             }
+        }
+        if(scanStopTime==0&&TimeUtils.getTimeSpan(lastScanningTime,TimeUtils.getNowMills(),TimeConstants.MIN)>2){
+            BleManager.getInstance().cancelScan();
+            scanStopTime = TimeUtils.getNowMills();
         }
     }
 
@@ -365,6 +367,10 @@ public  class BleServiceBak extends Service {
     }
 
     public synchronized  void scanDevice(){
+        if(scanStopTime!=0 && TimeUtils.getTimeSpan(scanStopTime,TimeUtils.getNowMills(),TimeConstants.SEC)<20){
+            return;
+        }
+        scanStopTime=0;
         if(TextUtils.isEmpty(Common.getTocken())||BleManager.getInstance().getScanSate()==BleScanState.STATE_SCANNING){
             return;
         }
@@ -402,8 +408,8 @@ public  class BleServiceBak extends Service {
                             intent1.putExtra("address", result.getMac());
                             sendBroadcast(intent1);
                         }
+                        return;
                     }
-                    return;
                 }
                 mDeviceMap.put(result.getMac(),result);
                 Intent intent2= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
@@ -472,6 +478,12 @@ public  class BleServiceBak extends Service {
                     }else if(mDeviceMap.containsKey(device.getMac())) {
                         setWorkMode(device);
                     }
+                }
+
+                @Override
+                public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                    super.onServicesDiscovered(gatt, status);
+                    LogUtils.d("bleService", "onServicesDiscovered----->" + gatt.getDevice().getAddress());
                 }
 
                 @Override
@@ -555,17 +567,9 @@ public  class BleServiceBak extends Service {
     }
     private synchronized void doLogOut(){
         LogUtils.d("bleService","doLogOut");
-        mDeviceMap.clear();
-        mBindMap.clear();
-        mNotFirstConnect.clear();
-        mNotFirstDisConnect.clear();
-        isBind=false;
-        List<BleDevice> list = BleManager.getInstance().getMultipleBluetoothController().getDeviceList();
-        if(list.size()<=0){
-            return;
-        }
-        for(final BleDevice device : list) {
-            if (BleManager.getInstance().getConnectState(device) == BleConnectState.CONNECT_CONNECTED) {
+        for (Map.Entry<String, BleDevice> entry : mDeviceMap.entrySet()) {
+            final BleDevice device = entry.getValue();
+            if (BleManager.getInstance().isConnected(device)) {
                 final byte[] data = new byte[]{0x00};
                 BleManager.getInstance().write(device, BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data, new BleWriteCallback() {
 
@@ -581,6 +585,11 @@ public  class BleServiceBak extends Service {
                 });
             }
         }
+        mDeviceMap.clear();
+        mBindMap.clear();
+        mNotFirstConnect.clear();
+        mNotFirstDisConnect.clear();
+        isBind=false;
     }
 
     private synchronized void startAlert(String address) {

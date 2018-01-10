@@ -227,7 +227,7 @@ public class MyReceiver extends BroadcastReceiver {
 			}else if("login".equals(jpushMsg.getContent_type())){
 				Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
 				cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
-				activity.sendBroadcast(cmd);
+				context.sendBroadcast(cmd);
 				SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
 
 				DialogUtils.getInstance().createMsgTipDialog(activity)

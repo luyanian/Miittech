@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Predicate;
 
 /**
  * Created by Administrator on 2017/9/21.
@@ -163,7 +162,7 @@ public class ActivityPools {
         if (mActivitys == null) {
             return;
         }
-        List<Activity> temp = new ArrayList<>();
+        List<Activity> temp = new ArrayList<Activity>();
         temp.addAll(mActivitys);
         for (Activity activity : temp) {
             if(!activity.getClass().equals(cls)){

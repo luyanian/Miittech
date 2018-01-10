@@ -56,6 +56,7 @@ import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,6 +79,8 @@ public  class BleService extends Service {
     public LocationClient mLocationClient = null;
     private MyLocationListener myListener = new MyLocationListener();
     private long lastMillins=0;
+    private long lastScanningTime = 0;
+    private long scanStopTime = 0;
     CmdReceiver cmdReceiver;
     private Map<String, Integer> mapRssi = new HashMap<String, Integer>();
     private Map<String,String> mapBattery = new HashMap<>();
@@ -337,11 +340,12 @@ public  class BleService extends Service {
                             BleManager.getInstance().disconnect(bleDevice);
                         }
                     }
-//                    if(TimeUtils.getTimeSpan(lastScanningTime,TimeUtils.getNowMills(),TimeConstants.MIN)>5){
-//                        BleManager.getInstance().cancelScan();
-//                    }
                 }
             }
+        }
+        if(scanStopTime==0&&TimeUtils.getTimeSpan(lastScanningTime,TimeUtils.getNowMills(),TimeConstants.MIN)>2){
+            BleManager.getInstance().cancelScan();
+            scanStopTime = TimeUtils.getNowMills();
         }
     }
 
@@ -362,6 +366,10 @@ public  class BleService extends Service {
     }
 
     public synchronized  void scanDevice(){
+        if(scanStopTime!=0 && TimeUtils.getTimeSpan(scanStopTime,TimeUtils.getNowMills(),TimeConstants.SEC)<20){
+            return;
+        }
+        scanStopTime=0;
         if(TextUtils.isEmpty(Common.getTocken())||BleManager.getInstance().getScanSate()==BleScanState.STATE_SCANNING){
             return;
         }
@@ -374,7 +382,7 @@ public  class BleService extends Service {
         BleManager.getInstance().scan(new BleScanCallback() {
             @Override
             public void onScanStarted(boolean success) {
-//                lastScanningTime = TimeUtils.getNowMills();
+                lastScanningTime = TimeUtils.getNowMills();
                 LogUtils.d("bleService","贴片扫描开始----->");
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCAN_START);
@@ -383,7 +391,7 @@ public  class BleService extends Service {
 
             @Override
             public void onScanning(BleDevice result) {
-//                lastScanningTime = TimeUtils.getNowMills();
+                lastScanningTime = TimeUtils.getNowMills();
                 LogUtils.d("bleService","扫描到有效贴片----->"+result.getMac());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCANING);
@@ -399,8 +407,8 @@ public  class BleService extends Service {
                             intent1.putExtra("address", result.getMac());
                             sendBroadcast(intent1);
                         }
+                        return;
                     }
-                    return;
                 }
                 mDeviceMap.put(result.getMac(),result);
                 Intent intent2= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
@@ -558,11 +566,6 @@ public  class BleService extends Service {
     }
     private synchronized void doLogOut(){
         LogUtils.d("bleService","doLogOut");
-        mDeviceMap.clear();
-        mBindMap.clear();
-        mNotFirstConnect.clear();
-        mNotFirstDisConnect.clear();
-        isBind=false;
         for (Map.Entry<String, BleDevice> entry : mDeviceMap.entrySet()) {
             final BleDevice device = entry.getValue();
             if (BleManager.getInstance().isConnected(device)) {
@@ -581,6 +584,11 @@ public  class BleService extends Service {
                 });
             }
         }
+        mDeviceMap.clear();
+        mBindMap.clear();
+        mNotFirstConnect.clear();
+        mNotFirstDisConnect.clear();
+        isBind=false;
     }
 
     private synchronized void startAlert(String address) {
