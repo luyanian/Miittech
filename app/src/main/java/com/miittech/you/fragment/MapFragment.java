@@ -23,12 +23,12 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.model.LatLng;
-import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.activity.event.FriendTraceDetailActivity;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.utils.MapDeviceUsersPopWindowOptions;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
@@ -320,7 +320,7 @@ public class MapFragment extends Fragment implements BaiduMap.OnMyLocationClickL
         final Locinfo appLocInfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
         currentObject = device;
         LatLng llCircle = null;
-        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(device.getDevidX()))){
+        if(BleClient.getInstance().isConnected(Common.formatDevId2Mac(device.getDevidX()))){
             if (appLocInfo != null) {
                 llCircle = new LatLng(appLocInfo.getLat(), appLocInfo.getLng());
             }else{

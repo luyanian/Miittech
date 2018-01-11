@@ -16,14 +16,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-
-import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
 import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.global.HttpUrl;
@@ -124,7 +123,7 @@ public class ListFragment extends Fragment {
     }
 
     public void initState() {
-        if (BleManager.getInstance().isBlueEnable()) {
+        if (BleClient.getInstance().isEnabled()) {
             if(llBluetoothDisabled!=null) {
                 llBluetoothDisabled.setVisibility(View.GONE);
             }

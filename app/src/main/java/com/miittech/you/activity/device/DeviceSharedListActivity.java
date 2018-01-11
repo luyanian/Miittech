@@ -6,11 +6,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.RelativeLayout;
-import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.SharedFriendListAdapter;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
@@ -114,7 +114,7 @@ public class DeviceSharedListActivity extends BaseActivity {
             public void onShare(Platform platform, Platform.ShareParams paramsToShare) {
                 double lat = 0;
                 double lng = 0;
-                if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(devinfoBean.getDevidX()))){
+                if(BleClient.getInstance().isConnected(Common.formatDevId2Mac(devinfoBean.getDevidX()))){
                     Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
                     if(locinfo!=null){
                         lat = locinfo.getLat();

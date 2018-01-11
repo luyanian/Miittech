@@ -7,10 +7,9 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-
-import com.clj.fastble.BleManager;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
 import com.miittech.you.impl.OnMsgTipOptions;
@@ -75,7 +74,7 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
                         @Override
                         public void onSure() {
                             super.onSure();
-                            BleManager.getInstance().disableBluetooth();
+                            BleClient.getInstance().disableBluetooth();
                         }
 
                         @Override

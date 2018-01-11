@@ -11,9 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import com.clj.fastble.BleManager;
 import com.miittech.you.R;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
@@ -87,7 +86,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             holder.itemShared.setVisibility(View.VISIBLE);
             holder.itemShared.setText("分享自"+Common.decodeBase64(deviceInfo.getFriendname()));
         }
-        if(!BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
+        if(!BleClient.getInstance().isConnected(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
             holder.itemLocation.setText(Common.decodeBase64(deviceInfo.getLocinfo().getAddr()));
             setTimeText(holder.itemTime,deviceInfo.getLasttime());
         }else{
@@ -108,6 +107,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 }
             }
         });
+        BleClient.getInstance().readRssi(Common.formatDevId2Mac(deviceInfo.getDevidX()));
     }
 
     private void setConnectStatusStyle(String mac){
@@ -119,7 +119,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         if(holder==null){
             return;
         }
-        if(BleManager.getInstance().isConnected(mac)){
+        if(BleClient.getInstance().isConnected(mac)){
             if(rssi>-50) {
                 holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.ic_connect1));
             }else if(rssi<=-50&&rssi>-65){

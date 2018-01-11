@@ -100,16 +100,29 @@ public class BleScanner {
             return;
 
         this.bleScanPresenter = presenter;
-        boolean success = BleManager.getInstance().getBluetoothAdapter().startLeScan(serviceUuids, bleScanPresenter);
-        scanState = BleScanState.STATE_SCANNING;
-        bleScanPresenter.notifyScanStarted(success);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if(BleManager.getInstance().getBluetoothLeScanner()!=null) {
+                BleManager.getInstance().getBluetoothLeScanner().startScan(bleScanPresenter);
+                scanState = BleScanState.STATE_SCANNING;
+                bleScanPresenter.notifyScanStarted(true);
+            }
+        }else {
+            boolean success = BleManager.getInstance().getBluetoothAdapter().startLeScan(serviceUuids, bleScanPresenter);
+            scanState = BleScanState.STATE_SCANNING;
+            bleScanPresenter.notifyScanStarted(success);
+        }
     }
 
     public synchronized void stopLeScan() {
         if (bleScanPresenter == null)
             return;
-
-        BleManager.getInstance().getBluetoothAdapter().stopLeScan(bleScanPresenter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if(BleManager.getInstance().getBluetoothLeScanner()!=null) {
+                BleManager.getInstance().getBluetoothLeScanner().stopScan (bleScanPresenter);
+            }
+        }else {
+            BleManager.getInstance().getBluetoothAdapter().stopLeScan(bleScanPresenter);
+        }
         scanState = BleScanState.STATE_IDLE;
         bleScanPresenter.notifyScanStopped();
     }

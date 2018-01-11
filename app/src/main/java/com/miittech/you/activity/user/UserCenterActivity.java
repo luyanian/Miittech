@@ -7,12 +7,6 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.clj.fastble.BleManager;
-import com.clj.fastble.callback.BleWriteCallback;
-import com.clj.fastble.data.BleConnectState;
-import com.clj.fastble.data.BleDevice;
-import com.clj.fastble.exception.BleException;
 import com.google.gson.Gson;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;

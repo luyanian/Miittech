@@ -5,6 +5,7 @@ import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -41,6 +42,7 @@ public class BleManager {
     private BleScanRuleConfig bleScanRuleConfig;
     private BleScanner bleScanner;
     private BluetoothAdapter bluetoothAdapter;
+    private BluetoothLeScanner bluetoothLeScanner;
     private MultipleBluetoothController multipleBluetoothController;
     private DefaultBleExceptionHandler bleExceptionHandler;
 
@@ -66,8 +68,12 @@ public class BleManager {
             context = app;
             BluetoothManager bluetoothManager = (BluetoothManager) context
                     .getSystemService(Context.BLUETOOTH_SERVICE);
-            if (bluetoothManager != null)
+            if (bluetoothManager != null) {
                 bluetoothAdapter = bluetoothManager.getAdapter();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+                }
+            }
             bleExceptionHandler = new DefaultBleExceptionHandler();
             multipleBluetoothController = new MultipleBluetoothController();
             bleScanRuleConfig = new BleScanRuleConfig();
@@ -92,6 +98,11 @@ public class BleManager {
     public BluetoothAdapter getBluetoothAdapter() {
         return bluetoothAdapter;
     }
+
+    public BluetoothLeScanner getBluetoothLeScanner(){
+        return bluetoothLeScanner;
+    }
+
 
     /**
      * Get the BleScanner

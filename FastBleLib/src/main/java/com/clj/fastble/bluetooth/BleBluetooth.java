@@ -401,7 +401,6 @@ public class BleBluetooth {
                     bleMtuChangedCallback.onsetMTUFailure(new GattException(status));
                 }
             }
-
         }
     };
 

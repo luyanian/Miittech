@@ -12,11 +12,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.utils.Common;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.dialog.MsgTipDialog;
@@ -152,7 +152,7 @@ public class DeviceDetailActivity extends BaseActivity {
         tvDeviceName.setText(Common.decodeBase64(deviceInfo.getDevname()));
         tvBattarry.setVisibility(View.GONE);
 
-        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
+        if(BleClient.getInstance().isConnected(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
             tvDeviceTime.setText("现在");
         }else {
             setTimeText(tvDeviceTime,deviceInfo.getLasttime());
@@ -256,7 +256,7 @@ public class DeviceDetailActivity extends BaseActivity {
     }
     private void switchFindBtnStyle() {
         String mac = Common.formatDevId2Mac(deviceInfo.getDevidX());
-        if(BleManager.getInstance().isConnected(mac)) {
+        if(BleClient.getInstance().isConnected(mac)) {
             if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
                 rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
                 imgFindBtn.setImageResource(R.drawable.ic_device_find);
@@ -386,7 +386,7 @@ public class DeviceDetailActivity extends BaseActivity {
         if(imgDeviceIcon==null){
             return;
         }
-        if(BleManager.getInstance().isConnected(mac)){
+        if(BleClient.getInstance().isConnected(mac)){
             if(rssi>-50) {
                 imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect1));
             }else if(rssi<=-50&&rssi>-65){

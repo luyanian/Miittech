@@ -18,9 +18,9 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
-import com.clj.fastble.BleManager;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
@@ -80,7 +80,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
                 finish();
             }
         });
-        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
+        if(BleClient.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
             updateMapLocalView((Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO));
         }else{
             updateMapLocalView(null);
@@ -129,7 +129,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
 
     private void switchFindBtnStyle() {
         String mac = Common.formatDevId2Mac(deviceDetailInfo.getDevidX());
-        if(BleManager.getInstance().isConnected(mac)) {
+        if(BleClient.getInstance().isConnected(mac)) {
             if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceDetailInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
                 rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
                 imgFindButten.setImageResource(R.drawable.ic_device_find);
@@ -200,7 +200,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
                         break;
                     case IntentExtras.RET.LOCATION:
                         Locinfo locinfo = (Locinfo) intent.getSerializableExtra("data");
-                        if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
+                        if(BleClient.getInstance().isConnected(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()))) {
                             updateMapLocalView(locinfo);
                         }
                         break;

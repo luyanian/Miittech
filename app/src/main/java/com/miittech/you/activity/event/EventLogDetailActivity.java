@@ -16,9 +16,9 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
-import com.clj.fastble.BleManager;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.utils.Common;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.SPConst;
@@ -106,7 +106,7 @@ public class EventLogDetailActivity extends BaseActivity {
                 }
                 break;
             case R.id.rl_bell_status:
-                if(BleManager.getInstance().isConnected(Common.formatDevId2Mac(eventlistBean.getDevid()))) {
+                if(BleClient.getInstance().isConnected(Common.formatDevId2Mac(eventlistBean.getDevid()))) {
                     doFindOrBell();
                 }
                 break;
@@ -126,7 +126,7 @@ public class EventLogDetailActivity extends BaseActivity {
 
     private void switchFindBtnStyle() {
         String mac = Common.formatDevId2Mac(eventlistBean.getDevid());
-        if(BleManager.getInstance().isConnected(mac)) {
+        if(BleClient.getInstance().isConnected(mac)){
             if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(eventlistBean.getDevid(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
                 rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
                 imgFindButten.setImageResource(R.drawable.ic_device_find);

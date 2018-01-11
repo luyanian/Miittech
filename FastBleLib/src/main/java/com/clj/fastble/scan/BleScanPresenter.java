@@ -1,9 +1,12 @@
 package com.clj.fastble.scan;
 
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,8 +24,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@SuppressLint("NewApi")
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-public abstract class BleScanPresenter implements BluetoothAdapter.LeScanCallback {
+public abstract class BleScanPresenter extends ScanCallback implements BluetoothAdapter.LeScanCallback {
 
     private String[] mDeviceNames = null;
     private String mDeviceMac = null;
@@ -38,6 +42,12 @@ public abstract class BleScanPresenter implements BluetoothAdapter.LeScanCallbac
         this.mFuzzy = fuzzy;
         this.mNeedConnect = needConnect;
         this.mScanTimeout = timeOut;
+    }
+
+    @Override
+    public void onScanResult(int callbackType, ScanResult result) {
+        super.onScanResult(callbackType, result);
+        onLeScan(result.getDevice(),result.getRssi(),result.getScanRecord().getBytes());
     }
 
     @Override

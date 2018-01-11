@@ -22,12 +22,12 @@ import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
-import com.clj.fastble.BleManager;
 import com.google.gson.Gson;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.setting.SettingActivity;
 import com.miittech.you.adapter.TraceDalySelectAdapter;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
@@ -174,7 +174,7 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
             itemShared.setText("分享自" + Common.decodeBase64(devlistBean.getFriendname()));
         }
 
-        if (!BleManager.getInstance().isConnected(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
+        if (!BleClient.getInstance().isConnected(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
             itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
             setTimeText(itemTime, devlistBean.getLasttime());
         }else{
