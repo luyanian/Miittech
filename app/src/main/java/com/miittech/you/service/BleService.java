@@ -503,9 +503,7 @@ public  class BleService extends Service {
                 @Override
                 public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     super.onCharacteristicWrite(gatt, characteristic, status);
-                    if (characteristic!=null&&characteristic.getUuid().toString().equals(BleUUIDS.userCharactButtonStateUUID)) {
-                        notifyBattery(gatt.getDevice());
-                    }
+                    LogUtils.d("bleService", "onCharacteristicWrite:" + gatt.getDevice().getAddress() + "    status:" + status);
                 }
             });
         }
@@ -622,7 +620,6 @@ public  class BleService extends Service {
                 BingGoPlayUtils.playBingGo();
                 Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(bleDevice.getAddress()),Params.EVENT_TYPE.DEVICE_CONNECT,null);
             }
-            notfyAlert(bleDevice);
         }else{
             LogUtils.d("bleService","贴片设置工作模式失败----->"+bleDevice.getAddress());
             Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
@@ -632,33 +629,6 @@ public  class BleService extends Service {
         }
     }
 
-    public synchronized void notfyAlert(final BluetoothDevice bleDevice) {
-        if(bleDevice==null||!BleClient.getInstance().isConnected(bleDevice.getAddress())) {
-            return;
-        }
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if(BleClient.getInstance().notify(bleDevice.getAddress(), BleUUIDS.userServiceUUID, BleUUIDS.userCharactButtonStateUUID)){
-            LogUtils.d("bleService", "设置监测贴片按钮事件成功--->"+bleDevice.getAddress());
-        }else{
-            LogUtils.d("bleService", "设置监测贴片按钮事件失败--->"+bleDevice.getAddress());
-        }
-
-//        notifyBattery(bleDevice);
-    }
-    public synchronized void notifyBattery(final BluetoothDevice bleDevice){
-        if(bleDevice==null||!BleClient.getInstance().isConnected(bleDevice.getAddress())) {
-            return;
-        }
-        if(BleClient.getInstance().notify(bleDevice.getAddress(), BleUUIDS.batServiceUUID, BleUUIDS.batCharacteristicUUID)) {
-            LogUtils.d("bleService", "设置监测电量广播成功--->"+bleDevice.getAddress());
-        }else{
-            LogUtils.d("bleService", "设置监测电量广播失败--->"+bleDevice.getAddress());
-        }
-    }
 
     private void doPlay(DeviceInfo deviceInfo) {
         String url = deviceInfo.getAlertinfo().getUrlX();
@@ -694,7 +664,6 @@ public  class BleService extends Service {
                 mDeviceMap.put(bleDevice.getAddress(),bleDevice);
             }
             mNotFirstConnect.put(bleDevice.getAddress(),true);
-            notfyAlert(bleDevice);
         }else{
             LogUtils.d("bleService","贴片设置绑定模式失败----->"+bleDevice.getAddress());
             Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
