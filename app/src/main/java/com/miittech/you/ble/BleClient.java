@@ -286,4 +286,10 @@ public class BleClient {
             }
         }
     }
+
+    public void enaableBluetooth() {
+        if(mBluetoothAdapter!=null){
+            mBluetoothAdapter.enable();
+        }
+    }
 }

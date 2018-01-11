@@ -1,6 +1,7 @@
 package com.miittech.you.activity.setting;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -65,9 +66,10 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
         switch (compoundButton.getId()){
             case R.id.check_bluetooth:
                 if(b){
-                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    enableBtIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    ServiceSettingActivity.this.startActivity(enableBtIntent);
+                    BleClient.getInstance().enaableBluetooth();
+//                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//                    enableBtIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    ServiceSettingActivity.this.startActivity(enableBtIntent);
                 }else{
                     msgTipDialog.setTitle("蓝牙服务已关闭").setMsg("关闭蓝牙服务后，贴片将不能与您的手机连接，是否确定关闭");
                     msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
@@ -80,7 +82,6 @@ public class ServiceSettingActivity extends BaseActivity implements CompoundButt
                         @Override
                         public void onCancel() {
                             super.onCancel();
-                            compoundButton.setChecked(true);
                         }
                     });
                     msgTipDialog.show();
