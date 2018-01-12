@@ -11,8 +11,12 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
+
 import com.miittech.you.global.BleUUIDS;
 import com.ryon.mutils.LogUtils;
+
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,22 +56,16 @@ public class BleClient {
         }
     }
     public synchronized void startScan(final ScanResultCallback scanResultCallback){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if(scanResultCallback!=null&&mBluetoothAdapter!=null&&mBluetoothAdapter.isEnabled()) {
-                    isScaning = true;
-                    if(Build.VERSION.SDK_INT> 24&&bluetoothLeScanner!=null){
-                        bleScanCallback = new BleScanCallback(scanResultCallback);
-                        bluetoothLeScanner.startScan(bleScanCallback);
-                    }else {
-                        bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
-                        mBluetoothAdapter.startLeScan(bleLeScanCallback);
-                    }
-                }
+        if(scanResultCallback!=null&&mBluetoothAdapter!=null&&mBluetoothAdapter.isEnabled()) {
+            isScaning = true;
+            if(Build.VERSION.SDK_INT> 24&&bluetoothLeScanner!=null){
+                bleScanCallback = new BleScanCallback(scanResultCallback);
+                bluetoothLeScanner.startScan(bleScanCallback);
+            }else {
+                bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
+                mBluetoothAdapter.startLeScan(bleLeScanCallback);
             }
-        }).start();
-
+        }
     }
 
     public synchronized void connectDevice(final BluetoothDevice device, final GattCallback mGattCallback){
@@ -90,9 +88,6 @@ public class BleClient {
                     }
                     gatt.disconnect();
                     gatt.close();
-                    if(bluetoothGatts.containsKey(device.getAddress())) {
-                        bluetoothGatts.remove(device.getAddress());
-                    }
                 }
 
             }
@@ -107,6 +102,15 @@ public class BleClient {
             public void onServicesDiscovered(final BluetoothGatt gatt, int status) {
                 super.onServicesDiscovered(gatt, status);
                 if (status == BluetoothGatt.GATT_SUCCESS) {
+                    if(bluetoothGatts.containsKey(device.getAddress())){
+                        BluetoothGatt bluetoothGatt = bluetoothGatts.get(device.getAddress());
+                        if(bluetoothGatt!=null){
+                            bluetoothGatt.disconnect();
+                            bluetoothGatt.close();
+                        }
+                        bluetoothGatts.remove(device.getAddress());
+
+                    }
                     bluetoothGatts.put(device.getAddress(),gatt);
                     isActivityDisConnects.put(device.getAddress(),false);
                     mGattCallback.onConnectSuccess(device,gatt,status);
@@ -124,6 +128,8 @@ public class BleClient {
                     }).start();
                 }else{
                     mGattCallback.onConnectFail(device);
+                    refresh(gatt);
+//                    gatt.discoverServices();
                     gatt.disconnect();
                     gatt.close();
                     if(bluetoothGatts.containsKey(device.getAddress())) {
@@ -239,11 +245,13 @@ public class BleClient {
     }
 
     public synchronized void disConnect(String mac){
-        if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null){
-            BluetoothGatt mBluetoothGatt = bluetoothGatts.get(mac);
-            isActivityDisConnects.put(mac,true);
-            mBluetoothGatt.disconnect();
-            mBluetoothGatt.close();
+        synchronized (BleClient.class) {
+            if (bluetoothGatts.containsKey(mac) && bluetoothGatts.get(mac) != null) {
+                BluetoothGatt mBluetoothGatt = bluetoothGatts.get(mac);
+                isActivityDisConnects.put(mac, true);
+                mBluetoothGatt.disconnect();
+//            mBluetoothGatt.close();
+            }
         }
     }
 
@@ -264,13 +272,15 @@ public class BleClient {
     }
 
     public synchronized void disconnectAllDevice() {
-        Set<Map.Entry<String,BluetoothGatt>> set = bluetoothGatts.entrySet();
-        for(Map.Entry<String,BluetoothGatt> entry:set){
-            BluetoothGatt bluetoothGatt = entry.getValue();
-            if(bluetoothGatt!=null){
-                isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(),true);
-                bluetoothGatt.disconnect();
-                bluetoothGatt.close();
+        synchronized (BleClient.class) {
+            Set<Map.Entry<String, BluetoothGatt>> set = bluetoothGatts.entrySet();
+            for (Map.Entry<String, BluetoothGatt> entry : set) {
+                BluetoothGatt bluetoothGatt = entry.getValue();
+                if (bluetoothGatt != null) {
+                    isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(), true);
+                    bluetoothGatt.disconnect();
+//                  bluetoothGatt.close();
+                }
             }
         }
     }
@@ -292,7 +302,7 @@ public class BleClient {
                 BleClient.getInstance().write(bluetoothGatt.getDevice().getAddress(), BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data);
                 isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(),true);
                 bluetoothGatt.disconnect();
-                bluetoothGatt.close();
+//                bluetoothGatt.close();
             }
         }
     }
@@ -301,5 +311,20 @@ public class BleClient {
         if(mBluetoothAdapter!=null){
             mBluetoothAdapter.enable();
         }
+    }
+    public static boolean refresh(BluetoothGatt gatt) {
+        try {
+            Log.d("bleService", "refresh device cache");
+            Method localMethod = gatt.getClass().getMethod("refresh", (Class[]) null);
+            if (localMethod != null) {
+                boolean result = (Boolean) localMethod.invoke(gatt, (Object[]) null);
+                if (!result)
+                    Log.d("bleService", "refresh failed");
+                return result;
+            }
+        } catch (Exception e) {
+            Log.e("bleService", "An exception occurred while refreshing device cache");
+        }
+        return false;
     }
 }

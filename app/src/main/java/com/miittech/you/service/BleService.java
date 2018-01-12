@@ -318,7 +318,9 @@ public  class BleService extends Service {
         for (Map.Entry<String, BluetoothDevice> entry : tempMap.entrySet()) {
             if(!macList.contains(entry.getKey())){
                 mDeviceMap.remove(entry.getKey());
-                BleClient.getInstance().disConnect(entry.getValue().getAddress());
+                if(entry.getValue()!=null) {
+                    BleClient.getInstance().disConnect(entry.getValue().getAddress());
+                }
             }
         }
     }
@@ -355,13 +357,13 @@ public  class BleService extends Service {
                         }
                         return;
                     }
+                }else {
+                    mDeviceMap.put(scanResult.getMac(), scanResult.getDevice());
+                    Intent intent2 = new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                    intent2.putExtra("cmd", IntentExtras.CMD.CMD_DEVICE_SCANING);
+                    intent2.putExtra("address", scanResult.getMac());
+                    sendBroadcast(intent2);
                 }
-                mDeviceMap.put(scanResult.getMac(),scanResult.getDevice());
-                Intent intent2= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-                intent2.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_SCANING);
-                intent2.putExtra("address",scanResult.getMac());
-                sendBroadcast(intent2);
-
             }
         });
     }
@@ -466,7 +468,7 @@ public  class BleService extends Service {
                     super.onCharacteristicChanged(gatt, characteristic);
                     if (characteristic!=null&&characteristic.getUuid().toString().equals(BleUUIDS.userCharactButtonStateUUID)) {
                         byte[] data = characteristic.getValue();
-                        LogUtils.d("bleService", "监测到" + gatt.getDevice().getAddress() + "双击事件("+data[0]+")--->报警广播数据");
+                        LogUtils.d("bleService", "监测到" + gatt.getDevice().getAddress() + "点击事件("+data[0]+")--->报警广播数据");
                         if (data[0] == 02) {
                             if (!Common.isBell()) {
                                 LogUtils.d("贴片在勿扰范围内,报警忽略!!");
@@ -513,7 +515,7 @@ public  class BleService extends Service {
             intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_COMPLETE);
             intent.putExtra("address", bleDevice.getAddress());
             sendBroadcast(intent);
-            BleClient.getInstance().disConnect(bleDevice.getAddress());
+//            BleClient.getInstance().disConnect(bleDevice.getAddress());
             if(mDeviceMap.containsKey(bleDevice.getAddress())){
                 mDeviceMap.remove(bleDevice.getAddress());
             }
@@ -527,6 +529,7 @@ public  class BleService extends Service {
             isBind=false;
         }else{
             LogUtils.d("bleService","贴片解绑失败----->"+bleDevice.getAddress());
+            unbindDevice(address);
         }
     }
 
