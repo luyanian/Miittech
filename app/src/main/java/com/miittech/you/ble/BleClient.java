@@ -189,6 +189,11 @@ public class BleClient {
                     if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
 
                     } else {
+                        try {
+                            Thread.sleep(300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         boolean success1 = gatt.setCharacteristicNotification(buttonCharacteristic, true);
                         LogUtils.d("bleService", gatt.getDevice().getAddress() + "--->setCharacteristicNotification = " + success1);
                         final BluetoothGattDescriptor descriptor = buttonCharacteristic.getDescriptor(UUID.fromString(BleUUIDS.CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID));
@@ -201,7 +206,11 @@ public class BleClient {
                 }
 
             }
-
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             BluetoothGattService battaryGattServer = gatt.getService(UUID.fromString(BleUUIDS.batServiceUUID));
             BluetoothGattCharacteristic batCharacteristic = buttonGattServer.getCharacteristic(UUID.fromString(BleUUIDS.batCharacteristicUUID));
             if(batCharacteristic!=null) {
@@ -214,6 +223,11 @@ public class BleClient {
                     LogUtils.d("bleService", gatt.getDevice().getAddress() + "--->setCharacteristicNotification = " + success1);
                     final BluetoothGattDescriptor descriptor = batCharacteristic.getDescriptor(UUID.fromString(BleUUIDS.CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID));
                     if (descriptor != null) {
+                        try {
+                            Thread.sleep(300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                         boolean success2 = gatt.writeDescriptor(descriptor);
                         LogUtils.d("bleService", gatt.getDevice().getAddress() + "--->writeDescriptor:NOTIFICATION_VALUE = " + success2);
@@ -250,7 +264,8 @@ public class BleClient {
                 BluetoothGatt mBluetoothGatt = bluetoothGatts.get(mac);
                 isActivityDisConnects.put(mac, true);
                 mBluetoothGatt.disconnect();
-//            mBluetoothGatt.close();
+                mBluetoothGatt.close();
+                bluetoothGatts.remove(mac);
             }
         }
     }
@@ -279,9 +294,10 @@ public class BleClient {
                 if (bluetoothGatt != null) {
                     isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(), true);
                     bluetoothGatt.disconnect();
-//                  bluetoothGatt.close();
+                    bluetoothGatt.close();
                 }
             }
+            bluetoothGatts.clear();
         }
     }
 
@@ -302,9 +318,10 @@ public class BleClient {
                 BleClient.getInstance().write(bluetoothGatt.getDevice().getAddress(), BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data);
                 isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(),true);
                 bluetoothGatt.disconnect();
-//                bluetoothGatt.close();
+                bluetoothGatt.close();
             }
         }
+        bluetoothGatts.clear();
     }
 
     public void enaableBluetooth() {

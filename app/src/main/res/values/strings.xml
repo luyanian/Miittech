@@ -61,7 +61,7 @@
     <string name="text_location_service">定位服务</string>
     <string name="text_location_open_tip">开启后，当你忘带东西时，贴片才能帮你记录位置</string>
     <string name="text_notification">通知</string>
-    <string name="text_notification_open_tip">开启后麦当您忘带东西时，贴片才能提醒你</string>
+    <string name="text_notification_open_tip">开启后，当您忘带东西时，贴片才能提醒你</string>
     <string name="text_background_application_refresh">后台应用刷新</string>
     <string name="text_background_application_open_tip">开启后，智能贴片app才能与贴片保持连接</string>
     <string name="text_function_of_normal_user">需要开启以上功能，贴片才能正常工作</string>

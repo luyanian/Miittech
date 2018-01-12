@@ -81,6 +81,7 @@ public  class BleService extends Service {
     private Map<String,Boolean> mAlertingMap = new HashMap<>();
     private Map<String,Byte> mLinkLoseMap = new HashMap<>();
     private List<String> mConnectMac=new ArrayList<>();
+    private Map<String,Boolean> isIgnoreEvents = new HashMap<>();
     private Map<String,Boolean> mNotFirstConnect = new HashMap<>();
     private Map<String,Boolean> mNotFirstDisConnect = new HashMap<>();
     private boolean isBind = false;
@@ -443,7 +444,11 @@ public  class BleService extends Service {
                                 doPlay(deviceInfo);
                             }
                         }
-                        Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE, null);
+                        if(isIgnoreEvents.containsKey(mac)&&isIgnoreEvents.get(mac)) {
+                            isIgnoreEvents.remove(mac);
+                        }else{
+                            Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE, null);
+                        }
                     }
                 }
 
@@ -515,7 +520,8 @@ public  class BleService extends Service {
             intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_COMPLETE);
             intent.putExtra("address", bleDevice.getAddress());
             sendBroadcast(intent);
-//            BleClient.getInstance().disConnect(bleDevice.getAddress());
+            isIgnoreEvents.put(bleDevice.getAddress(),true);
+            BleClient.getInstance().disConnect(bleDevice.getAddress());
             if(mDeviceMap.containsKey(bleDevice.getAddress())){
                 mDeviceMap.remove(bleDevice.getAddress());
             }
