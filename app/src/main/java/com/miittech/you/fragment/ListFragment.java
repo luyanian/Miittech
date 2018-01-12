@@ -132,8 +132,7 @@ public class ListFragment extends Fragment {
                 llBluetoothDisabled.setVisibility(View.VISIBLE);
             }
         }
-        RxPermissions rxPermissions = new RxPermissions(getActivity());
-        if (rxPermissions.isGranted(Manifest.permission.ACCESS_FINE_LOCATION) || rxPermissions.isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+        if (Common.isLocationEnabled()) {
             if(llLocationServiceDisabled!=null) {
                 llLocationServiceDisabled.setVisibility(View.GONE);
             }
@@ -142,8 +141,7 @@ public class ListFragment extends Fragment {
                 llLocationServiceDisabled.setVisibility(View.VISIBLE);
             }
         }
-        NotificationManagerCompat manager = NotificationManagerCompat.from(App.getInstance().getApplicationContext());
-        if (manager.areNotificationsEnabled()) {
+        if (Common.isNotificationEnabled()) {
             if(llNotifyServiceDisabled!=null) {
                 llNotifyServiceDisabled.setVisibility(View.GONE);
             }

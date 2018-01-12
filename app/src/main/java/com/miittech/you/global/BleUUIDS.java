@@ -20,6 +20,6 @@ public class BleUUIDS {
     public final static String batCharacteristicUUID= "00002a19-0000-1000-8000-00805f9b34fb";
 
 
-    public final static String UUID_CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR = "00002902-0000-1000-8000-00805f9b34fb";
+    public final static String CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID = "00002902-0000-1000-8000-00805f9b34fb";
 
 }

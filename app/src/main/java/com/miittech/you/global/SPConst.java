@@ -6,6 +6,7 @@ package com.miittech.you.global;
 
 public class SPConst{
     public static final String LOC_INFO="locInfo";
+    public static final String isOpenNotification ="is_open_notification";
     public static class USER{
         public static final String SP_NAME="session";
         public static final String KEY_TOCKEN="tocken";

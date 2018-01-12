@@ -68,15 +68,15 @@ public class DialogUtils {
         selectDialog = new SelectTimeDialog(context);
         return selectDialog;
     }
-    static SoundCloseDialog soundCloseDialog;
+//    static SoundCloseDialog soundCloseDialog;
     public synchronized SoundCloseDialog showSoundCloseDialog(Context context) {
-        if(soundCloseDialog!=null){
-            if(soundCloseDialog.isShowing()){
-                soundCloseDialog.dismiss();
-            }
-            soundCloseDialog=null;
-        }
-        soundCloseDialog = new SoundCloseDialog(context);
+//        if(soundCloseDialog!=null){
+//            if(soundCloseDialog.isShowing()){
+//                soundCloseDialog.dismiss();
+//            }
+//            soundCloseDialog=null;
+//        }
+        SoundCloseDialog soundCloseDialog = new SoundCloseDialog(context);
         soundCloseDialog.show();
         return soundCloseDialog;
     }

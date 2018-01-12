@@ -14,6 +14,8 @@ import android.widget.TextView;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceAddActivity;
 import com.miittech.you.activity.setting.SettingActivity;
+import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.entity.MsgData;
 import com.miittech.you.utils.Common;
 import com.miittech.you.fragment.EventsFragment;
 import com.miittech.you.fragment.ListFragment;
@@ -21,9 +23,12 @@ import com.miittech.you.fragment.MapFragment;
 import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.utils.MapDeviceUsersPopWindowOptions;
+import com.miittech.you.utils.MsgDataUtils;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.ToastUtils;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -90,6 +95,13 @@ public class MainActivity extends BaseActivity {
             }
         });
         Common.getAppVersion(this,false);
+        if(MsgDataUtils.getInstance().hasMsg()){
+            List<MsgData> msgDataList = MsgDataUtils.getInstance().getAllMsg();
+            for(MsgData msgData : msgDataList){
+                DialogUtils.getInstance().showSoundCloseDialog(this).setSoundId(msgData.getSoundId()).setDevTitle(msgData.getDevName());
+            }
+            MsgDataUtils.getInstance().clear();
+        }
     }
 
     @OnClick({R.id.tab_list, R.id.tab_map, R.id.tab_events})

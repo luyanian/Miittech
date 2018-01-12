@@ -9,12 +9,10 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Entity;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.text.TextUtils;
-
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClient;
@@ -336,13 +334,7 @@ public  class BleService extends Service {
         sendBroadcast(intent);
         BleClient.getInstance().startScan(new ScanResultCallback(){
             @Override
-            public void onScanFailed(int errorCode) {
-                super.onScanFailed(errorCode);
-            }
-
-            @Override
             public void onScaning(ScanResult scanResult) {
-                super.onScaning(scanResult);
                 if(scanResult==null||TextUtils.isEmpty(scanResult.getName())||!scanResult.getName().contains("yoowoo")){
                     return;
                 }
