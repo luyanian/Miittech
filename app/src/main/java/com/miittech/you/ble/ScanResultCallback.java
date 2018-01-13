@@ -11,6 +11,6 @@ import java.util.List;
 /**
  * Created by Administrator on 2018/1/10.
  */
-public abstract class ScanResultCallback{
-    public abstract void onScaning(com.miittech.you.ble.ScanResult scanResult);
+public class ScanResultCallback{
+    public synchronized void onScaning(com.miittech.you.ble.ScanResult scanResult){};
 }

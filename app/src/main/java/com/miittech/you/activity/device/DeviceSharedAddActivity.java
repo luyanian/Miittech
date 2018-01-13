@@ -63,7 +63,7 @@ public class DeviceSharedAddActivity extends BaseActivity implements TypeSelecto
         setContentView(R.layout.activity_device_shared_add);
         devinfoBean = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         ButterKnife.bind(this);
-        initMyTitleBar(titlebar,R.string.text_setting_myfriends_add);
+        initMyTitleBar(titlebar,"立即分享");
         titlebar.showBackOption();
         titlebar.setTitleBarOptions(new TitleBarOptions(){
             @Override

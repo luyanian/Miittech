@@ -94,7 +94,7 @@ public class EventLogFragment extends Fragment {
             }
         });
         recyclerview.setAdapter(eventLogAdapter);
-        getEventList();
+        refreshLayout.autoRefresh();
     }
 
     @Override

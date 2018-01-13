@@ -1,6 +1,9 @@
 package com.miittech.you.activity.user;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,6 +16,8 @@ import com.google.gson.Gson;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.MyFriendsAdapter;
+import com.miittech.you.fragment.ListFragment;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.utils.Common;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.Params;
@@ -59,6 +64,7 @@ public class MyFriendsActivity extends BaseActivity {
     SmartRefreshLayout refreshLayout;
     private MyFriendsAdapter mAdapter;
     private FriendsResponse response;
+    private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,12 +123,22 @@ public class MyFriendsActivity extends BaseActivity {
         });
         mAdapter.setMode(Attributes.Mode.Single);
         recyclerView.setAdapter(mAdapter);
+
+        IntentFilter filter=new IntentFilter();
+        filter.addAction(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE);
+        registerReceiver(cmdResponseReceiver,filter);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         getFrinds();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(cmdResponseReceiver);
     }
 
     private void getFrinds() {
@@ -187,5 +203,19 @@ public class MyFriendsActivity extends BaseActivity {
     public void onViewClicked() {
         Intent intent = new Intent(this,FriendBeInvitedActivity.class);
         startActivity(intent);
+    }
+    private class CmdResponseReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE)){
+                int cmd = intent.getIntExtra("cmd", -1);//获取Extra信息
+                switch (cmd){
+                    case IntentExtras.HANDLER.MSG_HANDLER_DEVECE_LIST:
+                        refreshLayout.autoRefresh();
+                        break;
+                }
+            }
+        }
     }
 }

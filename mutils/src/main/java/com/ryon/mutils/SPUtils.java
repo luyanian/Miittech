@@ -26,7 +26,6 @@ import java.util.Set;
  * </pre>
  */
 public final class SPUtils {
-
     private static SimpleArrayMap<String, SPUtils> SP_UTILS_MAP = new SimpleArrayMap<>();
     private SharedPreferences sp;
 
@@ -278,6 +277,15 @@ public final class SPUtils {
      */
     public void clear() {
         sp.edit().clear().apply();
+    }
+
+    public void clearAll(){
+        for(int i=0;i<SP_UTILS_MAP.size();i++){
+            SPUtils spUtils = SP_UTILS_MAP.valueAt(i);
+            if(spUtils!=null){
+                spUtils.clear();
+            }
+        }
     }
 
     private static boolean isSpace(final String s) {

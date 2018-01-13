@@ -219,6 +219,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                         setConnectStatusStyle(address);
                         updateItemData(address);
                         break;
+                    case IntentExtras.RET.RET_BLE_STATE_OFF:
+                        notifyDataSetChanged();
+                        break;
                 }
 
             }

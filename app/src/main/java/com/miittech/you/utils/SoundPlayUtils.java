@@ -36,7 +36,7 @@ public class SoundPlayUtils {
      * 
      * @param context
      */
-    public static SoundPlayUtils init(Context context) {
+    public synchronized static SoundPlayUtils init(Context context) {
         if (soundPlayUtils == null) {
             soundPlayUtils = new SoundPlayUtils();
         }
@@ -54,14 +54,14 @@ public class SoundPlayUtils {
      * 
      * @param soundID
      */
-    public static void playSound(int soundID) {
+    public synchronized static void playSound(int soundID) {
         stopAll();
-        int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
+        int playId = mSoundPlayer.play(soundID, 1, 1, 0, 0, 1);
         soundIds.add(playId);
     }
-    public static void play(int soundID,int duration,boolean isShake,String devName) {
+    public synchronized static void play(int soundID,int duration,boolean isShake,String devName) {
         stopAll();
-        int playId = mSoundPlayer.play(soundID, 1, 1, 0, -1, 1);
+        int playId = mSoundPlayer.play(soundID, 1, 1, 0, 0, 1);
         soundIds.add(playId);
         if(isShake) {
             long[] patter = {800, 800};
@@ -71,7 +71,7 @@ public class SoundPlayUtils {
         timer.schedule(new MyTimerTask(), duration);
     }
 
-    public static void stopAll(){
+    public synchronized static void stopAll(){
         for (int soundId : soundIds){
             mSoundPlayer.stop(soundId);
         }
@@ -80,7 +80,7 @@ public class SoundPlayUtils {
         }
         soundIds.clear();
     }
-    public static void stop(int soundId) {
+    public synchronized static void stop(int soundId) {
         mSoundPlayer.stop(soundId);
         if(soundIds.contains(soundId)) {
             soundIds.remove(soundId);
@@ -97,7 +97,7 @@ public class SoundPlayUtils {
         }
     };
 
-    private static void localNotify(Context context, int playId, boolean isShake,String devName) {
+    private synchronized static void localNotify(Context context, int playId, boolean isShake,String devName) {
         NotificationManager manager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
         mBuilder.setContentTitle("有物查找手机报警中")//设置通知栏标题

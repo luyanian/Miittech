@@ -32,18 +32,19 @@ public class IntentExtras {
         public final static String ACTION_SOUND_PLAY_ONCLICK="com.mittech.you.device.sound.onclick";
         public final static String ACTION_SOUND_PLAY_DIALOG="com.mittech.you.device.sound.dialog";
         public final static String ACTION_TASK_SEND="com.mittech.you.task.send";
+        public final static String ACTION_RECEIVE_MESSAGE="com.mittech.you.receive.msg";
     }
     public static class CMD{
-        public final static int CMD_DEVICE_LIST_ADD = 0x010;
-        public final static int CMD_DEVICE_CONNECT_BIND = 0x011;
-        public final static int CMD_DEVICE_ALERT_START=0x012;
-        public final static int CMD_DEVICE_ALERT_STOP=0x013;
-        public final static int CMD_DEVICE_UNBIND=0x014;
-        public final static int CMD_DEVICE_LIST_CLEAR=0x015;
-        public final static int CMD_TASK_EXCE=0x016;
-        public final static int CMD_DEVICE_BIND_SCAN=0x017;
-        public final static int CMD_DEVICE_UNBIND_ERROR=0x018;
-        public final static int CMD_DEVICE_SCANING=0x019;
+        public final static int CMD_DEVICE_LIST_ADD = 0x10;
+        public final static int CMD_DEVICE_CONNECT_BIND = 0x11;
+        public final static int CMD_DEVICE_ALERT_START=0x12;
+        public final static int CMD_DEVICE_ALERT_STOP=0x13;
+        public final static int CMD_DEVICE_UNBIND=0x14;
+        public final static int CMD_DEVICE_LIST_CLEAR=0x15;
+        public final static int CMD_TASK_EXCE=0x16;
+        public final static int CMD_DEVICE_BIND_SCAN=0x17;
+        public final static int CMD_DEVICE_UNBIND_ERROR=0x18;
+        public final static int CMD_DEVICE_SCANING=0x19;
     }
     public static class RET{
         public final static int RET_BLE_SCAN_START=0x20;
@@ -53,17 +54,21 @@ public class IntentExtras {
         public final static int RET_BLE_CONNECT_FAILED=0x024;
         public final static int RET_BLE_DISCONNECT=0x025;
         public final static int RET_BLE_FIND_BIND_DEVICE=0x26;
-        public final static int RET_BLE_MODE_BIND_SUCCESS=0x027;
-        public final static int RET_BLE_MODE_BIND_FAIL=0x028;
-        public final static int RET_BLE_MODE_WORK_SUCCESS=0x029;
-        public final static int RET_BLE_MODE_WORK_FAIL=0x030;
-        public final static int RET_BLE_ALERT_STARTED=0x031;
-        public final static int RET_BLE_ALERT_STOPED=0x032;
+        public final static int RET_BLE_MODE_BIND_SUCCESS=0x27;
+        public final static int RET_BLE_MODE_BIND_FAIL=0x28;
+        public final static int RET_BLE_MODE_WORK_SUCCESS=0x29;
+        public final static int RET_BLE_MODE_WORK_FAIL=0x30;
+        public final static int RET_BLE_ALERT_STARTED=0x31;
+        public final static int RET_BLE_ALERT_STOPED=0x32;
         public final static int RET_BLE_UNBIND_COMPLETE=0x33;
-        public final static int RET_BLE_READ_RSSI=0x034;
-        public final static int RET_BLE_READ_BATTERY=0x035;
-        public final static int LOCATION=0x036;
-        public final static int RET_BLE_STATE_ON=0x037;
-        public final static int RET_BLE_STATE_OFF=0x038;
+        public final static int RET_BLE_READ_RSSI=0x04;
+        public final static int RET_BLE_READ_BATTERY=0x35;
+        public final static int LOCATION=0x36;
+        public final static int RET_BLE_STATE_ON=0x37;
+        public final static int RET_BLE_STATE_OFF=0x38;
+    }
+    public static class HANDLER{
+        public final static int MSG_HANDLER_DEVECE_LIST = 0x50;
+        public final static int MSG_HANDLER_FRIEND_LIST = 0x51;
     }
 }

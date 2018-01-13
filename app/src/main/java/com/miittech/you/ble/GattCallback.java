@@ -9,9 +9,9 @@ import android.bluetooth.BluetoothGattCallback;
  */
 
 public abstract class GattCallback extends BluetoothGattCallback {
-    public abstract void onStartConnect(BluetoothDevice device);
+    public abstract boolean onStartConnect(String device);
 
-    public abstract void onConnectFail(BluetoothDevice device);
+    public abstract void onConnectFail(String device);
 
     public abstract void onConnectSuccess(BluetoothDevice device, BluetoothGatt gatt, int status);
 

@@ -185,6 +185,9 @@ public class MyReceiver extends BroadcastReceiver {
 						public void onSure() {
 							super.onSure();
 							Common.AddFriendConfirm(context, jpushMsg.getExtras().getSourceid(), Params.METHOD.FRIEND_CONFIRM);
+							Intent cmd= new Intent(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE);
+							cmd.putExtra("cmd",IntentExtras.HANDLER.MSG_HANDLER_FRIEND_LIST);
+							context.sendBroadcast(cmd);
 						}
 
 						@Override
@@ -211,6 +214,9 @@ public class MyReceiver extends BroadcastReceiver {
 						public void onSure() {
 							super.onSure();
 							Common.eventConfirm(activity, jpushMsg.getExtras().getEventid(), Params.METHOD.CONFIRM_YES);
+							Intent cmd= new Intent(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE);
+							cmd.putExtra("cmd",IntentExtras.HANDLER.MSG_HANDLER_DEVECE_LIST);
+							context.sendBroadcast(cmd);
 						}
 
 						@Override
@@ -228,8 +234,7 @@ public class MyReceiver extends BroadcastReceiver {
 				Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
 				cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
 				context.sendBroadcast(cmd);
-				SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
-
+				SPUtils.getInstance().clearAll();
 				DialogUtils.getInstance().createMsgTipDialog(activity)
 						.setTitle(jpushMsg.getTitle())
 						.setMsg(jpushMsg.getMsg_content())

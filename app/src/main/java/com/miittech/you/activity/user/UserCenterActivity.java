@@ -452,8 +452,7 @@ public class UserCenterActivity extends BaseActivity {
                             Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                             cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
                             sendBroadcast(cmd);
-                            SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
-                            SPUtils.getInstance().clear();
+                            SPUtils.getInstance().clearAll();
                             Intent intent = new Intent(UserCenterActivity.this,LoginRegisteActivity.class);
                             startActivity(intent);
                             ActivityPools.finishAllExcept(LoginRegisteActivity.class);

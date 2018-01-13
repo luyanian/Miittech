@@ -117,8 +117,10 @@ public class ListFragment extends Fragment {
         });
         recyclerView.setAdapter(mDeviceListAdapter);
         initState();
+
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+        filter.addAction(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE);
         getActivity().registerReceiver(cmdResponseReceiver,filter);
     }
 
@@ -260,6 +262,14 @@ public class ListFragment extends Fragment {
                         break;
                 }
 
+            }
+            if(intent.getAction().equals(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE)){
+                int cmd = intent.getIntExtra("cmd", -1);//获取Extra信息
+                switch (cmd){
+                    case IntentExtras.HANDLER.MSG_HANDLER_DEVECE_LIST:
+                        refreshLayout.autoRefresh();
+                        break;
+                }
             }
         }
     }
