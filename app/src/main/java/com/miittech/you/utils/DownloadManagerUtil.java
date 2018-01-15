@@ -29,7 +29,13 @@ public class DownloadManagerUtil {
         req.setMimeType("application/vnd.android.package-archive");
         //获取下载任务ID  
         DownloadManager dm = (DownloadManager) mContext.getSystemService(Context.DOWNLOAD_SERVICE);
-        return dm.enqueue(req);
+        long downloadId = -1;
+        try {
+            downloadId = dm.enqueue(req);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return downloadId;
     }
 
     /**

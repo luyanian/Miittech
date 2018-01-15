@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.dialog.UpdateDialog;
 import com.miittech.you.entity.Detailinfo;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
@@ -313,18 +314,30 @@ public class Common {
                                 return;
                             }
                             if(curVersion.compareTo(response.getVersion().getLast())<0&&isAuto){//不强制升级
-                                DialogUtils.getInstance().showUpdateDialog(context,true)
-                                        .setTitle("版本更新")
-                                        .setMsg("检查到新的版本 v"+response.getVersion().getLast()+",请及时更新")
-                                        .setLeftBtnText("取消")
-                                        .setRightBtnText("更新")
-                                        .setOnMsgTipOptions(new OnMsgTipOptions(){
+                                final UpdateDialog updateDialog = DialogUtils.getInstance().showUpdateDialog(context,true);
+                                updateDialog.setTitle("版本更新");
+                                updateDialog.setMsg("检查到新的版本 v"+response.getVersion().getLast()+",请及时更新");
+                                updateDialog.setLeftBtnText("取消");
+                                updateDialog.setRightBtnText("更新");
+                                updateDialog.setOnMsgTipOptions(new OnMsgTipOptions(){
                                             @Override
                                             public void onSure() {
                                                 super.onSure();
                                                 Common.download(context,response.getVersion().getLasturl());
+                                                if(updateDialog!=null&&updateDialog.isShowing()){
+                                                    updateDialog.dismiss();
+                                                }
                                             }
-                                        }).show();
+
+                                            @Override
+                                            public void onCancel() {
+                                                super.onCancel();
+                                                if(updateDialog!=null&&updateDialog.isShowing()){
+                                                    updateDialog.dismiss();
+                                                }
+                                            }
+                                        });
+                                updateDialog.show();
                                 return;
                             }
                             if(curVersion.compareTo(response.getVersion().getLast())>=0&&isAuto) {//不强制升级

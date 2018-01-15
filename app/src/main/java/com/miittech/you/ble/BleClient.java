@@ -16,6 +16,7 @@ import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.miittech.you.App;
 import com.miittech.you.global.BleUUIDS;
 import com.ryon.mutils.LogUtils;
 
@@ -51,13 +52,14 @@ public class BleClient {
         if(bleClient==null){
             synchronized (BleClient.class){
                 bleClient = new BleClient();
+                bleClient.initContext();
             }
         }
         return bleClient;
     }
-    public void init(Context context){
-        this.context = context;
-        bluetoothManager =(BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+    public void initContext(){
+        this.context = App.getInstance();
+        bluetoothManager =(BluetoothManager) App.getInstance().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
         if(mBluetoothAdapter!=null&&Build.VERSION.SDK_INT> 24){
             bluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
@@ -76,7 +78,7 @@ public class BleClient {
         }
     }
 
-    public synchronized void connectDevice(final BluetoothDevice mDevice, final GattCallback mGattCallback){
+    public synchronized void connectDevice(BluetoothDevice mDevice, final GattCallback mGattCallback){
         this.mGattCallback = mGattCallback;
         synchronized (mConnecttingList) {
             if (mConnecttingList.contains(mDevice.getAddress())) {
@@ -103,29 +105,33 @@ public class BleClient {
                             gatt.discoverServices();
                         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                             if(mBluetoothAdapter.isEnabled()) {
-                                if (gatt != null && mConnecttingList.contains(gatt.getDevice().getAddress())
-                                        && isActivityDisConnects.containsKey(mDevice.getAddress()) && !isConnected(gatt.getDevice().getAddress())
-                                        && isDisConnectMaps.containsKey(mDevice.getAddress()) && isDisConnectMaps.get(mDevice.getAddress())) {
-                                    mGattCallback.onDisConnected(isActivityDisConnects.get(mDevice.getAddress()), mDevice, gatt, newState);
-                                    isDisConnectMaps.put(gatt.getDevice().getAddress(), false);
-                                    if (bluetoothGatts.containsKey(gatt.getDevice().getAddress())) {
-                                        BluetoothGatt bluetoothGatt = bluetoothGatts.get(gatt.getDevice().getAddress());
-                                        if (bluetoothGatt != null) {
-                                            refresh(bluetoothGatt);
-                                            bluetoothGatt.disconnect();
-                                            bluetoothGatt.close();
-                                        } else {
-                                            refresh(gatt);
-                                            gatt.disconnect();
-                                            gatt.close();
+
+                                if (gatt != null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
+                                    String mac = gatt.getDevice().getAddress();
+                                    if (mConnecttingList.contains(gatt.getDevice().getAddress())
+                                            && isActivityDisConnects.containsKey(mac) && !isConnected(gatt.getDevice().getAddress())
+                                            && isDisConnectMaps.containsKey(mac) && isDisConnectMaps.get(mac)) {
+                                        mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                        isDisConnectMaps.put(gatt.getDevice().getAddress(), false);
+                                        if (bluetoothGatts.containsKey(gatt.getDevice().getAddress())) {
+                                            BluetoothGatt bluetoothGatt = bluetoothGatts.get(gatt.getDevice().getAddress());
+                                            if (bluetoothGatt != null) {
+                                                refresh(bluetoothGatt);
+                                                bluetoothGatt.disconnect();
+                                                bluetoothGatt.close();
+                                            } else {
+                                                refresh(gatt);
+                                                gatt.disconnect();
+                                                gatt.close();
+                                            }
+                                            bluetoothGatts.remove(gatt.getDevice().getAddress());
                                         }
-                                        bluetoothGatts.remove(gatt.getDevice().getAddress());
+                                    } else if (gatt != null) {
+                                        mGattCallback.onConnectFail(mac);
+                                        refresh(gatt);
+                                        gatt.disconnect();
+                                        gatt.close();
                                     }
-                                } else if (gatt != null) {
-                                    mGattCallback.onConnectFail(mDevice.getAddress());
-                                    refresh(gatt);
-                                    gatt.disconnect();
-                                    gatt.close();
                                 }
                                 if (mConnecttingList.contains(gatt.getDevice().getAddress())) {
                                     mConnecttingList.remove(gatt.getDevice().getAddress());
@@ -138,7 +144,9 @@ public class BleClient {
                 @Override
                 public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
                     super.onReadRemoteRssi(gatt, rssi, status);
-                    mGattCallback.onReadRemoteRssi(gatt, rssi, status);
+                    if(gatt!=null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
+                        mGattCallback.onReadRemoteRssi(gatt.getDevice().getAddress(), rssi, status);
+                    }
                 }
 
                 @Override
@@ -157,7 +165,7 @@ public class BleClient {
                             bluetoothGatts.put(gatt.getDevice().getAddress(), gatt);
                             isActivityDisConnects.put(gatt.getDevice().getAddress(), false);
                             isDisConnectMaps.put(gatt.getDevice().getAddress(), true);
-                            mGattCallback.onConnectSuccess(gatt.getDevice(), gatt, status);
+                            mGattCallback.onConnectSuccess(gatt.getDevice().getAddress(), status);
                             setNotify(gatt);
                         }
                     } else {
@@ -168,15 +176,18 @@ public class BleClient {
                 @Override
                 public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
                     super.onCharacteristicChanged(gatt, characteristic);
-                    mGattCallback.onCharacteristicChanged(gatt, characteristic);
+                    if(gatt!=null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
+                        mGattCallback.onCharacteristicChanged(gatt.getDevice().getAddress(), characteristic);
+                    }
                 }
 
                 @Override
                 public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     super.onCharacteristicWrite(gatt, characteristic, status);
-                    mGattCallback.onCharacteristicWrite(gatt, characteristic, status);
+                    if(gatt!=null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
+                        mGattCallback.onCharacteristicWrite(gatt.getDevice().getAddress(), characteristic, status);
+                    }
                 }
-
             });
         }
     }
@@ -195,7 +206,7 @@ public class BleClient {
                 }
                 if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
                     BluetoothGatt gatt = bluetoothGatts.get(mac);
-                    if(gatt!=null) {
+                    if(gatt!=null&&gatt.getDevice()!=null) {
                         BluetoothGattService bluetoothGattServer = gatt.getService(UUID.fromString(uuid_service));
                         if(bluetoothGattServer!=null) {
                             BluetoothGattCharacteristic gattCharacteristic = bluetoothGattServer.getCharacteristic(UUID.fromString(uuid_write));
@@ -203,11 +214,11 @@ public class BleClient {
                                 gattCharacteristic.setValue(data);
                                 if(gatt.writeCharacteristic(gattCharacteristic)){
                                     if(bleWriteCallback!=null){
-                                        bleWriteCallback.onWriteSuccess(gatt);
+                                        bleWriteCallback.onWriteSuccess(gatt.getDevice());
                                     }
                                 }else{
                                     if(bleWriteCallback!=null){
-                                        bleWriteCallback.onWriteFialed(gatt);
+                                        bleWriteCallback.onWriteFialed(gatt.getDevice());
                                     }
                                 }
                             }
@@ -375,20 +386,20 @@ public class BleClient {
 
     public void disconnectAllWithLinklose(byte[] data) {
         for(int i=0;i<bluetoothGatts.size();i++){
-            BluetoothGatt bluetoothGatt = bluetoothGatts.valueAt(i);
+            final BluetoothGatt bluetoothGatt = bluetoothGatts.valueAt(i);
             if(bluetoothGatt!=null){
                 if(bluetoothGatt.getDevice()!=null){
                     if(isConnected(bluetoothGatt.getDevice().getAddress())){
                         BleClient.getInstance().write(bluetoothGatt.getDevice().getAddress(), BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data, new BleWriteCallback() {
                             @Override
-                            public void onWriteSuccess(BluetoothGatt bluetoothGatt) {
-                                isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(),true);
+                            public void onWriteSuccess(BluetoothDevice device) {
+                                isActivityDisConnects.put(device.getAddress(),true);
                                 bluetoothGatt.disconnect();
                                 bluetoothGatt.close();
                             }
 
                             @Override
-                            public void onWriteFialed(BluetoothGatt bluetoothGatt) {
+                            public void onWriteFialed(BluetoothDevice device) {
                                 isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(),true);
                                 bluetoothGatt.disconnect();
                                 bluetoothGatt.close();
@@ -442,11 +453,15 @@ public class BleClient {
             for (int i=0;i<bluetoothGatts.size();i++) {
                 BluetoothGatt bluetoothGatt = bluetoothGatts.valueAt(i);
                 if (bluetoothGatt != null) {
-                    isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(), true);
+                    String mac = "";
+                    if(bluetoothGatt.getDevice()!=null){
+                        mac = bluetoothGatt.getDevice().getAddress();
+                    }
+                    isActivityDisConnects.put(mac, true);
                     bluetoothGatt.disconnect();
                     bluetoothGatt.close();
                     if (mGattCallback!=null) {
-                        mGattCallback.onDisConnected(false, bluetoothGatt.getDevice(), bluetoothGatt, BluetoothGatt.STATE_DISCONNECTED);
+                        mGattCallback.onDisConnected(false, mac, BluetoothGatt.STATE_DISCONNECTED);
                     }
                 }
             }

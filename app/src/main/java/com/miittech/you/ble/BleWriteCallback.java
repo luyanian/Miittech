@@ -8,6 +8,6 @@ import android.bluetooth.BluetoothGatt;
  */
 
 public class BleWriteCallback {
-    public synchronized void onWriteSuccess(BluetoothGatt bluetoothGatt){};
-    public synchronized void onWriteFialed(BluetoothGatt bluetoothGatt){};
+    public synchronized void onWriteSuccess(BluetoothDevice device){};
+    public synchronized void onWriteFialed(BluetoothDevice device){};
 }

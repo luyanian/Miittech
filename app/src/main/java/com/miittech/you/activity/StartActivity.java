@@ -19,14 +19,14 @@ public class StartActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent();
-                if(!TextUtils.isEmpty(Common.getTocken())){
-                    intent.setClass(StartActivity.this, MainActivity.class);
-                }else{
-                    intent.setClass(StartActivity.this, LoginRegisteActivity.class);
-                }
-                startActivity(intent);
-                finish();
+            Intent intent = new Intent();
+            if(!TextUtils.isEmpty(Common.getTocken())){
+                intent.setClass(StartActivity.this, MainActivity.class);
+            }else{
+                intent.setClass(StartActivity.this, LoginRegisteActivity.class);
+            }
+            startActivity(intent);
+            finish();
             }
         },3000);
     }

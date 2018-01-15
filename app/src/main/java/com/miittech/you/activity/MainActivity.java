@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -26,6 +27,7 @@ import com.miittech.you.utils.MapDeviceUsersPopWindowOptions;
 import com.miittech.you.utils.MsgDataUtils;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
+import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.ToastUtils;
 
 import java.util.List;

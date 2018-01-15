@@ -86,7 +86,6 @@ public class UpdateDialog extends Dialog {
         if (this.onMsgTipOptions != null) {
             this.onMsgTipOptions.onCancel();
         }
-        this.dismiss();
     }
 
     @OnClick(R.id.btn_button_sure)
@@ -94,6 +93,5 @@ public class UpdateDialog extends Dialog {
         if(this.onMsgTipOptions!=null){
             this.onMsgTipOptions.onSure();
         }
-        this.dismiss();
     }
 }
