@@ -42,7 +42,7 @@ public class DownloadReceiver extends BroadcastReceiver {
         if (downloadFileUri != null) {
             LogUtils.d("DownloadManager", downloadFileUri.toString());
             install.setDataAndType(downloadFileUri, "application/vnd.android.package-archive");
-            install.addFlags(FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_ACTIVITY_NEW_TASK);
+            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(install);
         } else {
             LogUtils.e("DownloadManager", "download error");

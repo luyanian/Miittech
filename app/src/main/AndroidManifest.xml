@@ -54,14 +54,13 @@
         android:theme="@style/AppTheme">
 
         <!-- ............................百度地图配置start.................... -->
-        <meta-data
-            android:name="com.baidu.lbsapi.API_KEY"
-            android:value="wqqGY9TTTHVqnOa5YPWZvcyBMLCvECZR" />
-
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"
             android:process=":remote" />
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="wqqGY9TTTHVqnOa5YPWZvcyBMLCvECZR" />
         <!-- ............................百度地图配置end.................... -->
 
         <!-- ............................ShareSDK配置start.................... -->

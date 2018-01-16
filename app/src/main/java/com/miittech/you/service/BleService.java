@@ -271,7 +271,7 @@ public  class BleService extends Service {
                 DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(bleDevice.getAddress());
                 if(deviceInfo!=null) {
                     if(mAlertingMap.containsKey(Common.formatDevId2Mac(deviceInfo.getDevidX()))&&mAlertingMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
-                        return;
+                        continue;
                     }
                     final byte[] data = new byte[1];
                     if (!Common.isBell()) {
@@ -795,7 +795,7 @@ public  class BleService extends Service {
                         if (mapBattery.containsKey(mac)) {
                             devItem.put("devbattery", mapBattery.get(mac));
                         } else {
-                            return;
+                            continue;
                         }
                         if (mapRssi.containsKey(mac)) {
                             int rssi = mapRssi.get(mac);
@@ -807,7 +807,7 @@ public  class BleService extends Service {
                                 devItem.put("devposstate", 1);
                             }
                         } else {
-                            return;
+                            continue;
                         }
                     } else {
                         devItem.put("devbattery", 0);
@@ -815,7 +815,7 @@ public  class BleService extends Service {
                         devItem.put("devstate", -99);
                     }
                 }else{
-                    return;
+                    continue;
                 }
             }
             devlist.add(devItem);

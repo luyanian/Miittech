@@ -90,6 +90,7 @@ public class BleClient {
             }
 
             if(bluetoothGatts.containsKey(mDevice.getAddress())){
+                mGattCallback.onConnectFail(mDevice.getAddress());
                 return;
             }
             if (mDevice == null) {
