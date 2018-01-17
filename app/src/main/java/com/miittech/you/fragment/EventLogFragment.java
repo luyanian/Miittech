@@ -162,18 +162,21 @@ public class EventLogFragment extends Fragment {
                     @Override
                     public void accept(UserInfoResponse response) throws Exception {
                         if (response.isSuccessful()) {
-                            if("1".equals(dir)){
-                                eventLogAdapter.refreshEventLog(response.getEventlist());
-                            }else if("2".equals(dir)){
-                                List<UserInfoResponse.EventlistBean> list = response.getEventlist();
-                                if(list!=null) {
-                                    UserInfoResponse.EventlistBean eventlistBean = list.get(list.size()-1);
-                                    if(eventlistBean!=null){
-                                        sid=eventlistBean.getEventid();
-                                    }
+                            List<UserInfoResponse.EventlistBean> list = response.getEventlist();
+                            if(list!=null) {
+                                UserInfoResponse.EventlistBean eventlistBean = list.get(list.size()-1);
+                                if(eventlistBean!=null){
+                                    sid=eventlistBean.getEventid();
+                                }
+                                if("1".equals(dir)){
+                                    eventLogAdapter.refreshEventLog(response.getEventlist());
+
+                                }else if("2".equals(dir)){
                                     eventLogAdapter.loadMoreEventLog(response.getEventlist());
                                 }
                             }
+
+
                         }else{
                             response.onError(getActivity());
                         }

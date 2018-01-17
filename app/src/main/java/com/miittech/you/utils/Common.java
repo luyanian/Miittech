@@ -1,7 +1,11 @@
 package com.miittech.you.utils;
 
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -33,6 +37,7 @@ import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.UserInfoResponse;
+import com.miittech.you.receiver.DownloadReceiver;
 import com.miittech.you.service.BleService;
 import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.EncryptUtils;
@@ -829,5 +834,17 @@ public class Common {
     public static boolean isNotificationEnabled(){
         NotificationManagerCompat manager = NotificationManagerCompat.from(App.getInstance().getApplicationContext());
         return manager.areNotificationsEnabled();
+    }
+
+    //调用函数缩小图片
+    public static synchronized BitmapDrawable getOverrideDrawable(Context context, int restId, int dstWidth, int dstHeight){
+        Bitmap Bmp = BitmapFactory.decodeResource(context.getResources(), restId);
+        Bitmap bmp = Bmp.createScaledBitmap(Bmp, dstWidth, dstHeight, true);
+        BitmapDrawable d = new BitmapDrawable(context.getResources(),bmp);
+        Bitmap bitmap = d.getBitmap();
+        if (bitmap.getDensity() == Bitmap.DENSITY_NONE) {
+            d.setTargetDensity(context.getResources().getDisplayMetrics());
+        }
+        return d;
     }
 }

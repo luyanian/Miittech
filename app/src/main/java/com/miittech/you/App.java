@@ -13,6 +13,7 @@ import com.miittech.you.utils.SoundPlayUtils;
 import com.miittech.you.service.BleService;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
+import com.ryon.mutils.CrashUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.Utils;
 
@@ -27,6 +28,12 @@ public class  App extends MobApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                e.printStackTrace();
+            }
+        });
         instance = this;
         SDKInitializer.initialize(getApplicationContext());
         JPushInterface.setDebugMode(true);

@@ -1,6 +1,8 @@
 package com.miittech.you.activity.setting;
 
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -155,6 +157,8 @@ public class IgnoreAddPointActivity extends BaseActivity {
                 updateMapLocalView(poiInfo.location);
             }
         });
+        BitmapDrawable drawable = Common.getOverrideDrawable(this,R.drawable.seekbar_thumb_normal,100,100);
+        seekbar.setThumb(drawable);
         seekbar.setMax(800);
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

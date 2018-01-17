@@ -107,13 +107,15 @@ public class MainActivity extends BaseActivity {
     }
 
     @OnClick({R.id.tab_list, R.id.tab_map, R.id.tab_events})
-    public void onViewClicked(View view) {
-        FragmentTransaction trans = fragmentManager.beginTransaction();
-        int vID = view.getId();
-        setMenuStyle(vID);
-        hideFrament(trans);
-        setFragment(vID, trans);
-        trans.commit();
+    public synchronized void onViewClicked(View view) {
+        synchronized (fragmentManager) {
+            FragmentTransaction trans = fragmentManager.beginTransaction();
+            int vID = view.getId();
+            setMenuStyle(vID);
+            hideFrament(trans);
+            setFragment(vID, trans);
+            trans.commitAllowingStateLoss();
+        }
     }
 
     /**

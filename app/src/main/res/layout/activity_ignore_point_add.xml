@@ -118,8 +118,7 @@
                 android:layout_centerVertical="true"
                 android:layout_toRightOf="@+id/tv_left"
                 android:layout_toLeftOf="@+id/tv_right"
-                android:progressDrawable="@drawable/shap_seekbar"
-                android:thumb="@drawable/shao_seekbar_thumb"/>
+                android:progressDrawable="@drawable/shap_seekbar"/>
         </RelativeLayout>
         <com.baidu.mapapi.map.MapView
             android:id="@+id/map_view"

@@ -96,12 +96,6 @@ public  class BleService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                e.printStackTrace();
-            }
-        });
         mLocationClient = new LocationClient(getApplicationContext());
         mLocationClient.registerLocationListener(myListener);
         LocationClientOption option = new LocationClientOption();
@@ -781,7 +775,7 @@ public  class BleService extends Service {
             devItem.put("devid", devlistBean.getDevidX());
             devItem.put("usedstate", devlistBean.getUsedstate());
             devItem.put("bindstate", 1);
-            if(TextUtils.isEmpty(devlistBean.getFriendname())){
+            if(!TextUtils.isEmpty(devlistBean.getFriendname())){
                 devItem.put("sourceid", 0);
                 devItem.put("devbattery",0);
                 devItem.put("devposstate", 0);

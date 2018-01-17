@@ -12,7 +12,7 @@ public class DownloadManagerUtil {
         mContext = context;
     }
 
-    public long download(String url, String title, String desc) {
+    public synchronized long download(String url, String title, String desc) {
         Uri uri = Uri.parse(url);
         DownloadManager.Request req = new DownloadManager.Request(uri);
         //设置WIFI下进行更新  
