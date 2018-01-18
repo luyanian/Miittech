@@ -106,7 +106,6 @@ public class BleClient {
                             gatt.discoverServices();
                         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                             if(mBluetoothAdapter.isEnabled()) {
-
                                 if (gatt != null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
                                     String mac = gatt.getDevice().getAddress();
                                     if (mConnecttingList.contains(gatt.getDevice().getAddress())

@@ -123,7 +123,7 @@ public  class BleService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         LogUtils.d("bleService-onStartCommand()");
-        scanDevice();
+//        scanDevice();
         AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
         Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
         PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -674,7 +674,6 @@ public  class BleService extends Service {
                     sendBroadcast(intent);
                 }
             });
-
     }
 
 
