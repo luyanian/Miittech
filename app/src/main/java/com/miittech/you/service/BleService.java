@@ -74,6 +74,7 @@ public  class BleService extends Service {
     public LocationClient mLocationClient = null;
     private MyLocationListener myListener = new MyLocationListener();
     private long lastMillins=0;
+    private long lastUnScanning = 0;
     CmdReceiver cmdReceiver;
     private SimpleArrayMap<String, Integer> mapRssi = new SimpleArrayMap<String, Integer>();
     private SimpleArrayMap<String,String> mapBattery = new SimpleArrayMap<>();
@@ -249,9 +250,21 @@ public  class BleService extends Service {
     }
 
     private synchronized void exceTask() {
+        exceCheckScaning();
         exceReportSubmit();
         exceCalibrationDevice();
         exceSetLinkLose();
+    }
+
+    private void exceCheckScaning() {
+        if(BleClient.getInstance().isScaning()) {
+            if (lastUnScanning != 0 && TimeUtils.getTimeSpanByNow(lastUnScanning, TimeConstants.MIN) > 10) {
+                BleClient.getInstance().cancelScan();
+                lastUnScanning = 0;
+            }
+        }else{
+            scanDevice();
+        }
     }
 
     private void exceSetLinkLose() {
@@ -334,7 +347,6 @@ public  class BleService extends Service {
     }
 
     public synchronized  void scanDevice(){
-
         if(TextUtils.isEmpty(Common.getTocken())||BleClient.getInstance().isScaning()){
             return;
         }
@@ -345,6 +357,7 @@ public  class BleService extends Service {
         BleClient.getInstance().startScan(new ScanResultCallback(){
             @Override
             public synchronized void onScaning(ScanResult scanResult) {
+                lastUnScanning = TimeUtils.getNowMills();
                 if(scanResult==null||TextUtils.isEmpty(scanResult.getName())||!scanResult.getName().contains("yoowoo")){
                     return;
                 }
