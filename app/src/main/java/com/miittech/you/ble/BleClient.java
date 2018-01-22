@@ -331,22 +331,14 @@ public class BleClient {
             }
         }
     }
-
-
     public synchronized void cancelScan() {
         isScaning = false;
-        if(Build.VERSION.SDK_INT> 24&&mBluetoothAdapter!=null&&bluetoothLeScanner!=null){
-            if(bleScanCallback!=null) {
-                if (mBluetoothAdapter.isEnabled()) {
-                    bluetoothLeScanner.stopScan(bleScanCallback);
-                }
-                bleScanCallback=null;
-            }
-        }else if(mBluetoothAdapter!=null) {
-            if (bleLeScanCallback != null){
-                mBluetoothAdapter.stopLeScan(bleLeScanCallback);
-                bleLeScanCallback=null;
-            }
+        if(Build.VERSION.SDK_INT> 24&&bluetoothLeScanner!=null&&bleScanCallback!=null){
+            bluetoothLeScanner.stopScan(bleScanCallback);
+            bleScanCallback=null;
+        }else if(mBluetoothAdapter!=null&&bleLeScanCallback != null) {
+            mBluetoothAdapter.stopLeScan(bleLeScanCallback);
+            bleLeScanCallback=null;
         }
     }
 

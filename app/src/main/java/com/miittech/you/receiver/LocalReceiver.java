@@ -48,12 +48,9 @@ public class LocalReceiver extends BroadcastReceiver {
                 MsgDataUtils.getInstance().addMsg(msgData);
             }
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_TASK_SEND){
-            if(!ServiceUtils.isServiceRunning("BleService")){
+            if(!ServiceUtils.isServiceRunning("com.miittech.you.service.BleService")){
                 ServiceUtils.startService(BleService.class);
             }
-            Intent unbind= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-            unbind.putExtra("cmd",IntentExtras.CMD.CMD_TASK_EXCE);
-            context.sendBroadcast(unbind);
         }
     }
 

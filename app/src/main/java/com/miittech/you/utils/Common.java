@@ -9,10 +9,13 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationManagerCompat;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import com.baidu.location.BDLocation;
+import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
@@ -37,8 +40,6 @@ import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
 import com.miittech.you.net.response.UserInfoResponse;
-import com.miittech.you.receiver.DownloadReceiver;
-import com.miittech.you.service.BleService;
 import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
@@ -111,24 +112,25 @@ public class Common {
                     }
                 });
     }
-    public synchronized static void doCommitEvents(final Context context, String devId, int eventType, Detailinfo detailinfo){
-        if(!NetworkUtils.isConnected()){
+    public synchronized static void doCommitEvents(final Context context, String mac, int eventType,BDLocation location){
+        if(!NetworkUtils.isConnected()||location==null){
             return;
         }
         Map param = new HashMap();
-        param.put("devid", devId);
+        param.put("devid", Common.formatMac2DevId(mac));
         param.put("eventtime", Common.getCurrentTime());
         param.put("eventype", eventType);
         Map locinfo = new HashMap();
-        Locinfo location = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
-        if(location!=null) {
-            locinfo.put("addr", Common.encodeBase64(location.getAddr()));
-            locinfo.put("lat", location.getLat());
-            locinfo.put("lng", location.getLng());
-            param.put("locinfo", locinfo);
-        }
-        if(detailinfo!=null) {
-            param.put("detailinfo", detailinfo);
+//        Locinfo location = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+//        if(location!=null) {
+        locinfo.put("addr", Common.encodeBase64(location.getAddrStr()));
+        locinfo.put("lat", location.getLatitude());
+        locinfo.put("lng", location.getLongitude());
+        param.put("locinfo", locinfo);
+//        }
+        DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
+        if(deviceInfo!=null) {
+            param.put("detailinfo", deviceInfo);
         }
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
@@ -574,37 +576,37 @@ public class Common {
         return  data;
     }
 
-    /**
-     * 检测辅助功能是否开启<br>
-     * 方 法 名：isAccessibilitySettingsOn <br>
-     * @param mContext
-     * @return boolean
-     */
-    public static boolean isAccessibilitySettingsOn(Context mContext) {
-        int accessibilityEnabled = 0;
-        final String service = mContext.getPackageName() + "/" + BleService.class.getCanonicalName();
-
-        try {
-            accessibilityEnabled = Settings.Secure.getInt(mContext.getApplicationContext().getContentResolver(),
-                    android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
-        }
-        TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
-        if (accessibilityEnabled == 1) {
-            String settingValue = Settings.Secure.getString(mContext.getApplicationContext().getContentResolver(),Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-            if (settingValue != null) {
-                mStringColonSplitter.setString(settingValue);
-                while (mStringColonSplitter.hasNext()) {
-                    String accessibilityService = mStringColonSplitter.next();
-                    if (accessibilityService.equalsIgnoreCase(service)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+//    /**
+//     * 检测辅助功能是否开启<br>
+//     * 方 法 名：isAccessibilitySettingsOn <br>
+//     * @param mContext
+//     * @return boolean
+//     */
+//    public static boolean isAccessibilitySettingsOn(Context mContext) {
+//        int accessibilityEnabled = 0;
+//        final String service = mContext.getPackageName() + "/" + BleService.class.getCanonicalName();
+//
+//        try {
+//            accessibilityEnabled = Settings.Secure.getInt(mContext.getApplicationContext().getContentResolver(),
+//                    android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
+//        } catch (Settings.SettingNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
+//        if (accessibilityEnabled == 1) {
+//            String settingValue = Settings.Secure.getString(mContext.getApplicationContext().getContentResolver(),Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+//            if (settingValue != null) {
+//                mStringColonSplitter.setString(settingValue);
+//                while (mStringColonSplitter.hasNext()) {
+//                    String accessibilityService = mStringColonSplitter.next();
+//                    if (accessibilityService.equalsIgnoreCase(service)) {
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     public static boolean isUserContainDevice(String address) {
         DeviceListResponse response = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);

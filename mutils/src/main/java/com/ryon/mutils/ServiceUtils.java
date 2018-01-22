@@ -149,7 +149,7 @@ public final class ServiceUtils {
      */
     public static boolean isServiceRunning(final String className) {
         ActivityManager activityManager = (ActivityManager) Utils.getContext().getSystemService(Context.ACTIVITY_SERVICE);
-        List<RunningServiceInfo> info = activityManager.getRunningServices(0x7FFFFFFF);
+        List<RunningServiceInfo> info = activityManager.getRunningServices(200);
         if (info == null || info.size() == 0) return false;
         for (RunningServiceInfo aInfo : info) {
             if (className.equals(aInfo.service.getClassName())) return true;

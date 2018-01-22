@@ -11,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
@@ -19,6 +20,7 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -116,19 +118,18 @@ public  class BleService extends Service {
         filter.addAction(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         getApplicationContext().registerReceiver(cmdReceiver, filter);
-        LogUtils.d("bleService-OnCreate()");
+        LogUtils.d("bleService-onStartCommand()-new Thread");
         scanDevice();
     }
-
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         LogUtils.d("bleService-onStartCommand()");
-//        scanDevice();
         AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
         Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
         PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
         aManager.setWindow(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+10000,5000, pi);
+//        aManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,System.currentTimeMillis()+5000,5000,pi);
         return START_REDELIVER_INTENT;
     }
 
@@ -139,6 +140,16 @@ public  class BleService extends Service {
         this.unregisterReceiver(cmdReceiver);
         BleClient.getInstance().cancelScan();
         BleClient.getInstance().disconnectAllDevice();
+
+        AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
+        Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
+        PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
+        aManager.cancel(pi);
+
+        if(mLocationClient!=null){
+            mLocationClient.stop();
+        }
+
         mDeviceMap.clear();
         mapRssi.clear();
         mapBattery.clear();
@@ -147,9 +158,7 @@ public  class BleService extends Service {
         isConnecttingMacs.clear();
         mNotFirstConnect.clear();
         mNotFirstDisConnect.clear();
-        if(mLocationClient!=null){
-            mLocationClient.stop();
-        }
+
     }
 
     StringBuilder stringBuilder = new StringBuilder();
@@ -207,15 +216,10 @@ public  class BleService extends Service {
                             stringBuilder.append("CMD_DEVICE_LIST_CLEAR");
                             doLogOut();
                             break;
-                        case IntentExtras.CMD.CMD_TASK_EXCE:
-                            stringBuilder.append("CMD_TASK_EXCE");
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    exceTask();
-                                }
-                            }).start();
-                            break;
+//                        case IntentExtras.CMD.CMD_TASK_EXCE:
+//                            stringBuilder.append("CMD_TASK_EXCE");
+//                            exceTask();
+//                            break;
                     }
                 } else if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                     int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
@@ -259,8 +263,9 @@ public  class BleService extends Service {
     private void exceCheckScaning() {
         if(BleClient.getInstance().isScaning()) {
             if (lastUnScanning != 0 && TimeUtils.getTimeSpanByNow(lastUnScanning, TimeConstants.MIN) > 10) {
-                BleClient.getInstance().cancelScan();
                 lastUnScanning = 0;
+                BleClient.getInstance().cancelScan();
+                LogUtils.d("bleservice","exceCheckScaning()-->cancelScan()");
             }
         }else{
             scanDevice();
@@ -354,6 +359,7 @@ public  class BleService extends Service {
         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
         intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCAN_START);
         sendBroadcast(intent);
+        lastUnScanning = TimeUtils.getNowMills();
         BleClient.getInstance().startScan(new ScanResultCallback(){
             @Override
             public synchronized void onScaning(ScanResult scanResult) {
@@ -442,7 +448,7 @@ public  class BleService extends Service {
                     }
 
                     @Override
-                    public synchronized void onDisConnected(boolean isActiveDisConnected, String mac, int status) {
+                    public synchronized void onDisConnected(boolean isActiveDisConnected, final String mac, int status) {
                         LogUtils.d("bleService", "贴片连接断开----->" + mac + "   isActiveDisConnected--->" + isActiveDisConnected);
                         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                         intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
@@ -473,7 +479,16 @@ public  class BleService extends Service {
                             if (isIgnoreEvents.containsKey(mac) && isIgnoreEvents.get(mac)) {
                                 isIgnoreEvents.remove(mac);
                             } else {
-                                Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(mac), Params.EVENT_TYPE.DEVICE_LOSE, null);
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        BDLocation location = mLocationClient.getLastKnownLocation();
+                                        while (location==null){
+                                            location = mLocationClient.getLastKnownLocation();
+                                        }
+                                        Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE, location);
+                                    }
+                                }).start();
                             }
                         }
                     }
@@ -645,14 +660,14 @@ public  class BleService extends Service {
         });
     }
 
-    public synchronized void setWorkMode(String mac){
+    public synchronized void setWorkMode(final String mac){
             if(TextUtils.isEmpty(mac)||!BleClient.getInstance().isConnected(mac)||!mDeviceMap.containsKey(mac)){
                 return;
             }
             byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, Common.getUserId());
             BleClient.getInstance().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
                 @Override
-                public void onWriteSuccess(BluetoothDevice device) {
+                public void onWriteSuccess(final BluetoothDevice device) {
                     LogUtils.d("bleService","贴片设置工作模式成功(isNeedAlerts-->"+mNotFirstConnect.get(device.getAddress())+")----->"+device.getAddress());
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS);
@@ -667,14 +682,34 @@ public  class BleService extends Service {
                     }
                     DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
                     if(mNotFirstConnect.containsKey(device.getAddress())&&mNotFirstConnect.get(device.getAddress())) {
-                        Common.doCommitEvents(App.getInstance(), Common.formatMac2DevId(device.getAddress()), Params.EVENT_TYPE.DEVICE_REDISCOVER, null);
+
                         if(alertinfoBean.getIsReconnect() == 1 && Common.isBell()){
                             BingGoPlayUtils.playBingGo();
                         }
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                BDLocation location = mLocationClient.getLastKnownLocation();
+                                while (location==null){
+                                    location = mLocationClient.getLastKnownLocation();
+                                }
+                                Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_REDISCOVER, location);
+                            }
+                        }).start();
                     }else{
                         mNotFirstConnect.put(device.getAddress(),true);
                         BingGoPlayUtils.playBingGo();
-                        Common.doCommitEvents(App.getInstance(),Common.formatMac2DevId(device.getAddress()),Params.EVENT_TYPE.DEVICE_CONNECT,null);
+                        mLocationClient.requestLocation();
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                BDLocation location = mLocationClient.getLastKnownLocation();
+                                while (location==null){
+                                    location = mLocationClient.getLastKnownLocation();
+                                }
+                                Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_CONNECT, location);
+                            }
+                        }).start();
                     }
                 }
 
@@ -757,6 +792,12 @@ public  class BleService extends Service {
             intent.putExtra("ret", IntentExtras.RET.LOCATION);
             intent.putExtra("data", locinfo);
             sendBroadcast(intent);
+
+//            Intent task= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+//            task.putExtra("cmd",IntentExtras.CMD.CMD_TASK_EXCE);
+//            sendBroadcast(task);
+            exceTask();
+
 //            }
             LatLng current = new LatLng(location.getLatitude(), location.getLongitude());
             long curMillis = TimeUtils.getNowMills();

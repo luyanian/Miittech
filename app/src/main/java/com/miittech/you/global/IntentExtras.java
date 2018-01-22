@@ -41,7 +41,7 @@ public class IntentExtras {
         public final static int CMD_DEVICE_ALERT_STOP=0x13;
         public final static int CMD_DEVICE_UNBIND=0x14;
         public final static int CMD_DEVICE_LIST_CLEAR=0x15;
-        public final static int CMD_TASK_EXCE=0x16;
+//        public final static int CMD_TASK_EXCE=0x16;
         public final static int CMD_DEVICE_BIND_SCAN=0x17;
         public final static int CMD_DEVICE_UNBIND_ERROR=0x18;
         public final static int CMD_DEVICE_SCANING=0x19;

@@ -6,17 +6,13 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.multidex.MultiDex;
-
 import com.baidu.mapapi.SDKInitializer;
+import com.miittech.you.service.BleService;
 import com.miittech.you.utils.BingGoPlayUtils;
 import com.miittech.you.utils.SoundPlayUtils;
-import com.miittech.you.service.BleService;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
-import com.ryon.mutils.CrashUtils;
-import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.Utils;
-
 import cn.jpush.android.api.JPushInterface;
 
 /**
