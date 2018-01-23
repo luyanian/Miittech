@@ -1,6 +1,7 @@
 package com.miittech.you.ble;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -41,5 +42,8 @@ public class BleScanCallback extends ScanCallback {
     @Override
     public void onScanFailed(int errorCode) {
         super.onScanFailed(errorCode);
+        if(errorCode==2) {
+            BleClient.getInstance().restartBle();
+        }
     }
 }

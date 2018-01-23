@@ -128,10 +128,10 @@ public class Common {
         locinfo.put("lng", location.getLongitude());
         param.put("locinfo", locinfo);
 //        }
-        DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
-        if(deviceInfo!=null) {
-            param.put("detailinfo", deviceInfo);
-        }
+//        DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
+//        if(deviceInfo!=null) {
+//            param.put("detailinfo", deviceInfo);
+//        }
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();

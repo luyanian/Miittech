@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.content.Context;
 import android.os.Build;
@@ -52,14 +53,14 @@ public class BleClient {
         this.context = App.getInstance();
         bluetoothManager =(BluetoothManager) App.getInstance().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-        if(mBluetoothAdapter!=null&&Build.VERSION.SDK_INT> 24){
+        if(mBluetoothAdapter!=null&&Build.VERSION.SDK_INT> 21){
             bluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
         }
     }
     public synchronized void startScan(final ScanResultCallback scanResultCallback){
         if(scanResultCallback!=null&&mBluetoothAdapter!=null&&mBluetoothAdapter.isEnabled()) {
             isScaning = true;
-            if(Build.VERSION.SDK_INT> 24&&bluetoothLeScanner!=null){
+            if(Build.VERSION.SDK_INT> 21&&bluetoothLeScanner!=null){
                 bleScanCallback = new BleScanCallback(scanResultCallback);
                 bluetoothLeScanner.startScan(bleScanCallback);
             }else {
@@ -93,9 +94,9 @@ public class BleClient {
                 public synchronized void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                     super.onConnectionStateChange(gatt, status, newState);
                     synchronized (mConnecttingList) {
-                        if (newState == BluetoothGatt.STATE_CONNECTED) {
+                        if (status==BluetoothGatt.GATT_SUCCESS&&newState == BluetoothProfile.STATE_CONNECTED) {
                             gatt.discoverServices();
-                        } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+                        } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                             if(mBluetoothAdapter.isEnabled()) {
                                 if (gatt != null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
                                     String mac = gatt.getDevice().getAddress();
@@ -124,9 +125,9 @@ public class BleClient {
                                         gatt.close();
                                     }
                                 }
-                                if (mConnecttingList.contains(gatt.getDevice().getAddress())) {
-                                    mConnecttingList.remove(gatt.getDevice().getAddress());
-                                }
+                            }
+                            if (mConnecttingList.contains(gatt.getDevice().getAddress())) {
+                                mConnecttingList.remove(gatt.getDevice().getAddress());
                             }
                         }
                     }
@@ -333,7 +334,7 @@ public class BleClient {
     }
     public synchronized void cancelScan() {
         isScaning = false;
-        if(Build.VERSION.SDK_INT> 24&&bluetoothLeScanner!=null&&bleScanCallback!=null){
+        if(Build.VERSION.SDK_INT> 21&&bluetoothLeScanner!=null&&bleScanCallback!=null){
             bluetoothLeScanner.stopScan(bleScanCallback);
             bleScanCallback=null;
         }else if(mBluetoothAdapter!=null&&bleLeScanCallback != null) {
@@ -452,5 +453,26 @@ public class BleClient {
             mConnecttingList.clear();
             isDisConnectMaps.clear();
         }
+    }
+
+    public void restartBle() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(mBluetoothAdapter!=null){
+                    mBluetoothAdapter.disable();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    while (mBluetoothAdapter.getState()==BluetoothAdapter.STATE_OFF){
+                        mBluetoothAdapter.enable();
+                        continue;
+                    }
+                }
+            }
+        }).start();
+
     }
 }

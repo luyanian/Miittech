@@ -99,6 +99,13 @@ public  class BleService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        new Thread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                BleClient.getInstance().cancelScan();
+                e.printStackTrace();
+            }
+        });
         mLocationClient = new LocationClient(getApplicationContext());
         mLocationClient.registerLocationListener(myListener);
         LocationClientOption option = new LocationClientOption();
@@ -237,10 +244,10 @@ public  class BleService extends Service {
                             break;
                         case BluetoothAdapter.STATE_TURNING_OFF:
                             stringBuilder.append("STATE_TURNING_OFF");
-                            BleClient.getInstance().cancelScan();
                             break;
                         case BluetoothAdapter.STATE_OFF:
                             stringBuilder.append("STATE_OFF");
+                            BleClient.getInstance().cancelScan();
                             diableBluetooth();
                             Intent bleOffIntent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                             bleOffIntent.putExtra("ret", IntentExtras.RET.RET_BLE_STATE_OFF);
@@ -485,6 +492,7 @@ public  class BleService extends Service {
                                         BDLocation location = mLocationClient.getLastKnownLocation();
                                         while (location==null){
                                             location = mLocationClient.getLastKnownLocation();
+                                            continue;
                                         }
                                         Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE, location);
                                     }
@@ -594,7 +602,7 @@ public  class BleService extends Service {
         isBind=false;
     }
     private synchronized void diableBluetooth(){
-        LogUtils.d("bleService","clearAllConnect");
+        LogUtils.d("bleService","diableBluetooth");
         BleClient.getInstance().diableBluetooth();
         mDeviceMap.clear();
         mBindMap.clear();
@@ -603,6 +611,7 @@ public  class BleService extends Service {
     }
     private synchronized void doLogOut(){
         LogUtils.d("bleService","doLogOut");
+        BleClient.getInstance().cancelScan();
         byte[] data = new byte[]{0x00};
         BleClient.getInstance().disconnectAllWithLinklose(data);
         mDeviceMap.clear();
@@ -692,6 +701,7 @@ public  class BleService extends Service {
                                 BDLocation location = mLocationClient.getLastKnownLocation();
                                 while (location==null){
                                     location = mLocationClient.getLastKnownLocation();
+                                    continue;
                                 }
                                 Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_REDISCOVER, location);
                             }
@@ -706,6 +716,7 @@ public  class BleService extends Service {
                                 BDLocation location = mLocationClient.getLastKnownLocation();
                                 while (location==null){
                                     location = mLocationClient.getLastKnownLocation();
+                                    continue;
                                 }
                                 Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_CONNECT, location);
                             }
