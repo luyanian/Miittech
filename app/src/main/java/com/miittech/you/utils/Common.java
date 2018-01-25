@@ -112,8 +112,8 @@ public class Common {
                     }
                 });
     }
-    public synchronized static void doCommitEvents(final Context context, String mac, int eventType,BDLocation location){
-        if(!NetworkUtils.isConnected()||location==null){
+    public synchronized static void doCommitEvents(final Context context, String mac, int eventType){
+        if(!NetworkUtils.isConnected()){
             return;
         }
         Map param = new HashMap();
@@ -121,13 +121,13 @@ public class Common {
         param.put("eventtime", Common.getCurrentTime());
         param.put("eventype", eventType);
         Map locinfo = new HashMap();
-//        Locinfo location = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
-//        if(location!=null) {
-        locinfo.put("addr", Common.encodeBase64(location.getAddrStr()));
-        locinfo.put("lat", location.getLatitude());
-        locinfo.put("lng", location.getLongitude());
-        param.put("locinfo", locinfo);
-//        }
+        Locinfo location = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+        if(location!=null) {
+            locinfo.put("addr", Common.encodeBase64(location.getAddr()));
+            locinfo.put("lat", location.getLat());
+            locinfo.put("lng", location.getLng());
+            param.put("locinfo", locinfo);
+        }
 //        DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
 //        if(deviceInfo!=null) {
 //            param.put("detailinfo", deviceInfo);

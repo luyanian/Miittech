@@ -106,20 +106,7 @@ public  class BleService extends Service {
                 e.printStackTrace();
             }
         });
-        mLocationClient = new LocationClient(getApplicationContext());
-        mLocationClient.registerLocationListener(myListener);
-        LocationClientOption option = new LocationClientOption();
-        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
-        option.setCoorType("bd09ll");
-        option.setScanSpan(5000);
-        option.setOpenGps(true);
-        option.setIsNeedAddress(true);
-        option.setIgnoreKillProcess(true);
-        option.setWifiCacheTimeOut(5*60*1000);
-        mLocationClient.setLocOption(option);
-        mLocationClient.start();
-        mLocationClient.requestLocation();
-
+        checkLocationService();
         cmdReceiver = new CmdReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_BLE_COMMAND);
@@ -127,6 +114,26 @@ public  class BleService extends Service {
         getApplicationContext().registerReceiver(cmdReceiver, filter);
         LogUtils.d("bleService-onStartCommand()-new Thread");
         scanDevice();
+    }
+
+    private synchronized void checkLocationService() {
+        if(mLocationClient==null) {
+            mLocationClient = new LocationClient(getApplicationContext());
+            mLocationClient.registerLocationListener(myListener);
+            LocationClientOption option = new LocationClientOption();
+            option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+            option.setCoorType("bd09ll");
+            option.setScanSpan(5000);
+            option.setOpenGps(true);
+            option.setIsNeedAddress(true);
+            option.setIgnoreKillProcess(true);
+            option.setWifiCacheTimeOut(5 * 60 * 1000);
+            mLocationClient.setLocOption(option);
+        }
+        if(!mLocationClient.isStarted()) {
+            mLocationClient.start();
+            mLocationClient.requestLocation();
+        }
     }
 
     @Override
@@ -155,6 +162,7 @@ public  class BleService extends Service {
 
         if(mLocationClient!=null){
             mLocationClient.stop();
+            mLocationClient=null;
         }
 
         mDeviceMap.clear();
@@ -247,7 +255,6 @@ public  class BleService extends Service {
                             break;
                         case BluetoothAdapter.STATE_OFF:
                             stringBuilder.append("STATE_OFF");
-                            BleClient.getInstance().cancelScan();
                             diableBluetooth();
                             Intent bleOffIntent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                             bleOffIntent.putExtra("ret", IntentExtras.RET.RET_BLE_STATE_OFF);
@@ -261,6 +268,7 @@ public  class BleService extends Service {
     }
 
     private synchronized void exceTask() {
+        checkLocationService();
         exceCheckScaning();
         exceReportSubmit();
         exceCalibrationDevice();
@@ -486,17 +494,7 @@ public  class BleService extends Service {
                             if (isIgnoreEvents.containsKey(mac) && isIgnoreEvents.get(mac)) {
                                 isIgnoreEvents.remove(mac);
                             } else {
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        BDLocation location = mLocationClient.getLastKnownLocation();
-                                        while (location==null){
-                                            location = mLocationClient.getLastKnownLocation();
-                                            continue;
-                                        }
-                                        Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE, location);
-                                    }
-                                }).start();
+                                Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE);
                             }
                         }
                     }
@@ -695,32 +693,12 @@ public  class BleService extends Service {
                         if(alertinfoBean.getIsReconnect() == 1 && Common.isBell()){
                             BingGoPlayUtils.playBingGo();
                         }
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                BDLocation location = mLocationClient.getLastKnownLocation();
-                                while (location==null){
-                                    location = mLocationClient.getLastKnownLocation();
-                                    continue;
-                                }
-                                Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_REDISCOVER, location);
-                            }
-                        }).start();
+                        Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_REDISCOVER);
                     }else{
                         mNotFirstConnect.put(device.getAddress(),true);
                         BingGoPlayUtils.playBingGo();
                         mLocationClient.requestLocation();
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                BDLocation location = mLocationClient.getLastKnownLocation();
-                                while (location==null){
-                                    location = mLocationClient.getLastKnownLocation();
-                                    continue;
-                                }
-                                Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_CONNECT, location);
-                            }
-                        }).start();
+                        Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_CONNECT);
                     }
                 }
 

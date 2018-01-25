@@ -216,7 +216,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                             imgConnectStatus.setImageResource(R.drawable.ic_device_connect_success);
                             tvConnectStatus.setText("绑定成功");
                             tvConnectMsg.setVisibility(View.GONE);
-                            Common.doCommitEvents(DeviceAddStepActivity.this,response.getDevid(),Params.EVENT_TYPE.DEVICE_ADD,null);
+                            Common.doCommitEvents(DeviceAddStepActivity.this,response.getDevid(),Params.EVENT_TYPE.DEVICE_ADD);
                             Common.initDeviceList(DeviceAddStepActivity.this,null);
                             Intent intent = new Intent(DeviceAddStepActivity.this,DeviceSetClassifyActivity.class);
                             intent.putExtra(IntentExtras.DEVICE.ID,Common.formatMac2DevId(mac));
