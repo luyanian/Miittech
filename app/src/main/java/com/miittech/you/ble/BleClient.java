@@ -427,6 +427,7 @@ public class BleClient {
                 return result;
             }
         } catch (Exception e) {
+            e.printStackTrace();
             Log.e("bleService", "An exception occurred while refreshing device cache");
         }
         return false;
