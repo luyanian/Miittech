@@ -131,14 +131,17 @@ public  class BleService extends Service {
             mLocationClient.setLocOption(option);
         }
         if(!mLocationClient.isStarted()) {
+            LogUtils.d("bleService","检测百度定位服务--->false");
             mLocationClient.start();
             mLocationClient.requestLocation();
+        }else{
+            LogUtils.d("bleService","检测百度定位服务--->true");
         }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        LogUtils.d("bleService-onStartCommand()");
+        LogUtils.d("bleService","bleService-onStartCommand()");
         AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
         Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
         PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -382,16 +385,15 @@ public  class BleService extends Service {
                 if(scanResult==null||TextUtils.isEmpty(scanResult.getName())||!scanResult.getName().contains("yoowoo")){
                     return;
                 }
-                LogUtils.d("bleService","扫描到有效贴片----->"+scanResult.getMac());
-                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCANING);
-                intent.putExtra("address",scanResult.getMac());
-                sendBroadcast(intent);
+//                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+//                intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCANING);
+//                intent.putExtra("address",scanResult.getMac());
+//                sendBroadcast(intent);
                 if(!mDeviceMap.containsKey(scanResult.getMac())){
                     if(isBind&&scanResult.getRssi()>-50){
                         if(mBindMap.size()==0) {
                             mBindMap.put(scanResult.getMac(),scanResult.getDevice());
-                            LogUtils.d("bleService", "开始绑定贴片----->" + scanResult.getMac());
+                            LogUtils.d("bleService", "扫描到并开始绑定贴片----->" + scanResult.getMac());
                             Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                             intent1.putExtra("ret", IntentExtras.RET.RET_BLE_FIND_BIND_DEVICE);
                             intent1.putExtra("address", scanResult.getMac());
@@ -400,6 +402,7 @@ public  class BleService extends Service {
                         return;
                     }
                 }else {
+                    LogUtils.d("bleService","扫描到并开始连接贴片----->"+scanResult.getMac());
                     mDeviceMap.put(scanResult.getMac(), scanResult.getDevice());
                     Intent intent2 = new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                     intent2.putExtra("cmd", IntentExtras.CMD.CMD_DEVICE_SCANING);

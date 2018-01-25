@@ -48,7 +48,7 @@ public class IntentExtras {
     }
     public static class RET{
         public final static int RET_BLE_SCAN_START=0x20;
-        public final static int RET_BLE_SCANING=0x21;
+//        public final static int RET_BLE_SCANING=0x21;
         public final static int RET_BLE_CONNECT_START=0x22;
         public final static int RET_BLE_CONNECT_SUCCESS=0x023;
         public final static int RET_BLE_CONNECT_FAILED=0x024;
