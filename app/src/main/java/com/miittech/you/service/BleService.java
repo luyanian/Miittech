@@ -145,8 +145,8 @@ public  class BleService extends Service {
         AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
         Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
         PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
-        aManager.setWindow(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+10000,5000, pi);
-//        aManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,System.currentTimeMillis()+5000,5000,pi);
+//        aManager.setWindow(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+10000,5000, pi);
+        aManager.setRepeating(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),2000,pi);
         return START_REDELIVER_INTENT;
     }
 
@@ -234,10 +234,10 @@ public  class BleService extends Service {
                             stringBuilder.append("CMD_DEVICE_LIST_CLEAR");
                             doLogOut();
                             break;
-//                        case IntentExtras.CMD.CMD_TASK_EXCE:
-//                            stringBuilder.append("CMD_TASK_EXCE");
-//                            exceTask();
-//                            break;
+                        case IntentExtras.CMD.CMD_TASK_EXCE:
+                            stringBuilder.append("CMD_TASK_EXCE");
+                            exceTask();
+                            break;
                     }
                 } else if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                     int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
@@ -280,7 +280,7 @@ public  class BleService extends Service {
 
     private void exceCheckScaning() {
         if(BleClient.getInstance().isScaning()) {
-            if (lastUnScanning != 0 && TimeUtils.getTimeSpanByNow(lastUnScanning, TimeConstants.MIN) > 10) {
+            if (lastUnScanning != 0 && TimeUtils.getTimeSpanByNow(lastUnScanning, TimeConstants.MIN) > 1) {
                 lastUnScanning = 0;
                 BleClient.getInstance().cancelScan();
                 LogUtils.d("bleservice","exceCheckScaning()-->cancelScan()");
@@ -385,6 +385,7 @@ public  class BleService extends Service {
                 if(scanResult==null||TextUtils.isEmpty(scanResult.getName())||!scanResult.getName().contains("yoowoo")){
                     return;
                 }
+                LogUtils.d("bleService", "扫描有物贴片----->" + scanResult.getMac() +"  rssi:"+scanResult.getRssi());
 //                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
 //                intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCANING);
 //                intent.putExtra("address",scanResult.getMac());
@@ -788,8 +789,7 @@ public  class BleService extends Service {
 //            Intent task= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
 //            task.putExtra("cmd",IntentExtras.CMD.CMD_TASK_EXCE);
 //            sendBroadcast(task);
-            exceTask();
-
+//            exceTask();
 //            }
             LatLng current = new LatLng(location.getLatitude(), location.getLongitude());
             long curMillis = TimeUtils.getNowMills();

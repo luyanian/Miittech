@@ -29,7 +29,7 @@ import java.util.UUID;
 public class BleClient {
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothLeScanner bluetoothLeScanner;
+//    private BluetoothLeScanner bluetoothLeScanner;
     private BleScanCallback bleScanCallback;
     private BleLeScanCallback bleLeScanCallback;
     private GattCallback mGattCallback;
@@ -53,21 +53,29 @@ public class BleClient {
         this.context = App.getInstance();
         bluetoothManager =(BluetoothManager) App.getInstance().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-        if(mBluetoothAdapter!=null&&Build.VERSION.SDK_INT> 21){
-            bluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-        }
+//        if(mBluetoothAdapter!=null&&Build.VERSION.SDK_INT> 21){
+//            bluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+//        }
     }
     public synchronized void startScan(final ScanResultCallback scanResultCallback){
-        if(scanResultCallback!=null&&mBluetoothAdapter!=null&&mBluetoothAdapter.isEnabled()) {
-            isScaning = true;
-            if(Build.VERSION.SDK_INT> 21&&bluetoothLeScanner!=null){
-                bleScanCallback = new BleScanCallback(scanResultCallback);
-                bluetoothLeScanner.startScan(bleScanCallback);
-            }else {
-                bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
-                mBluetoothAdapter.startLeScan(bleLeScanCallback);
+//            if(Build.VERSION.SDK_INT> 21&&bluetoothLeScanner!=null){
+//                bleScanCallback = new BleScanCallback(scanResultCallback);
+//                bluetoothLeScanner.startScan(bleScanCallback);
+//            }else {
+//                bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
+//                mBluetoothAdapter.startLeScan(bleLeScanCallback);
+//            }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(scanResultCallback!=null&&mBluetoothAdapter!=null&&mBluetoothAdapter.isEnabled()) {
+                    isScaning = true;
+                    bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
+                    boolean isStart = mBluetoothAdapter.startLeScan(bleLeScanCallback);
+                    LogUtils.d("bleservice","mBluetoothAdapter.startLeScan-->"+isStart);
+                }
             }
-        }
+        }).start();
     }
 
     public synchronized void connectDevice(BluetoothDevice mDevice, final GattCallback mGattCallback){
@@ -334,13 +342,15 @@ public class BleClient {
     }
     public synchronized void cancelScan() {
         isScaning = false;
-        if(Build.VERSION.SDK_INT> 21&&bluetoothLeScanner!=null&&bleScanCallback!=null){
-            bluetoothLeScanner.stopScan(bleScanCallback);
-            bleScanCallback=null;
-        }else if(mBluetoothAdapter!=null&&bleLeScanCallback != null) {
-            mBluetoothAdapter.stopLeScan(bleLeScanCallback);
-            bleLeScanCallback=null;
-        }
+//        if(Build.VERSION.SDK_INT> 21&&bluetoothLeScanner!=null&&bleScanCallback!=null){
+//            bluetoothLeScanner.stopScan(bleScanCallback);
+//            bleScanCallback=null;
+//        }else if(mBluetoothAdapter!=null&&bleLeScanCallback != null) {
+//            mBluetoothAdapter.stopLeScan(bleLeScanCallback);
+//            bleLeScanCallback=null;
+//        }
+        mBluetoothAdapter.stopLeScan(bleLeScanCallback);
+        bleLeScanCallback=null;
     }
 
     public synchronized void disconnectAllDevice() {
