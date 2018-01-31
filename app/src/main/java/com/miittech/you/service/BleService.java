@@ -62,6 +62,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -90,6 +96,7 @@ public  class BleService extends Service {
     private SimpleArrayMap<String,Boolean> mNotFirstDisConnect = new SimpleArrayMap<>();
     private List<String> isConnecttingMacs = new ArrayList<>();
     private boolean isBind = false;
+    private static ScheduledExecutorService executorService = null;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -140,13 +147,24 @@ public  class BleService extends Service {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(final Intent intent, int flags, int startId) {
         LogUtils.d("bleService","bleService-onStartCommand()");
-        AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
-        Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
-        PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
+        if(executorService==null){
+            executorService = Executors.newSingleThreadScheduledExecutor();
+        }
+        if(executorService.isShutdown()){
+            executorService.scheduleWithFixedDelay(new Runnable() {
+                @Override
+                public void run() {
+                    Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
+                    App.getInstance().sendBroadcast(intent1);
+                }
+            }, 1, 5, TimeUnit.SECONDS);
+        }
+//        AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
+//        Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
+//        PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
 //        aManager.setWindow(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+10000,5000, pi);
-        aManager.setRepeating(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),2000,pi);
         return START_REDELIVER_INTENT;
     }
 
@@ -158,10 +176,13 @@ public  class BleService extends Service {
         BleClient.getInstance().cancelScan();
         BleClient.getInstance().disconnectAllDevice();
 
-        AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
-        Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
-        PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
-        aManager.cancel(pi);
+//        AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
+//        Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
+//        PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
+//        aManager.cancel(pi);
+        if(executorService!=null) {
+            executorService.shutdown();
+        }
 
         if(mLocationClient!=null){
             mLocationClient.stop();

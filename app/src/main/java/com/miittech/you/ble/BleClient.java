@@ -17,10 +17,17 @@ import android.util.Log;
 import com.miittech.you.App;
 import com.miittech.you.global.BleUUIDS;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.TimeUtils;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Administrator on 2018/1/10.
@@ -37,6 +44,7 @@ public class BleClient {
     private SimpleArrayMap<String,Boolean> isActivityDisConnects = new SimpleArrayMap();
     private SimpleArrayMap<String,BluetoothGatt> bluetoothGatts = new SimpleArrayMap<>();
     private SimpleArrayMap<String,Boolean> isDisConnectMaps = new SimpleArrayMap<>();
+    private SimpleArrayMap<String,Boolean> isEffectiveOption = new SimpleArrayMap<>();
     private List<String> mConnecttingList=new ArrayList<>();
     private boolean isScaning = false;
     static BleClient bleClient;
@@ -97,9 +105,10 @@ public class BleClient {
                 mGattCallback.onConnectFail(mDevice.getAddress());
                 return;
             }
+            isEffectiveOption.put(mDevice.getAddress(),true);
             mDevice.connectGatt(context, false, new BluetoothGattCallback() {
                 @Override
-                public synchronized void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                public synchronized void onConnectionStateChange(final BluetoothGatt gatt, int status, final int newState) {
                     super.onConnectionStateChange(gatt, status, newState);
                     synchronized (mConnecttingList) {
                         if (status==BluetoothGatt.GATT_SUCCESS&&newState == BluetoothProfile.STATE_CONNECTED) {
@@ -107,11 +116,24 @@ public class BleClient {
                         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                             if(mBluetoothAdapter.isEnabled()) {
                                 if (gatt != null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
-                                    String mac = gatt.getDevice().getAddress();
+                                    final String mac = gatt.getDevice().getAddress();
                                     if (mConnecttingList.contains(gatt.getDevice().getAddress())
                                             && isActivityDisConnects.containsKey(mac) && !isConnected(gatt.getDevice().getAddress())
                                             && isDisConnectMaps.containsKey(mac) && isDisConnectMaps.get(mac)) {
                                         mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
+//                                        isEffectiveOption.put(mac,false);
+                                        final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+                                        executorService.schedule(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
+//                                                if(!isEffectiveOption.containsKey(mac)||!isEffectiveOption.get(mac)) {
+//                                                    mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
+//                                                }
+//                                                isEffectiveOption.put(mac,true);
+//                                              executorService.shutdown();
+                                            }
+                                        },5,TimeUnit.SECONDS);
                                         isDisConnectMaps.put(gatt.getDevice().getAddress(), false);
                                         if (bluetoothGatts.containsKey(gatt.getDevice().getAddress())) {
                                             BluetoothGatt bluetoothGatt = bluetoothGatts.get(gatt.getDevice().getAddress());
@@ -166,6 +188,11 @@ public class BleClient {
                             isActivityDisConnects.put(gatt.getDevice().getAddress(), false);
                             isDisConnectMaps.put(gatt.getDevice().getAddress(), true);
                             mGattCallback.onConnectSuccess(gatt.getDevice().getAddress(), status);
+//                            if (isEffectiveOption.containsKey(gatt.getDevice().getAddress())
+//                                    &&isEffectiveOption.get(gatt.getDevice().getAddress())){
+//                                mGattCallback.onConnectSuccess(gatt.getDevice().getAddress(), status);
+//                            }
+//                            isEffectiveOption.put(gatt.getDevice().getAddress(),true);
                             setNotify(gatt);
                         }
                     } else {
