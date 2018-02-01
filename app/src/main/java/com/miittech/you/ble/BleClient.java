@@ -99,13 +99,18 @@ public class BleClient {
 
             if(bluetoothGatts.containsKey(mDevice.getAddress())){
                 mGattCallback.onConnectFail(mDevice.getAddress());
+                if (mConnecttingList.contains(mDevice.getAddress())) {
+                    mConnecttingList.remove(mDevice.getAddress());
+                }
                 return;
             }
             if (mDevice == null) {
                 mGattCallback.onConnectFail(mDevice.getAddress());
+                if (mConnecttingList.contains(mDevice.getAddress())) {
+                    mConnecttingList.remove(mDevice.getAddress());
+                }
                 return;
             }
-            isEffectiveOption.put(mDevice.getAddress(),true);
             mDevice.connectGatt(context, false, new BluetoothGattCallback() {
                 @Override
                 public synchronized void onConnectionStateChange(final BluetoothGatt gatt, int status, final int newState) {
@@ -121,16 +126,19 @@ public class BleClient {
                                             && isActivityDisConnects.containsKey(mac) && !isConnected(gatt.getDevice().getAddress())
                                             && isDisConnectMaps.containsKey(mac) && isDisConnectMaps.get(mac)) {
                                         mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
-//                                        isEffectiveOption.put(mac,false);
-                                        final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+                                        isEffectiveOption.put(mac,false);
+                                        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
                                         executorService.schedule(new Runnable() {
                                             @Override
                                             public void run() {
-                                                mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
-//                                                if(!isEffectiveOption.containsKey(mac)||!isEffectiveOption.get(mac)) {
-//                                                    mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
-//                                                }
-//                                                isEffectiveOption.put(mac,true);
+//                                                mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                                if(isEffectiveOption.containsKey(mac)&&!isEffectiveOption.get(mac)) {
+                                                    LogUtils.d("bleService","onDisConnected  isEffectiveOption-->false");
+                                                    mGattCallback.onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                                    isEffectiveOption.put(mac,true);
+                                                }else{
+                                                    LogUtils.d("bleService","onDisConnected  isEffectiveOption-->true");
+                                                }
 //                                              executorService.shutdown();
                                             }
                                         },5,TimeUnit.SECONDS);
@@ -187,12 +195,14 @@ public class BleClient {
                             bluetoothGatts.put(gatt.getDevice().getAddress(), gatt);
                             isActivityDisConnects.put(gatt.getDevice().getAddress(), false);
                             isDisConnectMaps.put(gatt.getDevice().getAddress(), true);
-                            mGattCallback.onConnectSuccess(gatt.getDevice().getAddress(), status);
-//                            if (isEffectiveOption.containsKey(gatt.getDevice().getAddress())
-//                                    &&isEffectiveOption.get(gatt.getDevice().getAddress())){
-//                                mGattCallback.onConnectSuccess(gatt.getDevice().getAddress(), status);
-//                            }
-//                            isEffectiveOption.put(gatt.getDevice().getAddress(),true);
+                            if (isEffectiveOption.containsKey(gatt.getDevice().getAddress())&&!isEffectiveOption.get(gatt.getDevice().getAddress())){
+                                LogUtils.d("bleService","onServicesDiscovered  isEffectiveOption-->false");
+                                mGattCallback.onConnectSuccess(gatt.getDevice().getAddress(), status);
+                                isEffectiveOption.put(gatt.getDevice().getAddress(),true);
+                            }else{
+                                LogUtils.d("bleService","onServicesDiscovered  isEffectiveOption-->true");
+                                mGattCallback.onEffectConnectSuccess(gatt.getDevice().getAddress(), status);
+                            }
                             setNotify(gatt);
                         }
                     } else {
@@ -483,7 +493,7 @@ public class BleClient {
                     bluetoothGatt.disconnect();
                     bluetoothGatt.close();
                     if (mGattCallback!=null) {
-                        mGattCallback.onDisConnected(false, mac, BluetoothGatt.STATE_DISCONNECTED);
+                        mGattCallback.onEffectDisConnected(false, mac, BluetoothGatt.STATE_DISCONNECTED);
                     }
                 }
             }

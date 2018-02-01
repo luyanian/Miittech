@@ -472,9 +472,24 @@ public  class BleService extends Service {
                         intent.putExtra("address", mac);
                         sendBroadcast(intent);
                     }
-
                     @Override
                     public synchronized void onConnectSuccess(String mac,int status) {
+                        LogUtils.d("bleService", "贴片连接成功----->" + mac);
+                        if (!TextUtils.isEmpty(mac)&&mDeviceMap.containsKey(mac)) {
+                            byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, Common.getUserId());
+                            BleClient.getInstance().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback(){
+                                @Override
+                                public synchronized void onWriteSuccess(BluetoothDevice device) {
+                                }
+
+                                @Override
+                                public synchronized void onWriteFialed(BluetoothDevice device) {
+                                }
+                            });
+                        }
+                    }
+                    @Override
+                    public synchronized void onEffectConnectSuccess(String mac,int status) {
                         LogUtils.d("bleService", "贴片连接成功----->" + mac);
                         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                         intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_SUCCESS);
@@ -486,20 +501,24 @@ public  class BleService extends Service {
                             setWorkMode(mac);
                         }
                     }
-
                     @Override
                     public synchronized void onDisConnected(boolean isActiveDisConnected, final String mac, int status) {
-                        LogUtils.d("bleService", "贴片连接断开----->" + mac + "   isActiveDisConnected--->" + isActiveDisConnected);
-                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
-                        intent.putExtra("address", mac);
-                        sendBroadcast(intent);
                         if (isConnecttingMacs.contains(mac)) {
                             isConnecttingMacs.remove(mac);
                         }
                         if (mLinkLoseMap.containsKey(mac)) {
                             mLinkLoseMap.remove(mac);
                         }
+                    }
+
+                    @Override
+                    public synchronized void onEffectDisConnected(boolean isActiveDisConnected, final String mac, int status) {
+                        LogUtils.d("bleService", "贴片连接断开----->" + mac + "   isActiveDisConnected--->" + isActiveDisConnected);
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
+                        intent.putExtra("address", mac);
+                        sendBroadcast(intent);
+
                         DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
                         if (deviceInfo == null || deviceInfo.getAlertinfo() == null) {
                             return;
@@ -697,7 +716,7 @@ public  class BleService extends Service {
                 return;
             }
             byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, Common.getUserId());
-            BleClient.getInstance().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
+            BleClient.getInstance().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback(){
                 @Override
                 public void onWriteSuccess(final BluetoothDevice device) {
                     LogUtils.d("bleService","贴片设置工作模式成功(isNeedAlerts-->"+mNotFirstConnect.get(device.getAddress())+")----->"+device.getAddress());
