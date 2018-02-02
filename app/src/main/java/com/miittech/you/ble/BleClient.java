@@ -8,22 +8,16 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.le.BluetoothLeScanner;
 import android.content.Context;
-import android.os.Build;
 import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
 import android.util.Log;
 import com.miittech.you.App;
-import com.miittech.you.global.BleUUIDS;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.TimeUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -77,15 +71,34 @@ public class BleClient {
             @Override
             public void run() {
                 if(scanResultCallback!=null&&mBluetoothAdapter!=null&&mBluetoothAdapter.isEnabled()) {
-                    isScaning = true;
-                    bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
-                    boolean isStart = mBluetoothAdapter.startLeScan(bleLeScanCallback);
-                    LogUtils.d("bleservice","mBluetoothAdapter.startLeScan-->"+isStart);
+                    if (bleLeScanCallback != null) {
+                        isScaning = false;
+                        mBluetoothAdapter.stopLeScan(bleLeScanCallback);
+                        bleLeScanCallback=null;
+                    } else{
+                        isScaning = true;
+                        bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
+                        boolean isStart = mBluetoothAdapter.startLeScan(bleLeScanCallback);
+                        LogUtils.d("bleservice", "mBluetoothAdapter.startLeScan-->" + isStart);
+                    }
                 }
             }
         }).start();
     }
-
+    public synchronized void cancelScan() {
+        isScaning = false;
+//        if(Build.VERSION.SDK_INT> 21&&bluetoothLeScanner!=null&&bleScanCallback!=null){
+//            bluetoothLeScanner.stopScan(bleScanCallback);
+//            bleScanCallback=null;
+//        }else if(mBluetoothAdapter!=null&&bleLeScanCallback != null) {
+//            mBluetoothAdapter.stopLeScan(bleLeScanCallback);
+//            bleLeScanCallback=null;
+//        }
+        if(mBluetoothAdapter!=null&&bleLeScanCallback!=null) {
+            mBluetoothAdapter.stopLeScan(bleLeScanCallback);
+            bleLeScanCallback = null;
+        }
+    }
     public synchronized void connectDevice(BluetoothDevice mDevice, final GattCallback mGattCallback){
         this.mGattCallback = mGattCallback;
         synchronized (mConnecttingList) {
@@ -229,8 +242,8 @@ public class BleClient {
         }
     }
     public synchronized void write(final String mac,
-                                      final String uuid_service,
-                                      final String uuid_write,
+                                      final UUID uuid_service,
+                                      final UUID uuid_write,
                                       final byte[] data,
                                       final BleWriteCallback bleWriteCallback) {
         new Thread(new Runnable() {
@@ -244,9 +257,9 @@ public class BleClient {
                 if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
                     BluetoothGatt gatt = bluetoothGatts.get(mac);
                     if(gatt!=null&&gatt.getDevice()!=null) {
-                        BluetoothGattService bluetoothGattServer = gatt.getService(UUID.fromString(uuid_service));
+                        BluetoothGattService bluetoothGattServer = gatt.getService(uuid_service);
                         if(bluetoothGattServer!=null) {
-                            BluetoothGattCharacteristic gattCharacteristic = bluetoothGattServer.getCharacteristic(UUID.fromString(uuid_write));
+                            BluetoothGattCharacteristic gattCharacteristic = bluetoothGattServer.getCharacteristic(uuid_write);
                             if (gattCharacteristic != null) {
                                 gattCharacteristic.setValue(data);
                                 if(gatt.writeCharacteristic(gattCharacteristic)){
@@ -258,6 +271,56 @@ public class BleClient {
                                         bleWriteCallback.onWriteFialed(gatt.getDevice());
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }).start();
+    }
+    public synchronized void read(final String mac,
+                                   final String uuid_service,
+                                   final String uuid_write,
+                                   final BleReadCallback bleReadCallback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
+                    BluetoothGatt gatt = bluetoothGatts.get(mac);
+                    if(gatt!=null&&gatt.getDevice()!=null) {
+                        BluetoothGattService bluetoothGattServer = gatt.getService(UUID.fromString(uuid_service));
+                        if(bluetoothGattServer!=null) {
+                            BluetoothGattCharacteristic gattCharacteristic = bluetoothGattServer.getCharacteristic(UUID.fromString(uuid_write));
+                            if (gattCharacteristic != null&&bleReadCallback!=null) {
+                                bleReadCallback.onReadResponse(gattCharacteristic.getValue());
+                            }
+                        }
+                    }
+                }
+            }
+        }).start();
+    }
+    public synchronized void readBleVertion(final String mac,final BleReadCallback bleReadCallback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
+                    BluetoothGatt gatt = bluetoothGatts.get(mac);
+                    if(gatt!=null&&gatt.getDevice()!=null) {
+                        BluetoothGattService bluetoothGattServer = gatt.getService(BleUUIDS.versionServiceUUID);
+                        if(bluetoothGattServer!=null) {
+                            BluetoothGattCharacteristic firmwareVertionCharacteristic = bluetoothGattServer.getCharacteristic(BleUUIDS.firmwareVertionCharacteristicUUID);
+                            BluetoothGattCharacteristic softwareVertionCharacteristic = bluetoothGattServer.getCharacteristic(BleUUIDS.softwareVertionCharacteristicUUID);
+                            byte[] firmwareVertion = null;
+                            byte[] softwareVertion = null;
+                            if (firmwareVertionCharacteristic != null) {
+                                firmwareVertion = firmwareVertionCharacteristic.getValue();
+                            }
+                            if (softwareVertionCharacteristic != null) {
+                                softwareVertion = softwareVertionCharacteristic.getValue();
+                            }
+                            if(bleReadCallback!=null&&firmwareVertion!=null&&softwareVertion!=null){
+                                bleReadCallback.onReadBleVertion(firmwareVertion,softwareVertion);
                             }
                         }
                     }
@@ -285,9 +348,9 @@ public class BleClient {
                 }
 
                 if (gatt != null) {
-                    BluetoothGattService buttonGattServer = gatt.getService(UUID.fromString(BleUUIDS.userServiceUUID));
+                    BluetoothGattService buttonGattServer = gatt.getService(BleUUIDS.userServiceUUID);
                     if (buttonGattServer != null) {
-                        BluetoothGattCharacteristic buttonCharacteristic = buttonGattServer.getCharacteristic(UUID.fromString(BleUUIDS.userCharactButtonStateUUID));
+                        BluetoothGattCharacteristic buttonCharacteristic = buttonGattServer.getCharacteristic(BleUUIDS.userCharactButtonStateUUID);
                         if(buttonCharacteristic!=null) {
                             final int properties = buttonCharacteristic.getProperties();
                             if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
@@ -300,7 +363,7 @@ public class BleClient {
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
-                                final BluetoothGattDescriptor descriptor = buttonCharacteristic.getDescriptor(UUID.fromString(BleUUIDS.CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID));
+                                final BluetoothGattDescriptor descriptor = buttonCharacteristic.getDescriptor(BleUUIDS.CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID);
                                 if (descriptor != null) {
                                     descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                                     boolean success2 = gatt.writeDescriptor(descriptor);
@@ -315,8 +378,8 @@ public class BleClient {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    BluetoothGattService battaryGattServer = gatt.getService(UUID.fromString(BleUUIDS.batServiceUUID));
-                    BluetoothGattCharacteristic batCharacteristic = battaryGattServer.getCharacteristic(UUID.fromString(BleUUIDS.batCharacteristicUUID));
+                    BluetoothGattService battaryGattServer = gatt.getService(BleUUIDS.batServiceUUID);
+                    BluetoothGattCharacteristic batCharacteristic = battaryGattServer.getCharacteristic(BleUUIDS.batCharacteristicUUID);
                     if(batCharacteristic!=null) {
                         // Check characteristic property
                         final int properties = batCharacteristic.getProperties();
@@ -330,7 +393,7 @@ public class BleClient {
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                            final BluetoothGattDescriptor descriptor = batCharacteristic.getDescriptor(UUID.fromString(BleUUIDS.CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID));
+                            final BluetoothGattDescriptor descriptor = batCharacteristic.getDescriptor(BleUUIDS.CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID);
                             if (descriptor != null) {
                                 descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                                 boolean success2 = gatt.writeDescriptor(descriptor);
@@ -376,18 +439,6 @@ public class BleClient {
                 mConnecttingList.remove(mac);
             }
         }
-    }
-    public synchronized void cancelScan() {
-        isScaning = false;
-//        if(Build.VERSION.SDK_INT> 21&&bluetoothLeScanner!=null&&bleScanCallback!=null){
-//            bluetoothLeScanner.stopScan(bleScanCallback);
-//            bleScanCallback=null;
-//        }else if(mBluetoothAdapter!=null&&bleLeScanCallback != null) {
-//            mBluetoothAdapter.stopLeScan(bleLeScanCallback);
-//            bleLeScanCallback=null;
-//        }
-        mBluetoothAdapter.stopLeScan(bleLeScanCallback);
-        bleLeScanCallback=null;
     }
 
     public synchronized void disconnectAllDevice() {

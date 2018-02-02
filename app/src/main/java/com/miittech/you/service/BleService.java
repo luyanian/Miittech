@@ -1,7 +1,5 @@
 package com.miittech.you.service;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -11,7 +9,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.util.SimpleArrayMap;
 import android.text.TextUtils;
@@ -20,7 +17,6 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.model.LatLng;
-import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -33,7 +29,7 @@ import com.miittech.you.ble.BleWriteCallback;
 import com.miittech.you.ble.GattCallback;
 import com.miittech.you.ble.ScanResult;
 import com.miittech.you.ble.ScanResultCallback;
-import com.miittech.you.global.BleUUIDS;
+import com.miittech.you.ble.BleUUIDS;
 import com.miittech.you.utils.BingGoPlayUtils;
 import com.miittech.you.utils.Common;
 import com.miittech.you.utils.SoundPlayUtils;
@@ -62,8 +58,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -73,10 +67,10 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import static com.miittech.you.global.BleUUIDS.characteristicUUID;
-import static com.miittech.you.global.BleUUIDS.serviceUUID;
-import static com.miittech.you.global.BleUUIDS.userCharacteristicLogUUID;
-import static com.miittech.you.global.BleUUIDS.userServiceUUID;
+import static com.miittech.you.ble.BleUUIDS.characteristicUUID;
+import static com.miittech.you.ble.BleUUIDS.serviceUUID;
+import static com.miittech.you.ble.BleUUIDS.userCharacteristicLogUUID;
+import static com.miittech.you.ble.BleUUIDS.userServiceUUID;
 
 public  class BleService extends Service {
     public LocationClient mLocationClient = null;
@@ -149,18 +143,19 @@ public  class BleService extends Service {
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
         LogUtils.d("bleService","bleService-onStartCommand()");
-        if(executorService==null){
-            executorService = Executors.newSingleThreadScheduledExecutor();
+        if(executorService!=null){
+            executorService.shutdownNow();
+            executorService=null;
         }
-        if(executorService.isShutdown()){
-            executorService.scheduleWithFixedDelay(new Runnable() {
-                @Override
-                public void run() {
-                    Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
-                    App.getInstance().sendBroadcast(intent1);
-                }
-            }, 1, 5, TimeUnit.SECONDS);
-        }
+        executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
+                App.getInstance().sendBroadcast(intent1);
+            }
+        }, 1, 5, TimeUnit.SECONDS);
+
 //        AlarmManager aManager=(AlarmManager)getSystemService(Service.ALARM_SERVICE);
 //        Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
 //        PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -181,7 +176,8 @@ public  class BleService extends Service {
 //        PendingIntent pi=PendingIntent.getBroadcast(this, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
 //        aManager.cancel(pi);
         if(executorService!=null) {
-            executorService.shutdown();
+            executorService.shutdownNow();
+            executorService=null;
         }
 
         if(mLocationClient!=null){
@@ -300,11 +296,11 @@ public  class BleService extends Service {
     }
 
     private void exceCheckScaning() {
+        LogUtils.d("bleservice","exceCheckScaning()-->"+BleClient.getInstance().isScaning());
         if(BleClient.getInstance().isScaning()) {
             if (lastUnScanning != 0 && TimeUtils.getTimeSpanByNow(lastUnScanning, TimeConstants.MIN) > 1) {
                 lastUnScanning = 0;
                 BleClient.getInstance().cancelScan();
-                LogUtils.d("bleservice","exceCheckScaning()-->cancelScan()");
             }
         }else{
             scanDevice();
@@ -514,6 +510,14 @@ public  class BleService extends Service {
                     @Override
                     public synchronized void onEffectDisConnected(boolean isActiveDisConnected, final String mac, int status) {
                         LogUtils.d("bleService", "贴片连接断开----->" + mac + "   isActiveDisConnected--->" + isActiveDisConnected);
+
+                        if (isConnecttingMacs.contains(mac)) {
+                            isConnecttingMacs.remove(mac);
+                        }
+                        if (mLinkLoseMap.containsKey(mac)) {
+                            mLinkLoseMap.remove(mac);
+                        }
+
                         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                         intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
                         intent.putExtra("address", mac);

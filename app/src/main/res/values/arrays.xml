@@ -18,4 +18,36 @@
         <item>240s</item>
         <item>300s</item>
     </string-array>
+    <string-array name="gpio_values">
+        <item id="0x00">P0_0</item>
+        <item id="0x01">P0_1</item>
+        <item id="0x02">P0_2</item>
+        <item id="0x00">P0_3</item>
+        <item id="0x00">P0_4</item>
+        <item id="0x00">P0_5</item>
+        <item id="0x00">P0_6</item>
+        <item id="0x00">P0_7</item>
+        <item id="0x00">P1_0</item>
+        <item id="0x01">P1_1</item>
+        <item id="0x02">P1_2</item>
+        <item id="0x00">P1_3</item>
+        <item id="0x00">P2_0</item>
+        <item id="0x01">P2_1</item>
+        <item id="0x02">P2_2</item>
+        <item id="0x00">P2_3</item>
+        <item id="0x00">P2_4</item>
+        <item id="0x00">P2_5</item>
+        <item id="0x00">P2_6</item>
+        <item id="0x00">P2_7</item>
+        <item id="0x00">P2_8</item>
+        <item id="0x00">P2_9</item>
+        <item id="0x00">P3_0</item>
+        <item id="0x01">P3_1</item>
+        <item id="0x02">P3_2</item>
+        <item id="0x00">P3_3</item>
+        <item id="0x00">P3_4</item>
+        <item id="0x00">P3_5</item>
+        <item id="0x00">P3_6</item>
+        <item id="0x00">P3_7</item>
+    </string-array>
 </resources>

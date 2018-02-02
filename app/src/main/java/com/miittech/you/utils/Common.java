@@ -19,6 +19,7 @@ import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.dialog.DialogUtils;
@@ -36,6 +37,7 @@ import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.AppVersionResponse;
 import com.miittech.you.net.response.BaseResponse;
+import com.miittech.you.net.response.BleVersionResponse;
 import com.miittech.you.net.response.DeviceDetailResponse;
 import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.net.response.FriendsResponse;
@@ -348,6 +350,72 @@ public class Common {
                                 return;
                             }
                             if(curVersion.compareTo(response.getVersion().getLast())>=0&&isAuto) {//不强制升级
+                                ToastUtils.showShort("当前已是最新版本");
+                            }
+                        } else {
+                            response.onError(context);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+
+    public synchronized static void checkBleVersion(final Context context, final String firmwareVertion, final String softwareVertion){
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort("网络链接断开，请检查网络");
+            return;
+        }
+        Map param = new HashMap();
+        param.put("devtype", "1");
+        param.put("debug", "1");
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "devicefirmware/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(App.getInstance()).postGetBleVersion(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BleVersionResponse>() {
+                    @Override
+                    public void accept(final BleVersionResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            BleVersionResponse.FirmwareBean firmwareBean = response.getFirmware();
+                            if(firmwareBean!=null&&(firmwareVertion.compareTo(firmwareBean.getFirmware())<0||softwareVertion.compareTo(firmwareBean.getSoftware())<0)){
+                                final UpdateDialog updateDialog = DialogUtils.getInstance().showUpdateDialog(context,true);
+                                updateDialog.setTitle("固件更新");
+                                updateDialog.setMsg("检查到新的固件 v"+firmwareBean.getFirmware()+",请及时更新");
+                                updateDialog.setLeftBtnText("取消");
+                                updateDialog.setRightBtnText("更新");
+                                updateDialog.setOnMsgTipOptions(new OnMsgTipOptions(){
+                                    @Override
+                                    public void onSure() {
+                                        super.onSure();
+                                        Common.download(context,response.getVersion().getLasturl());
+                                        if(updateDialog!=null&&updateDialog.isShowing()){
+                                            updateDialog.dismiss();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancel() {
+                                        super.onCancel();
+                                        if(updateDialog!=null&&updateDialog.isShowing()){
+                                            updateDialog.dismiss();
+                                        }
+                                    }
+                                });
+                                updateDialog.show();
+                                return;
+                            }else{
                                 ToastUtils.showShort("当前已是最新版本");
                             }
                         } else {

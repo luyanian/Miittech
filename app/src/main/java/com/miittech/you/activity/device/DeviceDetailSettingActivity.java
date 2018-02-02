@@ -12,6 +12,8 @@ import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
+import com.miittech.you.ble.BleClient;
+import com.miittech.you.ble.BleReadCallback;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
@@ -114,6 +116,19 @@ public class DeviceDetailSettingActivity extends BaseActivity {
             .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
             .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
             .into(imgDeviceIcon);
+        BleClient.getInstance().readBleVertion(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()),new BleReadCallback(){
+            @Override
+            public synchronized void onReadBleVertion(final byte[] firmware, byte[] software) {
+                super.onReadBleVertion(firmware, software);
+                LogUtils.d("firmwareVertion:"+firmware+",softwareVertion:"+software);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tvDeviceVertion.setText(firmware[0]+"");
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -172,6 +187,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.rl_device_update:
+                Common.getBleVersion(this);
                 break;
         }
     }
