@@ -370,6 +370,64 @@ public class BleClient {
             }
         }).start();
     }
+    public synchronized void writeNonThread(final String mac,
+                                   final UUID uuid_service,
+                                   final UUID uuid_write,
+                                   final byte[] data,
+                                   final BleWriteCallback bleWriteCallback) {
+        bleWriteCallbacks.put(uuid_write,bleWriteCallback);
+        if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
+            BluetoothGatt gatt = bluetoothGatts.get(mac);
+            if(gatt!=null&&gatt.getDevice()!=null) {
+                BluetoothGattService bluetoothGattServer = gatt.getService(uuid_service);
+                if(bluetoothGattServer!=null) {
+                    BluetoothGattCharacteristic gattCharacteristic = bluetoothGattServer.getCharacteristic(uuid_write);
+                    if (gattCharacteristic != null) {
+                        gattCharacteristic.setValue(data);
+                        if(gatt.writeCharacteristic(gattCharacteristic)){
+                            if(bleWriteCallback!=null){
+                                bleWriteCallback.onWriteSuccess(gatt.getDevice());
+                            }
+                        }else{
+                            if(bleWriteCallback!=null){
+                                bleWriteCallback.onWriteFialed(gatt.getDevice());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    public void writeNonThread(final String mac,
+                      final UUID spotaServiceUuid,
+                      final UUID spotaMemDevUuid,
+                      final int memType,
+                      final int formatUint32,
+                      final int offset,
+                      final BleWriteCallback bleWriteCallback) {
+        bleWriteCallbacks.put(spotaMemDevUuid,bleWriteCallback);
+        if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
+            BluetoothGatt gatt = bluetoothGatts.get(mac);
+            if(gatt!=null&&gatt.getDevice()!=null) {
+                BluetoothGattService bluetoothGattServer = gatt.getService(spotaServiceUuid);
+                if(bluetoothGattServer!=null) {
+                    BluetoothGattCharacteristic gattCharacteristic = bluetoothGattServer.getCharacteristic(spotaMemDevUuid);
+                    if (gattCharacteristic != null) {
+                        gattCharacteristic.setValue(memType,formatUint32,offset);
+                        if(gatt.writeCharacteristic(gattCharacteristic)){
+                            if(bleWriteCallback!=null){
+                                bleWriteCallback.onWriteSuccess(gatt.getDevice());
+                            }
+                        }else{
+                            if(bleWriteCallback!=null){
+                                bleWriteCallback.onWriteFialed(gatt.getDevice());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     public synchronized void read(final String mac,
                                    final UUID uuid_service,
                                    final UUID uuid_characristic,BleReadCallback bleReadCallback) {

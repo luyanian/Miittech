@@ -507,7 +507,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                                         public void onCancel() {
                                             super.onCancel();
                                         }
-                                    });
+                                    }).show();
                         }
                     });
                 }

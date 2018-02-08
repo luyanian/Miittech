@@ -157,7 +157,7 @@ public class OtaOptions {
 				uploadStart = new Date().getTime();
 
 				int memType = (MEMORY_TYPE_EXTERNAL_SPI << 24) | imageBank;
-				BleClient.getInstance().write(
+				BleClient.getInstance().writeNonThread(
 						mac,BleUUIDS.SPOTA_SERVICE_UUID,
 						BleUUIDS.SPOTA_MEM_DEV_UUID,
 						memType,
@@ -184,7 +184,7 @@ public class OtaOptions {
 				if (++gpioMapPrereq == 2) {
 					int memInfoData = (miso_gpio << 24) | (mosi_gpio << 16) | (gs_gpio << 8) | sck_gpio;
 					LogUtils.d(TAG, "Set SPOTA_GPIO_MAP: " + String.format("%#10x", memInfoData));
-					BleClient.getInstance().write(
+					BleClient.getInstance().writeNonThread(
 							mac, BleUUIDS.SPOTA_SERVICE_UUID,
 							BleUUIDS.SPOTA_GPIO_MAP_UUID,
 							memInfoData,
@@ -209,7 +209,7 @@ public class OtaOptions {
 				}
 				LogUtils.d(TAG, "setPatchLength: " + blocksize + " - " + String.format("%#4x", blocksize));
 				LogUtils.d(TAG,"Set SPOTA_PATCH_LENGTH: " + blocksize);
-				BleClient.getInstance().write(
+				BleClient.getInstance().writeNonThread(
 						mac,BleUUIDS.SPOTA_SERVICE_UUID,
 						BleUUIDS.SPOTA_PATCH_LEN_UUID,
 						blocksize,
@@ -287,7 +287,7 @@ public class OtaOptions {
 			}
 			String systemLogMessage = "Sending block " + (blockCounter + 1) + ", chunk " + (i + 1) + " of " + block.length + ", size " + chunk.length;
 			Log.d(TAG, systemLogMessage);
-			BleClient.getInstance().write(mac,
+			BleClient.getInstance().writeNonThread(mac,
 					BleUUIDS.SPOTA_SERVICE_UUID,
 					BleUUIDS.SPOTA_PATCH_DATA_UUID,
 					chunk,
@@ -335,7 +335,7 @@ public class OtaOptions {
 	public void sendEndSignal() {
 		LogUtils.d(TAG, "sendEndSignal");
 		LogUtils.d(TAG,"send SUOTA END command");
-		BleClient.getInstance().write(mac,
+		BleClient.getInstance().writeNonThread(mac,
 				BleUUIDS.SPOTA_SERVICE_UUID,
 				BleUUIDS.SPOTA_MEM_DEV_UUID,
 				END_SIGNAL,BluetoothGattCharacteristic.FORMAT_UINT32, 0,
@@ -350,7 +350,7 @@ public class OtaOptions {
 	public void sendRebootSignal() {
 		LogUtils.d(TAG, "sendRebootSignal");
 		LogUtils.d(TAG,"send SUOTA REBOOT command");
-		BleClient.getInstance().write(mac,
+		BleClient.getInstance().writeNonThread(mac,
 				BleUUIDS.SPOTA_SERVICE_UUID,
 				BleUUIDS.SPOTA_MEM_DEV_UUID,
 				REBOOT_SIGNAL,
