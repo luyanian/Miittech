@@ -1,4 +1,4 @@
-package com.miittech.you.ble;
+package com.miittech.you.ble.gatt;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -19,5 +19,4 @@ public abstract class GattCallback{
 
     public abstract void onReadRemoteRssi(String mac, int rssi, int status);
     public void onCharacteristicChanged(String mac, BluetoothGattCharacteristic characteristic){};
-    public void onCharacteristicWrite(String mac, BluetoothGattCharacteristic characteristic, int status){};
 }

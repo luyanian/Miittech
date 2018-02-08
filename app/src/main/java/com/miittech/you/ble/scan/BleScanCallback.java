@@ -1,11 +1,11 @@
-package com.miittech.you.ble;
+package com.miittech.you.ble.scan;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
+
+import com.miittech.you.ble.BleClient;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class BleScanCallback extends ScanCallback {
     public void onScanResult(int callbackType, final android.bluetooth.le.ScanResult result) {
         super.onScanResult(callbackType, result);
         if(scanResultCallback!=null&&result.getDevice()!=null&& !TextUtils.isEmpty(result.getDevice().getAddress())) {
-            com.miittech.you.ble.ScanResult scanResult = new com.miittech.you.ble.ScanResult();
+            ScanResult scanResult = new ScanResult();
             scanResult.setDevice(result.getDevice());
             scanResult.setMac(result.getDevice().getAddress());
             scanResult.setName(result.getDevice().getName());

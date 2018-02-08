@@ -8,19 +8,13 @@ import android.content.Intent;
 
 import com.miittech.you.App;
 import com.miittech.you.entity.MsgData;
-import com.miittech.you.global.SPConst;
-import com.miittech.you.utils.Common;
 import com.miittech.you.utils.MsgDataUtils;
 import com.miittech.you.utils.SoundPlayUtils;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.global.IntentExtras;
-import com.miittech.you.service.BleService;
+import com.miittech.you.ble.BleService;
 import com.ryon.mutils.ActivityPools;
-import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.ServiceUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
 
@@ -48,7 +42,7 @@ public class LocalReceiver extends BroadcastReceiver {
                 MsgDataUtils.getInstance().addMsg(msgData);
             }
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_TASK_SEND){
-            if(!ServiceUtils.isServiceRunning("com.miittech.you.service.BleService")){
+            if(!ServiceUtils.isServiceRunning("com.miittech.you.ble.BleService")){
                 ServiceUtils.startService(BleService.class);
             }
             Intent task= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);

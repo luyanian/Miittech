@@ -276,7 +276,7 @@
             </intent-filter>
         </receiver>
         <service
-            android:name="com.miittech.you.service.BleService"
+            android:name="com.miittech.you.ble.BleService"
             android:exported="true"
             android:label="有物服务进程">
         </service>

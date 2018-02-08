@@ -1,4 +1,4 @@
-package com.miittech.you.service;
+package com.miittech.you.ble;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -24,12 +24,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.miittech.you.App;
-import com.miittech.you.ble.BleClient;
-import com.miittech.you.ble.BleWriteCallback;
-import com.miittech.you.ble.GattCallback;
-import com.miittech.you.ble.ScanResult;
-import com.miittech.you.ble.ScanResultCallback;
-import com.miittech.you.ble.BleUUIDS;
+import com.miittech.you.ble.gatt.BleWriteCallback;
+import com.miittech.you.ble.gatt.GattCallback;
+import com.miittech.you.ble.scan.ScanResult;
+import com.miittech.you.ble.scan.ScanResultCallback;
 import com.miittech.you.utils.BingGoPlayUtils;
 import com.miittech.you.utils.Common;
 import com.miittech.you.utils.SoundPlayUtils;
@@ -594,12 +592,6 @@ public  class BleService extends Service {
                             mapBattery.put(mac, data[0] + "");
 
                         }
-                    }
-
-                    @Override
-                    public void onCharacteristicWrite(String mac, BluetoothGattCharacteristic characteristic, int status) {
-                        super.onCharacteristicWrite(mac, characteristic, status);
-                        LogUtils.d("bleService", "onCharacteristicWrite:" + mac + "    status:" + status);
                     }
                 });
             }

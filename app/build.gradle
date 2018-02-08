@@ -120,4 +120,5 @@ dependencies {
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'jp.wasabeef:recyclerview-animators:1.0.3@aar'
     compile 'com.android.support:multidex:1.+'
+    compile 'com.liulishuo.filedownloader:library:1.7.1'
 }

@@ -1,4 +1,4 @@
-package com.miittech.you.ble;
+package com.miittech.you.ble.scan;
 
 import android.bluetooth.BluetoothDevice;
 

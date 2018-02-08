@@ -2,18 +2,33 @@ package com.miittech.you.activity.device;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-
 import com.google.gson.Gson;
+import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadListener;
+import com.liulishuo.filedownloader.FileDownloader;
 import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.ble.BleClient;
-import com.miittech.you.ble.BleReadCallback;
+import com.miittech.you.ble.gatt.BleReadCallback;
+import com.miittech.you.ble.BleUUIDS;
+import com.miittech.you.ble.update.IOtaUpdateListener;
+import com.miittech.you.ble.update.OtaOptions;
+import com.miittech.you.ble.update.UpConst;
+import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.dialog.MsgTipDialog;
+import com.miittech.you.dialog.ProgressDialog;
+import com.miittech.you.dialog.UpdateDialog;
+import com.miittech.you.impl.OnMsgTipOptions;
+import com.miittech.you.net.response.BleVersionResponse;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
@@ -75,6 +90,8 @@ public class DeviceDetailSettingActivity extends BaseActivity {
     private static final int REQUEST_DEVICE_NAME=0x01;
     private static final int REQUEST_DEVICE_CLASSFY=0x02;
     DeviceInfo deviceInfo;
+    private String firmware;
+    private String software;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,23 +127,39 @@ public class DeviceDetailSettingActivity extends BaseActivity {
         DateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日 a HH:mm");
         Date date = TimeUtils.string2Date(deviceDetailInfo.getBindtime(),new SimpleDateFormat("yyyyMMddHHmmss"));
         tvDeviceTimeActive.setText(TimeUtils.date2String(date,dateFormat));
-        tvDeviceVertion.setText("v1.0");
         GlideApp.with(this)
             .load(deviceDetailInfo.getDevimg())
             .error(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
             .placeholder(Common.getDefaultDevImgResouceId(Common.decodeBase64(deviceDetailInfo.getGroupname())))
             .into(imgDeviceIcon);
-        BleClient.getInstance().readBleVertion(Common.formatDevId2Mac(deviceDetailInfo.getDevidX()),new BleReadCallback(){
+        BleClient.getInstance().read(
+                Common.formatDevId2Mac(deviceDetailInfo.getDevidX()),
+                BleUUIDS.versionServiceUUID,
+                BleUUIDS.firmwareVertionCharacteristicUUID,
+                new BleReadCallback(){
             @Override
-            public synchronized void onReadBleVertion(final byte[] firmware, byte[] software) {
-                super.onReadBleVertion(firmware, software);
-                LogUtils.d("firmwareVertion:"+firmware+",softwareVertion:"+software);
+            public synchronized void onReadResponse(final byte[] data) {
+                super.onReadResponse(data);
+                DeviceDetailSettingActivity.this.firmware = new String(data);
+                LogUtils.d("value:"+DeviceDetailSettingActivity.this.firmware);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        tvDeviceVertion.setText(firmware[0]+"");
+                        tvDeviceVertion.setText(DeviceDetailSettingActivity.this.firmware);
                     }
                 });
+            }
+        });
+        BleClient.getInstance().read(
+                Common.formatDevId2Mac(deviceDetailInfo.getDevidX()),
+                BleUUIDS.versionServiceUUID,
+                BleUUIDS.softwareVertionCharacteristicUUID,
+                new BleReadCallback(){
+            @Override
+            public synchronized void onReadResponse(final byte[] data) {
+                super.onReadResponse(data);
+                DeviceDetailSettingActivity.this.software = new String(data);
+                LogUtils.d("value:"+DeviceDetailSettingActivity.this.firmware);
             }
         });
     }
@@ -187,7 +220,9 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.rl_device_update:
-                Common.getBleVersion(this);
+                if(!TextUtils.isEmpty(firmware)||!TextUtils.isEmpty(software)){
+                    checkBleVersion(deviceInfo.getDevidX(),firmware,software);
+                }
                 break;
         }
     }
@@ -283,6 +318,203 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                     }
                 });
 
+    }
+    public synchronized void checkBleVersion(final String devidX, final String firmwareVertion, final String softwareVertion){
+        if(TextUtils.isEmpty(devidX)){
+            return;
+        }
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort("网络链接断开，请检查网络");
+            return;
+        }
+        Map param = new HashMap();
+        param.put("devtype", "1");
+        param.put("debug", "1");
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "devicefirmware/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(App.getInstance()).postGetBleVersion(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BleVersionResponse>() {
+                    @Override
+                    public void accept(final BleVersionResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            final BleVersionResponse.FirmwareBean firmwareBean = response.getFirmware();
+//                            if(firmwareBean!=null&&(firmwareVertion.compareTo(firmwareBean.getFirmware())<0)){
+                                final UpdateDialog updateDialog = DialogUtils.getInstance().showUpdateDialog(DeviceDetailSettingActivity.this,true);
+                                updateDialog.setTitle("固件更新");
+                                updateDialog.setMsg("检查到新的固件 "+firmwareBean.getFirmware()+",请及时更新");
+                                updateDialog.setLeftBtnText("取消");
+                                updateDialog.setRightBtnText("更新");
+                                updateDialog.setOnMsgTipOptions(new OnMsgTipOptions(){
+                                    @Override
+                                    public void onSure() {
+                                        super.onSure();
+                                        if(updateDialog!=null&&updateDialog.isShowing()){
+                                            updateDialog.dismiss();
+                                        }
+                                        startDownloadFirmware(devidX,firmwareBean.getDl_url());
+                                    }
+
+                                    @Override
+                                    public void onCancel() {
+                                        super.onCancel();
+                                        if(updateDialog!=null&&updateDialog.isShowing()){
+                                            updateDialog.dismiss();
+                                        }
+                                    }
+                                });
+                                updateDialog.show();
+                                return;
+//                            }else{
+//                                ToastUtils.showShort("当前已是最新版本");
+//                            }
+                        } else {
+                            response.onError(DeviceDetailSettingActivity.this);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+
+    private void startDownloadFirmware(final String devidX, String downloadUrl) {
+        final ProgressDialog progressDialog = DialogUtils.getInstance().showProgressDialog(this);
+        progressDialog.setTitle("正在准备更新...");
+        final ProgressBar progressBar = progressDialog.getProgressBar();
+        FileDownloader.setup(this);
+        FileDownloader.getImpl().create(downloadUrl)
+                .setPath(UpConst.file_blefirmware_download_path+File.separator+"firmware.img")
+                .setListener(new FileDownloadListener() {
+                    @Override
+                    protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                    }
+
+                    @Override
+                    protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+                        progressBar.setMax(totalBytes);
+                    }
+
+                    @Override
+                    protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                        progressBar.setProgress(soFarBytes);
+                    }
+
+                    @Override
+                    protected void blockComplete(BaseDownloadTask task) {
+                    }
+
+                    @Override
+                    protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
+                    }
+
+                    @Override
+                    protected void completed(BaseDownloadTask task) {
+                        updateDevice(Common.formatDevId2Mac(devidX),progressDialog,task);
+                    }
+
+                    @Override
+                    protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                    }
+
+                    @Override
+                    protected void error(BaseDownloadTask task, Throwable e) {
+                        MsgTipDialog msgTipDialog = DialogUtils.getInstance().createMsgTipDialog(DeviceDetailSettingActivity.this);
+                        msgTipDialog.setTitle("提示");
+                        msgTipDialog.setMsg("下载出错了，请重试！");                        msgTipDialog.setRightBtnText("关闭");
+                        msgTipDialog.hideLeftBtn();
+                        msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions(){
+                            @Override
+                            public void onSure() {
+                                super.onSure();
+                                if(progressDialog!=null&&progressDialog.isShowing()){
+                                    progressDialog.dismiss();
+                                }
+                            }
+                        });
+                        msgTipDialog.show();
+                    }
+
+                    @Override
+                    protected void warn(BaseDownloadTask task) {
+                    }
+                }).start();
+        progressDialog.show();
+    }
+    private void updateDevice(String mac, final ProgressDialog progressDialog, BaseDownloadTask task) {
+        if(progressDialog==null){
+            return;
+        }
+        final ProgressBar progressBar = progressDialog.getProgressBar();
+        String filePath = UpConst.file_blefirmware_download_path+ File.separator+task.getFilename();
+        final OtaOptions otaOptions = new OtaOptions(this);
+        try {
+            otaOptions.init(filePath,mac);
+            otaOptions.startUpdate(new IOtaUpdateListener() {
+                @Override
+                public void updateTitle(final String title) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.setTitle(title);
+                        }
+                    });
+                }
+
+                @Override
+                public void onProgress(final int progress) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(progressBar!=null){
+                                progressBar.setProgress(progress);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onUpdateComplete() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(progressDialog!=null&&progressDialog.isShowing()){
+                                progressDialog.dismiss();
+                            }
+                            DialogUtils.getInstance().createMsgTipDialog(DeviceDetailSettingActivity.this)
+                                    .setTitle("更新")
+                                    .setMsg("已完成固件更新，是否重启蓝牙设备？")
+                                    .setLeftBtnText("取消")
+                                    .setRightBtnText("确定")
+                                    .setOnMsgTipOptions(new OnMsgTipOptions(){
+                                        @Override
+                                        public void onSure() {
+                                            super.onSure();
+                                            otaOptions.sendRebootSignal();
+                                        }
+
+                                        @Override
+                                        public void onCancel() {
+                                            super.onCancel();
+                                        }
+                                    });
+                        }
+                    });
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

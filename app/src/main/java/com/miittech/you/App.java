@@ -7,7 +7,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.multidex.MultiDex;
 import com.baidu.mapapi.SDKInitializer;
-import com.miittech.you.service.BleService;
+import com.miittech.you.ble.BleService;
+import com.miittech.you.ble.update.UpdateFile;
 import com.miittech.you.utils.BingGoPlayUtils;
 import com.miittech.you.utils.SoundPlayUtils;
 import com.mob.MobApplication;
@@ -34,6 +35,7 @@ public class  App extends MobApplication {
         SDKInitializer.initialize(getApplicationContext());
         JPushInterface.setDebugMode(true);
         JPushInterface.init(getApplicationContext());
+        UpdateFile.createFileDirectories(this);
         Utils.init(getApplicationContext());
         registerActivityListener();
         startService(new Intent(this,BleService.class));

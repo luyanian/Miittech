@@ -6,6 +6,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 
 /**
  * Created by Administrator on 2017/9/21.
@@ -91,6 +92,18 @@ public class DialogUtils {
         }
         updateDialog = new UpdateDialog(context,canCancle);
         return updateDialog;
+    }
+
+    static ProgressDialog progressDialog;
+    public synchronized  ProgressDialog showProgressDialog(Context context){
+        if(progressDialog!=null){
+            if(progressDialog.isShowing()){
+                progressDialog.dismiss();
+            }
+            progressDialog=null;
+        }
+        progressDialog = new ProgressDialog(context);
+        return progressDialog;
     }
 
 }

@@ -1,13 +1,12 @@
-package com.miittech.you.ble;
+package com.miittech.you.ble.gatt;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
 
 /**
  * Created by ryon on 2018/1/13.
  */
 
-public class BleWriteCallback {
+public class BleWriteCallback extends BaseOptionCallback {
     public synchronized void onWriteSuccess(BluetoothDevice device){};
     public synchronized void onWriteFialed(BluetoothDevice device){};
 }

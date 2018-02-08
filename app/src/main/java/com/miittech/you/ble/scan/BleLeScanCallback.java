@@ -1,4 +1,4 @@
-package com.miittech.you.ble;
+package com.miittech.you.ble.scan;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -18,7 +18,7 @@ public class BleLeScanCallback implements BluetoothAdapter.LeScanCallback {
     @Override
     public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
         if(scanResultCallback!=null&&device!=null&&!TextUtils.isEmpty(device.getAddress())){
-            com.miittech.you.ble.ScanResult scanResult = new com.miittech.you.ble.ScanResult();
+            ScanResult scanResult = new ScanResult();
             scanResult.setDevice(device);
             scanResult.setMac(device.getAddress());
             scanResult.setName(device.getName());

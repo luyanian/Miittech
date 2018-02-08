@@ -1,30 +1,33 @@
 package com.miittech.you.utils;
 
-import android.app.Activity;
-import android.app.DownloadManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.provider.Settings;
-import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationManagerCompat;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.widget.ProgressBar;
 
-import com.baidu.location.BDLocation;
-import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadListener;
+import com.liulishuo.filedownloader.FileDownloader;
 import com.miittech.you.App;
 import com.miittech.you.R;
+import com.miittech.you.ble.update.IOtaUpdateListener;
+import com.miittech.you.ble.update.OtaOptions;
+import com.miittech.you.ble.update.UpConst;
+import com.miittech.you.ble.update.UpdateFile;
 import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.dialog.MsgTipDialog;
+import com.miittech.you.dialog.ProgressDialog;
 import com.miittech.you.dialog.UpdateDialog;
-import com.miittech.you.entity.Detailinfo;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.entity.Locinfo;
 import com.miittech.you.global.HttpUrl;
@@ -51,6 +54,7 @@ import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
 import com.ryon.mutils.ToastUtils;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -63,8 +67,6 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-
-import static android.content.Context.DOWNLOAD_SERVICE;
 
 /**
  * Created by Administrator on 2017/9/21.
@@ -350,72 +352,6 @@ public class Common {
                                 return;
                             }
                             if(curVersion.compareTo(response.getVersion().getLast())>=0&&isAuto) {//不强制升级
-                                ToastUtils.showShort("当前已是最新版本");
-                            }
-                        } else {
-                            response.onError(context);
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
-
-    public synchronized static void checkBleVersion(final Context context, final String firmwareVertion, final String softwareVertion){
-        if(!NetworkUtils.isConnected()){
-            ToastUtils.showShort("网络链接断开，请检查网络");
-            return;
-        }
-        Map param = new HashMap();
-        param.put("devtype", "1");
-        param.put("debug", "1");
-        String json = new Gson().toJson(param);
-        PubParam pubParam = new PubParam(Common.getUserId());
-        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
-        LogUtils.d("sign_unsha1", sign_unSha1);
-        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
-        LogUtils.d("sign_sha1", sign);
-        String path = HttpUrl.Api + "devicefirmware/" + pubParam.toUrlParam(sign);
-        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
-
-        ApiServiceManager.getInstance().buildApiService(App.getInstance()).postGetBleVersion(path, requestBody)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<BleVersionResponse>() {
-                    @Override
-                    public void accept(final BleVersionResponse response) throws Exception {
-                        if (response.isSuccessful()) {
-                            BleVersionResponse.FirmwareBean firmwareBean = response.getFirmware();
-                            if(firmwareBean!=null&&(firmwareVertion.compareTo(firmwareBean.getFirmware())<0||softwareVertion.compareTo(firmwareBean.getSoftware())<0)){
-                                final UpdateDialog updateDialog = DialogUtils.getInstance().showUpdateDialog(context,true);
-                                updateDialog.setTitle("固件更新");
-                                updateDialog.setMsg("检查到新的固件 v"+firmwareBean.getFirmware()+",请及时更新");
-                                updateDialog.setLeftBtnText("取消");
-                                updateDialog.setRightBtnText("更新");
-                                updateDialog.setOnMsgTipOptions(new OnMsgTipOptions(){
-                                    @Override
-                                    public void onSure() {
-                                        super.onSure();
-                                        Common.download(context,response.getVersion().getLasturl());
-                                        if(updateDialog!=null&&updateDialog.isShowing()){
-                                            updateDialog.dismiss();
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancel() {
-                                        super.onCancel();
-                                        if(updateDialog!=null&&updateDialog.isShowing()){
-                                            updateDialog.dismiss();
-                                        }
-                                    }
-                                });
-                                updateDialog.show();
-                                return;
-                            }else{
                                 ToastUtils.showShort("当前已是最新版本");
                             }
                         } else {
