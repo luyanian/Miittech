@@ -2,6 +2,7 @@ package com.miittech.you.activity.device;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -91,7 +92,6 @@ public class DeviceDetailSettingActivity extends BaseActivity {
     private static final int REQUEST_DEVICE_CLASSFY=0x02;
     DeviceInfo deviceInfo;
     private String firmware;
-    private String software;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,21 +145,9 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        tvDeviceVertion.setText(DeviceDetailSettingActivity.this.firmware);
+                    tvDeviceVertion.setText(DeviceDetailSettingActivity.this.firmware);
                     }
                 });
-            }
-        });
-        BleClient.getInstance().read(
-                Common.formatDevId2Mac(deviceDetailInfo.getDevidX()),
-                BleUUIDS.versionServiceUUID,
-                BleUUIDS.softwareVertionCharacteristicUUID,
-                new BleReadCallback(){
-            @Override
-            public synchronized void onReadResponse(final byte[] data) {
-                super.onReadResponse(data);
-                DeviceDetailSettingActivity.this.software = new String(data);
-                LogUtils.d("value:"+DeviceDetailSettingActivity.this.firmware);
             }
         });
     }
@@ -220,8 +208,8 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 startActivity(intent);
                 break;
             case R.id.rl_device_update:
-                if(!TextUtils.isEmpty(firmware)||!TextUtils.isEmpty(software)){
-                    checkBleVersion(deviceInfo.getDevidX(),firmware,software);
+                if(!TextUtils.isEmpty(firmware)){
+                    checkBleVersion(deviceInfo.getDevidX(),firmware);
                 }
                 break;
         }
@@ -319,7 +307,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 });
 
     }
-    public synchronized void checkBleVersion(final String devidX, final String firmwareVertion, final String softwareVertion){
+    public synchronized void checkBleVersion(final String devidX, final String firmwareVertion){
         if(TextUtils.isEmpty(devidX)){
             return;
         }
@@ -347,7 +335,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                     public void accept(final BleVersionResponse response) throws Exception {
                         if (response.isSuccessful()) {
                             final BleVersionResponse.FirmwareBean firmwareBean = response.getFirmware();
-//                            if(firmwareBean!=null&&(firmwareVertion.compareTo(firmwareBean.getFirmware())<0)){
+                            if(firmwareBean!=null&&(firmwareVertion.compareTo(firmwareBean.getFirmware())<0)){
                                 final UpdateDialog updateDialog = DialogUtils.getInstance().showUpdateDialog(DeviceDetailSettingActivity.this,true);
                                 updateDialog.setTitle("固件更新");
                                 updateDialog.setMsg("检查到新的固件 "+firmwareBean.getFirmware()+",请及时更新");
@@ -373,9 +361,9 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                                 });
                                 updateDialog.show();
                                 return;
-//                            }else{
-//                                ToastUtils.showShort("当前已是最新版本");
-//                            }
+                            }else{
+                                ToastUtils.showShort("当前已是最新版本");
+                            }
                         } else {
                             response.onError(DeviceDetailSettingActivity.this);
                         }
@@ -451,7 +439,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 }).start();
         progressDialog.show();
     }
-    private void updateDevice(String mac, final ProgressDialog progressDialog, BaseDownloadTask task) {
+    private void updateDevice(String mac, final ProgressDialog progressDialog, final BaseDownloadTask task) {
         if(progressDialog==null){
             return;
         }
@@ -491,6 +479,11 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                             if(progressDialog!=null&&progressDialog.isShowing()){
                                 progressDialog.dismiss();
                             }
+                            try {
+                                FileUtils.deleteFile(task.getPath()+File.separator+task.getFilename());
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
                             DialogUtils.getInstance().createMsgTipDialog(DeviceDetailSettingActivity.this)
                                     .setTitle("更新")
                                     .setMsg("已完成固件更新，是否重启蓝牙设备？")
@@ -501,6 +494,35 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                                         public void onSure() {
                                             super.onSure();
                                             otaOptions.sendRebootSignal();
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    new Handler().postDelayed(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            BleClient.getInstance().read(
+                                                                    Common.formatDevId2Mac(DeviceDetailSettingActivity.this.deviceInfo.getDevidX()),
+                                                                    BleUUIDS.versionServiceUUID,
+                                                                    BleUUIDS.firmwareVertionCharacteristicUUID,
+                                                                    new BleReadCallback(){
+                                                                        @Override
+                                                                        public synchronized void onReadResponse(final byte[] data) {
+                                                                            super.onReadResponse(data);
+                                                                            DeviceDetailSettingActivity.this.firmware = new String(data);
+                                                                            LogUtils.d("value:"+DeviceDetailSettingActivity.this.firmware);
+                                                                            runOnUiThread(new Runnable() {
+                                                                                @Override
+                                                                                public void run() {
+                                                                                    tvDeviceVertion.setText(DeviceDetailSettingActivity.this.firmware);
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    });
+                                                        }
+                                                    },1000);
+                                                }
+                                            });
+
                                         }
 
                                         @Override
