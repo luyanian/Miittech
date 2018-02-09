@@ -565,7 +565,7 @@ public  class BleService extends Service {
                     @Override
                     public void onCharacteristicChanged(String mac, BluetoothGattCharacteristic characteristic) {
                         super.onCharacteristicChanged(mac, characteristic);
-                        if (characteristic != null && characteristic.getUuid().toString().equals(BleUUIDS.userCharactButtonStateUUID)) {
+                        if (characteristic != null && characteristic.getUuid().equals(BleUUIDS.userCharactButtonStateUUID)) {
                             byte[] data = characteristic.getValue();
                             LogUtils.d("bleService", "监测到" + mac + "点击事件(" + data[0] + ")--->报警广播数据");
                             if (data[0] == 02) {
@@ -581,7 +581,7 @@ public  class BleService extends Service {
                                 }
 
                             }
-                        } else if (characteristic != null && characteristic.getUuid().toString().equals(BleUUIDS.batCharacteristicUUID)) {
+                        } else if (characteristic != null && characteristic.getUuid().equals(BleUUIDS.batCharacteristicUUID)) {
                             byte[] data = characteristic.getValue();
                             LogUtils.d("bleService", "监测到" + mac + "电池电量" + data[0] + "%");
                             Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
