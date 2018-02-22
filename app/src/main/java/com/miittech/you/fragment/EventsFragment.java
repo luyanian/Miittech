@@ -51,7 +51,7 @@ public class EventsFragment extends Fragment {
                 FragmentTransaction trans = fragmentManager.beginTransaction();
                 hideFrament(trans);
                 setFragment(item,trans);
-                trans.commit();
+                trans.commitAllowingStateLoss();
             }
         });
         typeSelector.setSelectItem(0);

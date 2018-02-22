@@ -162,6 +162,28 @@ public  class BleService extends Service {
     }
 
     @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        LogUtils.d("bleService-onTrimMemory()");
+        try {
+            BleClient.getInstance().cancelScan();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        LogUtils.d("bleService-onLowMemory()");
+        try {
+            BleClient.getInstance().cancelScan();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         LogUtils.d("bleService-onDestroy()");

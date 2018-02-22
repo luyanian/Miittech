@@ -1,14 +1,14 @@
 package com.miittech.you.fragment;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -16,14 +16,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
 import com.google.gson.Gson;
-import com.luck.picture.lib.permissions.RxPermissions;
-import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.ble.BleClient;
-import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.global.HttpUrl;
 import com.miittech.you.global.IntentExtras;
@@ -33,6 +31,8 @@ import com.miittech.you.global.SPConst;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.net.ApiServiceManager;
 import com.miittech.you.net.response.DeviceListResponse;
+import com.miittech.you.utils.Common;
+import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.NetworkUtils;
@@ -48,6 +48,7 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.Unbinder;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -118,37 +119,37 @@ public class ListFragment extends Fragment {
         recyclerView.setAdapter(mDeviceListAdapter);
         initState();
 
-        IntentFilter filter=new IntentFilter();
+        IntentFilter filter = new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
         filter.addAction(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE);
-        getActivity().registerReceiver(cmdResponseReceiver,filter);
+        getActivity().registerReceiver(cmdResponseReceiver, filter);
     }
 
     public void initState() {
         if (BleClient.getInstance().isEnabled()) {
-            if(llBluetoothDisabled!=null) {
+            if (llBluetoothDisabled != null) {
                 llBluetoothDisabled.setVisibility(View.GONE);
             }
         } else {
-            if(llBluetoothDisabled!=null) {
+            if (llBluetoothDisabled != null) {
                 llBluetoothDisabled.setVisibility(View.VISIBLE);
             }
         }
         if (Common.isLocationEnabled()) {
-            if(llLocationServiceDisabled!=null) {
+            if (llLocationServiceDisabled != null) {
                 llLocationServiceDisabled.setVisibility(View.GONE);
             }
         } else {
-            if(llLocationServiceDisabled!=null) {
+            if (llLocationServiceDisabled != null) {
                 llLocationServiceDisabled.setVisibility(View.VISIBLE);
             }
         }
         if (Common.isNotificationEnabled()) {
-            if(llNotifyServiceDisabled!=null) {
+            if (llNotifyServiceDisabled != null) {
                 llNotifyServiceDisabled.setVisibility(View.GONE);
             }
         } else {
-            if(llNotifyServiceDisabled!=null) {
+            if (llNotifyServiceDisabled != null) {
                 llNotifyServiceDisabled.setVisibility(View.VISIBLE);
             }
         }
@@ -183,14 +184,14 @@ public class ListFragment extends Fragment {
     }
 
     private void getDeviceList(boolean isFromNet) {
-        if(!isFromNet){
+        if (!isFromNet) {
             DeviceListResponse response = (DeviceListResponse) SPUtils.getInstance().readObject(SPConst.DATA.DEVICELIST);
             if (response != null) {
                 initDeviceList(response.getDevlist());
             }
             return;
         }
-        if(!NetworkUtils.isConnected()){
+        if (!NetworkUtils.isConnected()) {
             ToastUtils.showShort(R.string.msg_net_error);
             return;
         }
@@ -247,13 +248,35 @@ public class ListFragment extends Fragment {
         unbinder.unbind();
     }
 
+    @OnClick({R.id.ll_bluetooth_disabled, R.id.ll_notify_service_disabled, R.id.ll_location_service_disabled, R.id.ll_background_service_disabled})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.ll_bluetooth_disabled:
+                if(!BleClient.getInstance().isEnabled()) {
+                    BleClient.getInstance().enaableBluetooth();
+                }
+                break;
+            case R.id.ll_notify_service_disabled:
+                Uri packageURI = Uri.parse("package:" + AppUtils.getAppPackageName());
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageURI);
+                startActivity(intent);
+                break;
+            case R.id.ll_location_service_disabled:
+                Intent intent1 = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(intent1);
+                break;
+            case R.id.ll_background_service_disabled:
+                break;
+        }
+    }
+
     private class CmdResponseReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
+            if (intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)) {
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 String address = intent.getStringExtra("address");
-                switch (ret){
+                switch (ret) {
                     case IntentExtras.RET.RET_BLE_STATE_ON:
                         llBluetoothDisabled.setVisibility(View.GONE);
                         break;
@@ -263,9 +286,9 @@ public class ListFragment extends Fragment {
                 }
 
             }
-            if(intent.getAction().equals(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE)){
+            if (intent.getAction().equals(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE)) {
                 int cmd = intent.getIntExtra("cmd", -1);//获取Extra信息
-                switch (cmd){
+                switch (cmd) {
                     case IntentExtras.HANDLER.MSG_HANDLER_DEVECE_LIST:
                         refreshLayout.autoRefresh();
                         break;
