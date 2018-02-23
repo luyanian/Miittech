@@ -7,12 +7,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.multidex.MultiDex;
 import com.baidu.mapapi.SDKInitializer;
+import com.miittech.you.ble.BleClient;
 import com.miittech.you.ble.BleService;
 import com.miittech.you.ble.update.UpdateFile;
 import com.miittech.you.utils.BingGoPlayUtils;
 import com.miittech.you.utils.SoundPlayUtils;
 import com.mob.MobApplication;
 import com.ryon.mutils.ActivityPools;
+import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.Utils;
 import cn.jpush.android.api.JPushInterface;
 
@@ -28,6 +30,8 @@ public class  App extends MobApplication {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
+                BleClient.getInstance().cancelScan();
+                LogUtils.d(e.getMessage());
                 e.printStackTrace();
             }
         });

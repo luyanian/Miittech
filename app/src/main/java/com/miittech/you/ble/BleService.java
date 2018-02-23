@@ -98,10 +98,11 @@ public  class BleService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        new Thread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
                 BleClient.getInstance().cancelScan();
+                LogUtils.d(e.getMessage());
                 e.printStackTrace();
             }
         });

@@ -88,15 +88,15 @@ public class BleClient {
             public void run() {
                 if(scanResultCallback!=null&&mBluetoothAdapter!=null&&mBluetoothAdapter.isEnabled()) {
                     if (bleLeScanCallback != null) {
-                        isScaning = false;
                         mBluetoothAdapter.stopLeScan(bleLeScanCallback);
                         bleLeScanCallback=null;
-                    } else{
-                        isScaning = true;
-                        bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
-                        boolean isStart = mBluetoothAdapter.startLeScan(bleLeScanCallback);
-                        LogUtils.d("bleservice", "mBluetoothAdapter.startLeScan-->" + isStart);
                     }
+
+                    isScaning = true;
+                    bleLeScanCallback = new BleLeScanCallback(scanResultCallback);
+                    boolean isStart = mBluetoothAdapter.startLeScan(bleLeScanCallback);
+                    LogUtils.d("bleservice", "mBluetoothAdapter.startLeScan-->" + isStart);
+
                 }
             }
         }).start();
