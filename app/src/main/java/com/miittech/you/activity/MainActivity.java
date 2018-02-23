@@ -1,5 +1,6 @@
 package com.miittech.you.activity;
 
+import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceAddActivity;
 import com.miittech.you.activity.setting.SettingActivity;
@@ -35,6 +37,9 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends BaseActivity {
 
@@ -87,6 +92,17 @@ public class MainActivity extends BaseActivity {
                 startActivity(intent);
             }
         });
+        RxPermissions rxPermissions = new RxPermissions(this);
+        rxPermissions.request(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.BLUETOOTH,Manifest.permission.BLUETOOTH_ADMIN)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Boolean>() {
+                    @Override
+                    public void accept(Boolean aBoolean) throws Exception {
+
+                    }
+                });
         tvMap.setSelected(true);
         imgMap.setSelected(true);
         Common.getUserInfo(this, null);
