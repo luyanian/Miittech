@@ -44,7 +44,7 @@ public class EventsFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         typeSelector.setItemText("轨迹追踪","事件报告");
-        fragmentManager = getActivity().getSupportFragmentManager();
+        fragmentManager = getChildFragmentManager();
         typeSelector.setTypeSelectorChangeLisener(new TypeSelectorChangeLisener() {
             @Override
             public void onTabSelectorChanged(int item) {
