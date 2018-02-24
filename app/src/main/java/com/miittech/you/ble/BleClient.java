@@ -45,7 +45,7 @@ public class BleClient {
 //    private BluetoothLeScanner bluetoothLeScanner;
     private BleScanCallback bleScanCallback;
     private BleLeScanCallback bleLeScanCallback;
-    private GattCallback mGattCallback;
+    private SimpleArrayMap<String,GattCallback> mGattCallbacks = new SimpleArrayMap<>();
     private SimpleArrayMap<UUID,BleReadCallback> bleReadCallbacks = new SimpleArrayMap<>();
     private SimpleArrayMap<UUID, BaseOptionCallback> baseBleCallbacks = new SimpleArrayMap<UUID, BaseOptionCallback>();
     private SimpleArrayMap<UUID,BleWriteCallback> bleWriteCallbacks = new SimpleArrayMap<>();
@@ -115,8 +115,8 @@ public class BleClient {
             bleLeScanCallback = null;
         }
     }
-    public synchronized void connectDevice(BluetoothDevice mDevice, final GattCallback mGattCallback){
-        this.mGattCallback = mGattCallback;
+    public synchronized void connectDevice(BluetoothDevice mDevice, GattCallback mGattCallback){
+        mGattCallbacks.put(mDevice.getAddress(),mGattCallback);
         synchronized (mConnecttingList) {
             if (mConnecttingList.contains(mDevice.getAddress())) {
                 return;
@@ -154,7 +154,9 @@ public class BleClient {
                                     if (mConnecttingList.contains(gatt.getDevice().getAddress())
                                             && isActivityDisConnects.containsKey(mac) && !isConnected(gatt.getDevice().getAddress())
                                             && isDisConnectMaps.containsKey(mac) && isDisConnectMaps.get(mac)) {
-                                        mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                        if(mGattCallbacks.containsKey(mac)&&mGattCallbacks.get(mac)!=null) {
+                                            mGattCallbacks.get(mac).onDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                        }
 //                                        mGattCallback.onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
                                         isEffectiveOption.put(mac,false);
                                         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
@@ -164,7 +166,9 @@ public class BleClient {
 //                                                mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
                                                 if(isEffectiveOption.containsKey(mac)&&!isEffectiveOption.get(mac)) {
                                                     LogUtils.d("bleService","onDisConnected  isEffectiveOption-->false");
-                                                    mGattCallback.onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                                    if(mGattCallbacks.containsKey(mac)&&mGattCallbacks.get(mac)!=null) {
+                                                        mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                                    }
                                                     isEffectiveOption.put(mac,true);
                                                 }else{
                                                     LogUtils.d("bleService","onDisConnected  isEffectiveOption-->true");
@@ -187,7 +191,9 @@ public class BleClient {
                                             bluetoothGatts.remove(gatt.getDevice().getAddress());
                                         }
                                     } else if (gatt != null) {
-                                        mGattCallback.onConnectFail(mac);
+                                        if(mGattCallbacks.containsKey(mac)&&mGattCallbacks.get(mac)!=null) {
+                                            mGattCallbacks.get(mac).onConnectFail(mac);
+                                        }
                                         refresh(gatt);
                                         gatt.disconnect();
                                         gatt.close();
@@ -205,7 +211,10 @@ public class BleClient {
                 public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
                     super.onReadRemoteRssi(gatt, rssi, status);
                     if(gatt!=null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
-                        mGattCallback.onReadRemoteRssi(gatt.getDevice().getAddress(), rssi, status);
+                        String mac = gatt.getDevice().getAddress();
+                        if(mGattCallbacks.containsKey(mac)&&mGattCallbacks.get(mac)!=null) {
+                            mGattCallbacks.get(mac).onReadRemoteRssi(mac, rssi, status);
+                        }
                     }
                 }
 
@@ -227,11 +236,15 @@ public class BleClient {
                             isDisConnectMaps.put(gatt.getDevice().getAddress(), true);
                             if (isEffectiveOption.containsKey(gatt.getDevice().getAddress())&&!isEffectiveOption.get(gatt.getDevice().getAddress())){
                                 LogUtils.d("bleService","onServicesDiscovered  isEffectiveOption-->false");
-                                mGattCallback.onConnectSuccess(gatt.getDevice().getAddress(), status);
+                                if(mGattCallbacks.containsKey(gatt.getDevice().getAddress())&&mGattCallbacks.get(gatt.getDevice().getAddress())!=null) {
+                                    mGattCallbacks.get(gatt.getDevice().getAddress()).onConnectSuccess(gatt.getDevice().getAddress(), status);
+                                }
                                 isEffectiveOption.put(gatt.getDevice().getAddress(),true);
                             }else{
                                 LogUtils.d("bleService","onServicesDiscovered  isEffectiveOption-->true");
-                                mGattCallback.onEffectConnectSuccess(gatt.getDevice().getAddress(), status);
+                                if(mGattCallbacks.containsKey(gatt.getDevice().getAddress())&&mGattCallbacks.get(gatt.getDevice().getAddress())!=null) {
+                                    mGattCallbacks.get(gatt.getDevice().getAddress()).onEffectConnectSuccess(gatt.getDevice().getAddress(), status);
+                                }
                             }
 //                            mGattCallback.onEffectConnectSuccess(gatt.getDevice().getAddress(), status);
                             setNotify(gatt);
@@ -251,7 +264,10 @@ public class BleClient {
                         }
                     }
                     if(gatt!=null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
-                        mGattCallback.onCharacteristicChanged(gatt.getDevice().getAddress(), characteristic);
+                        String mac = gatt.getDevice().getAddress();
+                        if(mGattCallbacks.containsKey(mac)&&mGattCallbacks.get(mac)!=null) {
+                            mGattCallbacks.get(mac).onCharacteristicChanged(mac, characteristic);
+                        }
                     }
                 }
 
@@ -698,8 +714,8 @@ public class BleClient {
                     isActivityDisConnects.put(mac, true);
                     bluetoothGatt.disconnect();
                     bluetoothGatt.close();
-                    if (mGattCallback!=null) {
-                        mGattCallback.onEffectDisConnected(false, mac, BluetoothGatt.STATE_DISCONNECTED);
+                    if(mGattCallbacks.containsKey(mac)&&mGattCallbacks.get(mac)!=null) {
+                        mGattCallbacks.get(mac).onEffectDisConnected(false, mac, BluetoothGatt.STATE_DISCONNECTED);
                     }
                 }
             }

@@ -439,7 +439,7 @@ public final class LogUtils {
                 BufferedWriter bw = null;
                 try {
                     bw = new BufferedWriter(new FileWriter(fullPath, true));
-                    bw.write(content);
+                    bw.write(new String(content.getBytes(),"utf-8"));
                     Log.d(tag, "log to " + fullPath + " success!");
                 } catch (IOException e) {
                     e.printStackTrace();
