@@ -43,7 +43,7 @@ public class BleClient {
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
 //    private BluetoothLeScanner bluetoothLeScanner;
-    private BleScanCallback bleScanCallback;
+//    private BleScanCallback bleScanCallback;
     private BleLeScanCallback bleLeScanCallback;
     private SimpleArrayMap<String,GattCallback> mGattCallbacks = new SimpleArrayMap<>();
     private SimpleArrayMap<UUID,BleReadCallback> bleReadCallbacks = new SimpleArrayMap<>();
