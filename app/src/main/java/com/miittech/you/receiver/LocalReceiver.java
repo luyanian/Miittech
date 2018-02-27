@@ -34,7 +34,7 @@ public class LocalReceiver extends BroadcastReceiver {
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG){
             Activity activity = ActivityPools.getTopActivity();
             if (activity != null) {
-                DialogUtils.getInstance().showSoundCloseDialog(activity).setSoundId(soundId).setDevTitle(devName);
+                DialogUtils.getInstance().showSoundCloseDialog(activity).setSoundId(soundId).setDevTitle(devName).show();
             }else{
                 MsgData msgData = new MsgData();
                 msgData.setSoundId(soundId);
