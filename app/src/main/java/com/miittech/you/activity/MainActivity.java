@@ -27,6 +27,7 @@ import com.miittech.you.impl.OnNetRequestCallBack;
 import com.miittech.you.impl.TitleBarOptions;
 import com.miittech.you.utils.MapDeviceUsersPopWindowOptions;
 import com.miittech.you.utils.MsgDataUtils;
+import com.miittech.you.utils.SoundPlayUtils;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.LogUtils;
@@ -113,11 +114,13 @@ public class MainActivity extends BaseActivity {
             }
         });
         Common.getAppVersion(this,false);
+
+        SoundPlayUtils.stopAll();
         if(MsgDataUtils.getInstance().hasMsg()){
-            List<MsgData> msgDataList = MsgDataUtils.getInstance().getAllMsg();
-            for(MsgData msgData : msgDataList){
-                DialogUtils.getInstance().showSoundCloseDialog(this).setSoundId(msgData.getSoundId()).setDevTitle(msgData.getDevName());
-            }
+//            List<MsgData> msgDataList = MsgDataUtils.getInstance().getAllMsg();
+//            for(MsgData msgData : msgDataList){
+//                DialogUtils.getInstance().showSoundCloseDialog(this).setSoundId(msgData.getSoundId()).setDevTitle(msgData.getDevName());
+//            }
             MsgDataUtils.getInstance().clear();
         }
     }

@@ -459,6 +459,7 @@ public  class BleService extends Service {
                     && !mBindMap.containsKey(bleDevice.getAddress()))) {
                 return;
             }
+            LogUtils.d("bleService", "isConnectting----->" + isConnectting);
             if (isConnectting) {
                 return;
             }
