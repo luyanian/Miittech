@@ -164,28 +164,6 @@ public  class BleService extends Service {
     }
 
     @Override
-    public void onTrimMemory(int level) {
-        super.onTrimMemory(level);
-        LogUtils.d("bleService-onTrimMemory()");
-        try {
-            BleClient.getInstance().cancelScan();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        LogUtils.d("bleService-onLowMemory()");
-        try {
-            BleClient.getInstance().cancelScan();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         LogUtils.d("bleService-onDestroy()");
@@ -463,11 +441,11 @@ public  class BleService extends Service {
             if (isConnectting) {
                 return;
             }
-            isConnectting = true;
             if (BleClient.getInstance().getConnectState(bleDevice) == BluetoothGatt.STATE_DISCONNECTED) {
                 BleClient.getInstance().connectDevice(bleDevice, new GattCallback() {
                     @Override
                     public synchronized void onStartConnect(String mac) {
+                        isConnectting = true;
                         LogUtils.d("bleService", "贴片开始连接----->" + mac);
                         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                         intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_START);
@@ -589,9 +567,7 @@ public  class BleService extends Service {
 //                                }
                                 DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
                                 if (deviceInfo != null) {
-                                    if (Common.isBell()) {
-                                        doPlay(deviceInfo);
-                                    }
+                                    doPlay(deviceInfo);
                                 }
 
                             }

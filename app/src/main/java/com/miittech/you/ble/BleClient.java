@@ -132,6 +132,7 @@ public class BleClient {
         mGattCallbacks.put(mDevice.getAddress(),mGattCallback);
 
         mGattCallback.onStartConnect(mDevice.getAddress());
+
         mDevice.connectGatt(context, false, new BluetoothGattCallback() {
             @Override
             public synchronized void onConnectionStateChange(final BluetoothGatt gatt, int status, final int newState) {

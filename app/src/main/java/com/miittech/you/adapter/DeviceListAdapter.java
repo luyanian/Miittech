@@ -13,6 +13,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.miittech.you.R;
 import com.miittech.you.ble.BleClient;
+import com.miittech.you.entity.Locinfo;
+import com.miittech.you.global.SPConst;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
@@ -231,13 +233,24 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     private void updateItemData(String address) {
         ViewHolder viewHolder = holders.get(address);
         if(viewHolder!=null&&viewHolder.itemLocation!=null){
-            for(DeviceInfo devlistBean : mData){
-                if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
-                    viewHolder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
-                    setTimeText(viewHolder.itemTime,devlistBean.getLasttime());
+            Locinfo locinfo = (Locinfo) SPUtils.getInstance().readObject(SPConst.LOC_INFO);
+            if(locinfo!=null){
+                viewHolder.itemLocation.setText(locinfo.getAddr());
+            }else{
+                for(DeviceInfo devlistBean : mData){
+                    if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
+                        viewHolder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
+                    }
                 }
             }
-
+            SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmss");
+            setTimeText(viewHolder.itemTime,TimeUtils.getNowString(sdf));
+//            for(DeviceInfo devlistBean : mData){
+//                if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
+//                    viewHolder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
+//                    setTimeText(viewHolder.itemTime,devlistBean.getLasttime());
+//                }
+//            }
         }
     }
 

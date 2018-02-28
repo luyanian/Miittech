@@ -114,7 +114,11 @@ public class MainActivity extends BaseActivity {
             }
         });
         Common.getAppVersion(this,false);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         SoundPlayUtils.stopAll();
         if(MsgDataUtils.getInstance().hasMsg()){
 //            List<MsgData> msgDataList = MsgDataUtils.getInstance().getAllMsg();

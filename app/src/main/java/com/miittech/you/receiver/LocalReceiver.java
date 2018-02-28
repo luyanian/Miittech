@@ -14,6 +14,8 @@ import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.ble.BleService;
 import com.ryon.mutils.ActivityPools;
+import com.ryon.mutils.ActivityUtils;
+import com.ryon.mutils.AppUtils;
 import com.ryon.mutils.ServiceUtils;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
@@ -33,7 +35,7 @@ public class LocalReceiver extends BroadcastReceiver {
             notificationManager.cancel(1);
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG){
             Activity activity = ActivityPools.getTopActivity();
-            if (activity != null) {
+            if (activity != null&& AppUtils.isAppForeground()) {
                 DialogUtils.getInstance().showSoundCloseDialog(activity).setSoundId(soundId).setDevTitle(devName).show();
             }else{
                 MsgData msgData = new MsgData();
