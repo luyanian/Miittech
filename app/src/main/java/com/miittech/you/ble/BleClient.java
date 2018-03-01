@@ -55,6 +55,7 @@ public class BleClient {
     private SimpleArrayMap<String,GattCallback> mGattCallbacks = new SimpleArrayMap<>();
     private SimpleArrayMap<UUID,BleReadCallback> bleReadCallbacks = new SimpleArrayMap<>();
     private SimpleArrayMap<String, Boolean> isBinds = new SimpleArrayMap<String, Boolean>();
+    private SimpleArrayMap<String, Boolean> isEffectConnectSuccess = new SimpleArrayMap<String, Boolean>();
     private SimpleArrayMap<UUID,BleWriteCallback> bleWriteCallbacks = new SimpleArrayMap<>();
     private SimpleArrayMap<UUID,BleNotifyCallback> bleNotifyCallbacks = new SimpleArrayMap<>();
     private Context context;
@@ -153,6 +154,7 @@ public class BleClient {
                             LogUtils.d("bleService", "onServicesDiscovered  isEffectiveOption-->true"+"    isActivityDisConnects"+isActivityDisConnects+"    "+gatt.getDevice().getAddress());
                             if (mGattCallbacks.containsKey(gatt.getDevice().getAddress()) && mGattCallbacks.get(gatt.getDevice().getAddress()) != null) {
                                 boolean isBind = mGattCallbacks.get(gatt.getDevice().getAddress()).onEffectConnectSuccess(gatt.getDevice().getAddress(), status);
+                                isEffectConnectSuccess.put(gatt.getDevice().getAddress(),true);
                                 isBinds.put(gatt.getDevice().getAddress(),isBind);
                             }
                         }
@@ -164,6 +166,7 @@ public class BleClient {
                                 && isActivityDisConnects.containsKey(mac) && !isConnected(gatt.getDevice().getAddress())
                                 && isDisConnectMaps.containsKey(mac) && isDisConnectMaps.get(mac)) {
                             if(mGattCallbacks.containsKey(mac)&&mGattCallbacks.get(mac)!=null) {
+                                LogUtils.d("bleService", "onDisConnected    "+gatt.getDevice().getAddress());
                                 mGattCallbacks.get(mac).onDisConnected(isActivityDisConnects.get(mac), mac, newState);
                             }
 //                                        mGattCallback.onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
@@ -175,13 +178,13 @@ public class BleClient {
                                 synchronized (isEffectiveOption) {
 //                                                mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
                                     if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
-                                        LogUtils.d("bleService", "onDisConnected  isEffectiveOption-->false"+"    "+gatt.getDevice().getAddress());
                                         if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
+                                            LogUtils.d("bleService", "onEffectDisConnected  isEffectiveOption-->false"+"    "+gatt.getDevice().getAddress());
                                             mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
                                         }
                                         isEffectiveOption.put(mac, true);
                                     } else {
-                                        LogUtils.d("bleService", "onDisConnected  isEffectiveOption-->true"+"    "+gatt.getDevice().getAddress());
+                                        LogUtils.d("bleService", "device reconnected in short time  isEffectiveOption-->true"+"    "+gatt.getDevice().getAddress());
                                     }
                                 }
 //                                              executorService.shutdown();
@@ -304,24 +307,26 @@ public class BleClient {
         BleClient.getInstance().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback(){
             @Override
             public void onWriteSuccess(final BluetoothDevice device) {
-                if(mGattCallbacks.containsKey(device.getAddress())&&mGattCallbacks.get(device.getAddress())!=null){
+                if(isEffectConnectSuccess.containsKey(device.getAddress())&&isEffectConnectSuccess.get(device.getAddress())&&mGattCallbacks.containsKey(device.getAddress())&&mGattCallbacks.get(device.getAddress())!=null){
                     GattCallback gattCallback = mGattCallbacks.get(device.getAddress());
                     gattCallback.onWorkModeSuccess(device);
+                    isEffectConnectSuccess.remove(device.getAddress());
                 }
                 setNotify(gatt);
             }
 
             @Override
             public void onWriteFialed(BluetoothDevice device) {
-                if(mGattCallbacks.containsKey(device.getAddress())&&mGattCallbacks.get(device.getAddress())!=null){
+                if(isEffectConnectSuccess.containsKey(device.getAddress())&&isEffectConnectSuccess.get(device.getAddress())&&mGattCallbacks.containsKey(device.getAddress())&&mGattCallbacks.get(device.getAddress())!=null){
                     GattCallback gattCallback = mGattCallbacks.get(device.getAddress());
                     gattCallback.onWorkModeFaild(device);
+                    isEffectConnectSuccess.remove(device.getAddress());
                 }
             }
         });
     }
     public synchronized void setBindMode(final BluetoothGatt gatt){
-        String mac = gatt.getDevice().getAddress();
+        final String mac = gatt.getDevice().getAddress();
         if(TextUtils.isEmpty(mac)||!BleClient.getInstance().isConnected(mac)){
             return;
         }
@@ -333,6 +338,7 @@ public class BleClient {
                     GattCallback gattCallback = mGattCallbacks.get(device.getAddress());
                     gattCallback.onBindModeSuccess(device);
                 }
+                isBinds.remove(mac);
                 setNotify(gatt);
             }
 
@@ -342,6 +348,7 @@ public class BleClient {
                     GattCallback gattCallback = mGattCallbacks.get(device.getAddress());
                     gattCallback.onBindModeFaild(device);
                 }
+                isBinds.remove(mac);
             }
         });
     }

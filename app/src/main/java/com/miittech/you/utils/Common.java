@@ -157,6 +157,7 @@ public class Common {
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
+                        LogUtils.e("retrofit",throwable.getMessage());
                         throwable.printStackTrace();
                     }
                 });

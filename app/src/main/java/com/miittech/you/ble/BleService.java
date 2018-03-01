@@ -373,6 +373,7 @@ public  class BleService extends Service {
                 mDeviceMap.put(mac, null);
             }
         }
+        isConnectting = false;
         SimpleArrayMap<String,BluetoothDevice> tempMap = new SimpleArrayMap<>();
         tempMap.putAll(mDeviceMap);
         for (int i=0;i<tempMap.size();i++) {
@@ -467,18 +468,6 @@ public  class BleService extends Service {
                     public synchronized void onConnectSuccess(String mac, int status) {
                         LogUtils.d("bleService", "贴片连接成功----->" + mac);
                         isConnectting = false;
-                        if (!TextUtils.isEmpty(mac) && mDeviceMap.containsKey(mac)) {
-                            byte[] dataWork = Common.formatBleMsg(Params.BLEMODE.MODE_WORK, Common.getUserId());
-                            BleClient.getInstance().write(mac, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
-                                @Override
-                                public synchronized void onWriteSuccess(BluetoothDevice device) {
-                                }
-
-                                @Override
-                                public synchronized void onWriteFialed(BluetoothDevice device) {
-                                }
-                            });
-                        }
                     }
 
                     @Override
@@ -498,12 +487,6 @@ public  class BleService extends Service {
                             mLinkLoseMap.remove(mac);
                         }
                         isConnectting = false;
-
-                        if (isIgnoreEvents.containsKey(mac) && isIgnoreEvents.get(mac)) {
-                            isIgnoreEvents.remove(mac);
-                        } else {
-                            Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE);
-                        }
                     }
 
                     @Override
@@ -513,11 +496,15 @@ public  class BleService extends Service {
                             mLinkLoseMap.remove(mac);
                         }
                         isConnectting = false;
+                        if (isIgnoreEvents.containsKey(mac) && isIgnoreEvents.get(mac)) {
+                            isIgnoreEvents.remove(mac);
+                        } else {
+                            Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE);
+                        }
                         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                         intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
                         intent.putExtra("address", mac);
                         sendBroadcast(intent);
-
                         DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
                         if (deviceInfo == null || deviceInfo.getAlertinfo() == null) {
                             return;
