@@ -105,7 +105,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             public void onClick(View v) {
                 if(onDeviceItemClick!=null){
                     ViewHolder viewHolder = holders.get(Common.formatDevId2Mac(deviceInfo.getDevidX()));
-                    onDeviceItemClick.onItemClick(deviceInfo,viewHolder.itemLocation.getText().toString());
+                    onDeviceItemClick.onDeviceItemClick(deviceInfo,viewHolder.itemLocation.getText().toString(),viewHolder.itemTime.getText().toString());
                 }
             }
         });

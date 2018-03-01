@@ -74,15 +74,16 @@ public class EventTraceFragment extends Fragment {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         recyclerview.setLayoutManager(layoutManager);
         recyclerview.setHasFixedSize(true);
-        recyclerview.setItemViewCacheSize(10);
+        recyclerview.setItemViewCacheSize(15);
         mDeviceListAdapter = new DeviceListAdapter(getActivity(),new OnListItemClick(){
             @Override
-            public void onItemClick(Object o,String flag) {
-                super.onItemClick(o);
+            public void onDeviceItemClick(Object o,String flag,String time) {
+                super.onDeviceItemClick(o,flag,time);
                 DeviceInfo devlistBean = (DeviceInfo) o;
                 Intent intent = new Intent(getActivity(), EventTraceDetailActivity.class);
                 intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
                 intent.putExtra("location",flag);
+                intent.putExtra("time",time);
                 startActivity(intent);
             }
         });

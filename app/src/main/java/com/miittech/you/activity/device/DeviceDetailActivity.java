@@ -146,6 +146,9 @@ public class DeviceDetailActivity extends BaseActivity {
         if(getIntent().hasExtra("location")){
             tvDeviceLocation.setText(getIntent().getStringExtra("location"));
         }
+        if(getIntent().hasExtra("time")){
+            tvDeviceTime.setText(getIntent().getStringExtra("time"));
+        }
     }
     private void initDeviceInfo(DeviceInfo deviceInfo) {
         this.deviceInfo = deviceInfo;

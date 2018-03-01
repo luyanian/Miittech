@@ -175,8 +175,16 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         }
 
         if (!BleClient.getInstance().isConnected(Common.formatDevId2Mac(devlistBean.getDevidX()))) {
-            itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
-            setTimeText(itemTime, devlistBean.getLasttime());
+            if(getIntent().hasExtra("location")){
+                itemLocation.setText(getIntent().getStringExtra("location"));
+            }else{
+                itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
+            }
+            if(getIntent().hasExtra("time")){
+                itemTime.setText(getIntent().getStringExtra("time"));
+            }else{
+                setTimeText(itemTime, devlistBean.getLasttime());
+            }
         }else{
             itemTime.setText("现在");
             if(getIntent().hasExtra("location")){

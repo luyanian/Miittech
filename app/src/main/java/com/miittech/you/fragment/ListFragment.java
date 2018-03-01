@@ -108,11 +108,12 @@ public class ListFragment extends Fragment {
         //创建并设置Adapter
         mDeviceListAdapter = new DeviceListAdapter(getActivity(), new OnListItemClick<DeviceInfo>() {
             @Override
-            public void onItemClick(DeviceInfo devlistBean, String flag) {
-                super.onItemClick(devlistBean, flag);
+            public void onDeviceItemClick(DeviceInfo devlistBean, String flag,String time) {
+                super.onDeviceItemClick(devlistBean, flag,time);
                 Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
                 intent.putExtra(IntentExtras.DEVICE.DATA, devlistBean);
                 intent.putExtra("location", flag);
+                intent.putExtra("time", time);
                 startActivity(intent);
             }
         });
