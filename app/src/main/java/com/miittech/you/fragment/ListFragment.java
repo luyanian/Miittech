@@ -19,7 +19,9 @@ import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
 import com.miittech.you.R;
+import com.miittech.you.activity.MainActivity;
 import com.miittech.you.activity.device.DeviceDetailActivity;
+import com.miittech.you.activity.event.EventTraceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.ble.BleClient;
 import com.miittech.you.entity.DeviceInfo;
@@ -77,9 +79,9 @@ public class ListFragment extends Fragment {
     @BindView(R.id.refreshLayout)
     SmartRefreshLayout refreshLayout;
 
+    private DeviceListAdapter mDeviceListAdapter;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
     private LinearLayoutManager mLayoutManager;
-    private DeviceListAdapter mDeviceListAdapter;
 
     @Nullable
     @Override
@@ -110,11 +112,24 @@ public class ListFragment extends Fragment {
             @Override
             public void onDeviceItemClick(DeviceInfo devlistBean, String flag,String time) {
                 super.onDeviceItemClick(devlistBean, flag,time);
-                Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
-                intent.putExtra(IntentExtras.DEVICE.DATA, devlistBean);
-                intent.putExtra("location", flag);
-                intent.putExtra("time", time);
-                startActivity(intent);
+                MainActivity mainActivity = (MainActivity) getActivity();
+                if(mainActivity==null){
+                    return;
+                }
+                int item = mainActivity.getCurrentItem();
+                if(item == 0){
+                    Intent intent = new Intent(getActivity(), DeviceDetailActivity.class);
+                    intent.putExtra(IntentExtras.DEVICE.DATA, devlistBean);
+                    intent.putExtra("location", flag);
+                    intent.putExtra("time", time);
+                    startActivity(intent);
+                }else if(item == 2){
+                    Intent intent = new Intent(getActivity(), EventTraceDetailActivity.class);
+                    intent.putExtra(IntentExtras.DEVICE.DATA,devlistBean);
+                    intent.putExtra("location",flag);
+                    intent.putExtra("time",time);
+                    startActivity(intent);
+                }
             }
         });
         recyclerView.setAdapter(mDeviceListAdapter);

@@ -29,7 +29,7 @@ public class EventsFragment extends Fragment {
     // 布局管理器
     private FragmentManager fragmentManager;
     private EventLogFragment eventLogFragment;
-    private EventTraceFragment traceFragment;
+    private ListFragment traceFragment;
 
     @Nullable
     @Override
@@ -71,7 +71,7 @@ public class EventsFragment extends Fragment {
         switch (item) {
             case 0:
                 if(traceFragment==null){
-                    traceFragment = new EventTraceFragment();
+                    traceFragment = new ListFragment();
                     trans.add(R.id.id_fragment, traceFragment);
                 }else{
                     trans.show(traceFragment);

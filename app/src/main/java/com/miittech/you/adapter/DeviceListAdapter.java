@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.ble.BleClient;
 import com.miittech.you.entity.Locinfo;
@@ -40,7 +42,6 @@ import butterknife.ButterKnife;
  */
 
 public class DeviceListAdapter extends RecyclerView.Adapter {
-
     private List<DeviceInfo> mData = new ArrayList<>();
     private Activity activity;
     private OnListItemClick onDeviceItemClick;
@@ -50,10 +51,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     public DeviceListAdapter(Activity activity, OnListItemClick onDeviceItemClick) {
         this.activity = activity;
         this.onDeviceItemClick = onDeviceItemClick;
-
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-        activity.registerReceiver(cmdResponseReceiver,filter);
+        App.getInstance().registerReceiver(cmdResponseReceiver,filter);
     }
 
     @Override

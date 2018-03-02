@@ -17,6 +17,7 @@ import com.luck.picture.lib.permissions.RxPermissions;
 import com.miittech.you.R;
 import com.miittech.you.activity.device.DeviceAddActivity;
 import com.miittech.you.activity.setting.SettingActivity;
+import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.entity.MsgData;
 import com.miittech.you.utils.Common;
@@ -70,7 +71,7 @@ public class MainActivity extends BaseActivity {
     private ListFragment fragmentList;
     private MapFragment fragmentMap;
     private EventsFragment fragmentEvents;
-
+    private int currentItem = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,6 +128,10 @@ public class MainActivity extends BaseActivity {
 //            }
             MsgDataUtils.getInstance().clear();
         }
+    }
+
+    public int getCurrentItem(){
+        return currentItem;
     }
 
     @OnClick({R.id.tab_list, R.id.tab_map, R.id.tab_events})
@@ -203,6 +208,7 @@ public class MainActivity extends BaseActivity {
         MapDeviceUsersPopWindowOptions.getInstance().dismiss();
         switch (vID) {
             case R.id.tab_list:
+                currentItem = 0;
                 if (fragmentList == null) {
                     fragmentList = new ListFragment();
                     trans.add(R.id.content, fragmentList);
@@ -211,6 +217,7 @@ public class MainActivity extends BaseActivity {
                 }
                 break;
             case R.id.tab_map:
+                currentItem = 1;
                 if (fragmentMap == null) {
                     fragmentMap = new MapFragment();
                     trans.add(R.id.content, fragmentMap);
@@ -219,6 +226,7 @@ public class MainActivity extends BaseActivity {
                 }
                 break;
             case R.id.tab_events:
+                currentItem = 2;
                 if (fragmentEvents == null) {
                     fragmentEvents = new EventsFragment();
                     trans.add(R.id.content, fragmentEvents);

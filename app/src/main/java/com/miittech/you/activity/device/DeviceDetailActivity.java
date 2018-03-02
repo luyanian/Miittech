@@ -190,6 +190,8 @@ public class DeviceDetailActivity extends BaseActivity {
                 }
                 Intent map = new Intent(this, DeviceMapDetailActivity.class);
                 map.putExtra(IntentExtras.DEVICE.DATA,deviceInfo);
+                map.putExtra("location",tvDeviceLocation.getText().toString());
+                map.putExtra("time",tvDeviceTime.getText().toString());
                 startActivity(map);
                 break;
             case R.id.btn_option_share:

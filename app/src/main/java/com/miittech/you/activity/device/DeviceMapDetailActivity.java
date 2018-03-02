@@ -64,6 +64,12 @@ public class DeviceMapDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
         deviceDetailInfo = (DeviceInfo) getIntent().getSerializableExtra(IntentExtras.DEVICE.DATA);
         initView(deviceDetailInfo);
+        if(getIntent().hasExtra("location")){
+            tvTitle.setText(getIntent().getStringExtra("location"));
+        }
+        if(getIntent().hasExtra("time")){
+            tvTime.setText(getIntent().getStringExtra("time"));
+        }
         switchFindBtnStyle();
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);

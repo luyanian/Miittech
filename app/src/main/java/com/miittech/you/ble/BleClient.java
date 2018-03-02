@@ -128,11 +128,13 @@ public class BleClient {
             return;
         }
         if(mGattCallbacks.containsKey(mDevice.getAddress())&&mGattCallbacks.get(mDevice.getAddress())!=null){
+            LogUtils.d("bleService", mDevice.getAddress()+" has another connectting options,cancle current option");
             return;
         }
-        mGattCallbacks.put(mDevice.getAddress(),mGattCallback);
 
         mGattCallback.onStartConnect(mDevice.getAddress());
+
+        mGattCallbacks.put(mDevice.getAddress(),mGattCallback);
 
         mDevice.connectGatt(context, false, new BluetoothGattCallback() {
             @Override
@@ -171,6 +173,7 @@ public class BleClient {
                             }
 //                                        mGattCallback.onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
                             isEffectiveOption.put(mac,false);
+                            isEffectConnectSuccess.put(gatt.getDevice().getAddress(),false);
                             ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
                             executorService.schedule(new Runnable() {
                                 @Override
@@ -237,7 +240,6 @@ public class BleClient {
                         } else {
                             setWorkMode(gatt);
                         }
-
 //                      mGattCallback.onEffectConnectSuccess(gatt.getDevice().getAddress(), status);
                     }
                 } else {
@@ -322,6 +324,9 @@ public class BleClient {
                     gattCallback.onWorkModeFaild(device);
                     isEffectConnectSuccess.remove(device.getAddress());
                 }
+                if(mGattCallbacks.containsKey(gatt.getDevice().getAddress())){
+                    mGattCallbacks.remove(gatt.getDevice().getAddress());
+                }
             }
         });
     }
@@ -347,6 +352,9 @@ public class BleClient {
                 if(mGattCallbacks.containsKey(device.getAddress())&&mGattCallbacks.get(device.getAddress())!=null){
                     GattCallback gattCallback = mGattCallbacks.get(device.getAddress());
                     gattCallback.onBindModeFaild(device);
+                }
+                if(mGattCallbacks.containsKey(gatt.getDevice().getAddress())){
+                    mGattCallbacks.remove(gatt.getDevice().getAddress());
                 }
                 isBinds.remove(mac);
             }

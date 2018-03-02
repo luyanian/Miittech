@@ -13,6 +13,7 @@ import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
 import com.miittech.you.R;
+import com.miittech.you.activity.MainActivity;
 import com.miittech.you.activity.event.EventTraceDetailActivity;
 import com.miittech.you.adapter.DeviceListAdapter;
 import com.miittech.you.utils.Common;
@@ -75,6 +76,7 @@ public class EventTraceFragment extends Fragment {
         recyclerview.setLayoutManager(layoutManager);
         recyclerview.setHasFixedSize(true);
         recyclerview.setItemViewCacheSize(15);
+        //创建并设置Adapter
         mDeviceListAdapter = new DeviceListAdapter(getActivity(),new OnListItemClick(){
             @Override
             public void onDeviceItemClick(Object o,String flag,String time) {
