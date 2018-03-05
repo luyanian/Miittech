@@ -639,9 +639,12 @@ public class BleClient {
         }
         return false;
     }
-    public synchronized int getConnectState(BluetoothDevice device){
-        if(bluetoothManager!=null) {            ;
-            return bluetoothManager.getConnectionState(device,BluetoothGatt.GATT);
+    public synchronized int getConnectState(String mac){
+        if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
+            BluetoothDevice bluetoothDevice = bluetoothGatts.get(mac).getDevice();
+            if (bluetoothManager != null&&bluetoothDevice!=null) {                ;
+                return bluetoothManager.getConnectionState(bluetoothDevice, BluetoothGatt.GATT);
+            }
         }
         return BluetoothGatt.STATE_DISCONNECTED;
     }

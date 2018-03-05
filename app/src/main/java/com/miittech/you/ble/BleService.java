@@ -442,7 +442,7 @@ public  class BleService extends Service {
             if (isConnectting) {
                 return;
             }
-            if (BleClient.getInstance().getConnectState(bleDevice) != BluetoothGatt.STATE_DISCONNECTED) {
+            if (BleClient.getInstance().getConnectState(bleDevice.getAddress()) != BluetoothGatt.STATE_DISCONNECTED) {
                 LogUtils.d("bleService", "getConnectState("+bleDevice.getAddress()+") is not disconnected");
                 return;
             }
