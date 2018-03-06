@@ -35,7 +35,8 @@ android {
             android.applicationVariants.all {
                 variant ->
                     variant.outputs.all {
-                        outputFileName="miitapp_" + buildType.name + "_v" + defaultConfig.versionName + "_${releaseTime()}.apk";
+                        //outputFileName="miitapp_" + buildType.name + "_v" + defaultConfig.versionName + "_${releaseTime()}.apk";
+                        outputFileName="miitapp_" + buildType.name + "_v" + defaultConfig.versionName + ".apk";
                     }
             }
         }
@@ -47,7 +48,7 @@ android {
             android.applicationVariants.all {
                 variant ->
                     variant.outputs.all {
-                        outputFileName = "miittech_" + buildType.name + "_v" + defaultConfig.versionName + "_${releaseTime()}.apk";
+                        outputFileName = "miittech_" + buildType.name + "_v" + defaultConfig.versionName + ".apk";
                     }
             }
         }

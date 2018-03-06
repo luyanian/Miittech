@@ -285,8 +285,12 @@ public  class BleService extends Service {
             }
         }
     }
-
+    int index= 0;
     private synchronized void exceTask() {
+        if(++index>2){
+            index=0;
+            isConnectting=false;
+        }
         checkLocationService();
         exceCheckScaning();
         exceReportSubmit();
