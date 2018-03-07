@@ -125,7 +125,7 @@ public class SoundPlayUtils {
         intent1.putExtra("soundId", 1);
         intent1.putExtra("devName",devName);
 
-        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent1);
+        App.getInstance().sendBroadcast(intent1);
     }
 
 }

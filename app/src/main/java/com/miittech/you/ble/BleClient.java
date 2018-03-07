@@ -178,18 +178,24 @@ public class BleClient {
                             executorService.schedule(new Runnable() {
                                 @Override
                                 public void run() {
-                                synchronized (isEffectiveOption) {
-//                                                mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
-                                    if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
-                                        if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
-                                            LogUtils.d("bleService", "onEffectDisConnected  isEffectiveOption-->false"+"    "+gatt.getDevice().getAddress());
-                                            mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                    LogUtils.d("bleService", mac+" in not reconnect in 5s isEffectiveOption--->"+isEffectiveOption.get(mac));
+//                                    synchronized (isEffectiveOption) {
+    //                                                mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                        if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
+                                            if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
+                                                mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                            }else{
+                                                LogUtils.d("bleService", "gattcallback is not exsist or is null  "+mGattCallbacks);
+                                            }
+                                            isEffectiveOption.put(mac, true);
+
+                                            if(mGattCallbacks.containsKey(gatt.getDevice().getAddress())){
+                                                mGattCallbacks.remove(gatt.getDevice().getAddress());
+                                            }
+                                        } else {
+                                            LogUtils.d("bleService", "device reconnected in short time  isEffectiveOption-->true"+"    "+gatt.getDevice().getAddress());
                                         }
-                                        isEffectiveOption.put(mac, true);
-                                    } else {
-                                        LogUtils.d("bleService", "device reconnected in short time  isEffectiveOption-->true"+"    "+gatt.getDevice().getAddress());
-                                    }
-                                }
+//                                }
 //                                              executorService.shutdown();
                                 }
                             },5, TimeUnit.SECONDS);
@@ -211,9 +217,6 @@ public class BleClient {
                             }
                             gatt.disconnect();
                             gatt.close();
-                        }
-                        if(mGattCallbacks.containsKey(gatt.getDevice().getAddress())){
-                            mGattCallbacks.remove(gatt.getDevice().getAddress());
                         }
                     }
                 }
