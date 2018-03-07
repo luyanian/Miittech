@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.multidex.MultiDex;
+import android.support.v4.content.LocalBroadcastManager;
+
 import com.baidu.mapapi.SDKInitializer;
 import com.miittech.you.ble.BleClient;
 import com.miittech.you.ble.BleService;
@@ -24,6 +26,7 @@ import cn.jpush.android.api.JPushInterface;
 
 public class  App extends MobApplication {
     private static App instance;
+    private static LocalBroadcastManager localBroadcastManager;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -36,6 +39,7 @@ public class  App extends MobApplication {
             }
         });
         instance = this;
+        localBroadcastManager = LocalBroadcastManager.getInstance(this);
         SDKInitializer.initialize(getApplicationContext());
         JPushInterface.setDebugMode(true);
         JPushInterface.init(getApplicationContext());
@@ -55,7 +59,9 @@ public class  App extends MobApplication {
         return instance;
     }
 
-
+    public LocalBroadcastManager getLocalBroadCastManager(){
+        return localBroadcastManager;
+    }
 
 
 

@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.daimajia.swipe.util.Attributes;
 import com.google.gson.Gson;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.adapter.MyFriendsAdapter;
@@ -126,7 +127,7 @@ public class MyFriendsActivity extends BaseActivity {
 
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE);
-        registerReceiver(cmdResponseReceiver,filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver,filter);
     }
 
     @Override
@@ -138,7 +139,7 @@ public class MyFriendsActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(cmdResponseReceiver);
+        App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
     }
 
     private void getFrinds() {

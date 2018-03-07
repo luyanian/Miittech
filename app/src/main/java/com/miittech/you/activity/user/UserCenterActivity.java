@@ -12,6 +12,7 @@ import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.utils.Common;
@@ -450,7 +451,7 @@ public class UserCenterActivity extends BaseActivity {
                         }else{
                             Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                             cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
-                            sendBroadcast(cmd);
+                            App.getInstance().getLocalBroadCastManager().sendBroadcast(cmd);
                             SPUtils.getInstance().clearAll();
                             Intent intent = new Intent(UserCenterActivity.this,LoginRegisteActivity.class);
                             startActivity(intent);

@@ -100,7 +100,7 @@ public class DeviceDetailActivity extends BaseActivity {
 
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-        this.registerReceiver(cmdResponseReceiver,filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver,filter);
 
         typeSelector.setItemText("小贴士", "功能");
         typeSelector.setTypeSelectorChangeLisener(new TypeSelectorChangeLisener() {
@@ -128,7 +128,7 @@ public class DeviceDetailActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        this.unregisterReceiver(cmdResponseReceiver);
+        App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
     }
 
     @Override
@@ -235,7 +235,7 @@ public class DeviceDetailActivity extends BaseActivity {
                         Intent unbind= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                         unbind.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND);
                         unbind.putExtra("address",Common.formatDevId2Mac(deviceInfo.getDevidX()));
-                        sendBroadcast(unbind);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(unbind);
                     }
 
                     @Override
@@ -257,7 +257,7 @@ public class DeviceDetailActivity extends BaseActivity {
             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_ALERT_STOP);
         }
         intent.putExtra("address",Common.formatDevId2Mac(deviceInfo.getDevidX()));
-        sendBroadcast(intent);
+        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
     }
     private void switchFindBtnStyle() {
         String mac = Common.formatDevId2Mac(deviceInfo.getDevidX());

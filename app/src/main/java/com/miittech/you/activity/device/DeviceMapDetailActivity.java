@@ -18,6 +18,7 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.ble.BleClient;
@@ -73,7 +74,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
         switchFindBtnStyle();
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-        this.registerReceiver(cmdResponseReceiver,filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver,filter);
     }
 
     private void initView(DeviceInfo devlistBean) {
@@ -96,7 +97,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        this.unregisterReceiver(cmdResponseReceiver);
+        App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
     }
 
     @OnClick({R.id.img_navagation, R.id.rl_bell_status})
@@ -130,7 +131,7 @@ public class DeviceMapDetailActivity extends BaseActivity {
             intent.putExtra("cmd", IntentExtras.CMD.CMD_DEVICE_ALERT_STOP);
         }
         intent.putExtra("address", Common.formatDevId2Mac(deviceDetailInfo.getDevidX()));
-        sendBroadcast(intent);
+        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
     }
 
     private void switchFindBtnStyle() {

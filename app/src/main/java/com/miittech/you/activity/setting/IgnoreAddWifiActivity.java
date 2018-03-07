@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.utils.Common;
@@ -90,7 +91,7 @@ public class IgnoreAddWifiActivity extends BaseActivity {
         updateSSID();
         IntentFilter filter = new IntentFilter();
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        registerReceiver(new WifiStateReciver(), filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(new WifiStateReciver(), filter);
     }
 
     private class WifiStateReciver extends BroadcastReceiver{

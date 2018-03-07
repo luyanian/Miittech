@@ -18,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.google.gson.Gson;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.MainActivity;
 import com.miittech.you.activity.device.DeviceDetailActivity;
@@ -138,7 +139,7 @@ public class ListFragment extends Fragment {
         IntentFilter filter = new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
         filter.addAction(IntentExtras.ACTION.ACTION_RECEIVE_MESSAGE);
-        getActivity().registerReceiver(cmdResponseReceiver, filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver, filter);
     }
 
     public void initState() {
@@ -260,7 +261,7 @@ public class ListFragment extends Fragment {
         if (mDeviceListAdapter != null) {
             mDeviceListAdapter.unregist();
         }
-        getActivity().unregisterReceiver(cmdResponseReceiver);
+        App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
         unbinder.unbind();
     }
 

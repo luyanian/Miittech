@@ -49,7 +49,7 @@ public class LocalReceiver extends BroadcastReceiver {
             }
             Intent task= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
             task.putExtra("cmd",IntentExtras.CMD.CMD_TASK_EXCE);
-            context.sendBroadcast(task);
+            App.getInstance().getLocalBroadCastManager().sendBroadcast(task);
         }
     }
 

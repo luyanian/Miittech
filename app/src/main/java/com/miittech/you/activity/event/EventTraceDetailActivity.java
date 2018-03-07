@@ -23,6 +23,7 @@ import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
 import com.google.gson.Gson;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.activity.setting.SettingActivity;
@@ -155,13 +156,13 @@ public class EventTraceDetailActivity extends BaseActivity implements BaiduMap.O
         initDeviceInfo();
         IntentFilter filter = new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-        this.registerReceiver(cmdResponseReceiver, filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver, filter);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        this.unregisterReceiver(cmdResponseReceiver);
+        App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
     }
 
     private void initDeviceInfo() {

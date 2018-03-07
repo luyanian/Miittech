@@ -124,7 +124,8 @@ public class SoundPlayUtils {
         Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG);
         intent1.putExtra("soundId", 1);
         intent1.putExtra("devName",devName);
-        context.sendBroadcast(intent1);
+
+        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent1);
     }
 
 }

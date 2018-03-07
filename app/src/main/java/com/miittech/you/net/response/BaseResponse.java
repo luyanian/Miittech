@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.text.TextUtils;
 
 import com.google.gson.annotations.SerializedName;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.user.LoginRegisteActivity;
 import com.miittech.you.utils.Common;
@@ -142,7 +143,7 @@ public class BaseResponse implements Serializable{
                 ToastUtils.showShort("异地登陆执行退出");
                 Intent cmd= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                 cmd.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_CLEAR);
-                context.sendBroadcast(cmd);
+                App.getInstance().getLocalBroadCastManager().sendBroadcast(cmd);
                 SPUtils.getInstance(SPConst.USER.SP_NAME).clear();
                 Intent intent = new Intent(context,LoginRegisteActivity.class);
                 context.startActivity(intent);

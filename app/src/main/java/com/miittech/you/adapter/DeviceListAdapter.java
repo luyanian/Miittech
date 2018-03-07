@@ -53,7 +53,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         this.onDeviceItemClick = onDeviceItemClick;
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-        App.getInstance().registerReceiver(cmdResponseReceiver,filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver,filter);
     }
 
     @Override
@@ -170,7 +170,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_LIST_ADD);
         intent.putStringArrayListExtra("macList",tempList);
-        activity.sendBroadcast(intent);
+        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -296,6 +296,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     }
 
     public void unregist() {
-        activity.unregisterReceiver(cmdResponseReceiver);
+        App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
     }
 }

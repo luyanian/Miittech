@@ -112,7 +112,7 @@ public  class BleService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_BLE_COMMAND);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        getApplicationContext().registerReceiver(cmdReceiver, filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(cmdReceiver, filter);
         LogUtils.d("bleService-onStartCommand()-new Thread");
         scanDevice();
     }
@@ -152,7 +152,7 @@ public  class BleService extends Service {
             @Override
             public void run() {
                 Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
-                App.getInstance().sendBroadcast(intent1);
+                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent1);
             }
         }, 1, 5, TimeUnit.SECONDS);
 
@@ -167,7 +167,7 @@ public  class BleService extends Service {
     public void onDestroy() {
         super.onDestroy();
         LogUtils.d("bleService-onDestroy()");
-        this.unregisterReceiver(cmdReceiver);
+        App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdReceiver);
         BleClient.getInstance().cancelScan();
         BleClient.getInstance().disconnectAllDevice();
 
@@ -265,7 +265,7 @@ public  class BleService extends Service {
                             stringBuilder.append("STATE_ON");
                             Intent bleOnIntent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                             bleOnIntent.putExtra("ret", IntentExtras.RET.RET_BLE_STATE_ON);
-                            sendBroadcast(bleOnIntent);
+                            App.getInstance().getLocalBroadCastManager().sendBroadcast(bleOnIntent);
                             scanDevice();
                             exceCalibrationDevice();
                             break;
@@ -277,7 +277,7 @@ public  class BleService extends Service {
                             diableBluetooth();
                             Intent bleOffIntent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                             bleOffIntent.putExtra("ret", IntentExtras.RET.RET_BLE_STATE_OFF);
-                            sendBroadcast(bleOffIntent);
+                            App.getInstance().getLocalBroadCastManager().sendBroadcast(bleOffIntent);
                             break;
                     }
                 }
@@ -397,7 +397,7 @@ public  class BleService extends Service {
         LogUtils.d("bleService","贴片扫描开始----->");
         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
         intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCAN_START);
-        sendBroadcast(intent);
+        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
         lastUnScanning = TimeUtils.getNowMills();
         BleClient.getInstance().startScan(new ScanResultCallback(){
             @Override
@@ -419,7 +419,7 @@ public  class BleService extends Service {
                             Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                             intent1.putExtra("ret", IntentExtras.RET.RET_BLE_FIND_BIND_DEVICE);
                             intent1.putExtra("address", scanResult.getMac());
-                            sendBroadcast(intent1);
+                            App.getInstance().getLocalBroadCastManager().sendBroadcast(intent1);
                         }
                         return;
                     }
@@ -429,7 +429,7 @@ public  class BleService extends Service {
                     Intent intent2 = new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                     intent2.putExtra("cmd", IntentExtras.CMD.CMD_DEVICE_SCANING);
                     intent2.putExtra("address", scanResult.getMac());
-                    sendBroadcast(intent2);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent2);
                 }
             }
         });
@@ -458,7 +458,7 @@ public  class BleService extends Service {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_START);
                     intent.putExtra("address", mac);
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                 }
 
                 @Override
@@ -468,7 +468,7 @@ public  class BleService extends Service {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_FAILED);
                     intent.putExtra("address", mac);
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                 }
 
                 @Override
@@ -484,7 +484,7 @@ public  class BleService extends Service {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_SUCCESS);
                     intent.putExtra("address", mac);
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                     return mBindMap.containsKey(mac);
                 }
 
@@ -511,7 +511,7 @@ public  class BleService extends Service {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
                     intent.putExtra("address", mac);
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                     DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
                     if (deviceInfo == null || deviceInfo.getAlertinfo() == null) {
                         return;
@@ -538,7 +538,7 @@ public  class BleService extends Service {
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_READ_RSSI);
                     intent.putExtra("address", mac);
                     intent.putExtra("rssi", rssi);
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                     mapRssi.put(mac, rssi);
                     try {
                         Thread.sleep(500);
@@ -572,7 +572,7 @@ public  class BleService extends Service {
                         intent.putExtra("ret", IntentExtras.RET.RET_BLE_READ_BATTERY);
                         intent.putExtra("address", mac);
                         intent.putExtra("battery", data[0] + "");
-                        sendBroadcast(intent);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                         mapBattery.put(mac, data[0] + "");
 
                     }
@@ -584,7 +584,7 @@ public  class BleService extends Service {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_SUCCESS);
                     intent.putExtra("address", device.getAddress());
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                     mBindMap.clear();
                     isBind =false;
                     if(!mDeviceMap.containsKey(device.getAddress())){
@@ -599,7 +599,7 @@ public  class BleService extends Service {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_FAIL);
                     intent.putExtra("address", device.getAddress());
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                 }
 
                 @Override
@@ -608,7 +608,7 @@ public  class BleService extends Service {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS);
                     intent.putExtra("address", device.getAddress());
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
 
                     if(!mDeviceMap.containsKey(device.getAddress())) {
                         return;
@@ -638,7 +638,7 @@ public  class BleService extends Service {
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_FAIL);
                     intent.putExtra("address", device.getAddress());
-                    sendBroadcast(intent);
+                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                 }
             });
 
@@ -656,7 +656,7 @@ public  class BleService extends Service {
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_COMPLETE);
                 intent.putExtra("address", device.getAddress());
-                sendBroadcast(intent);
+                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                 isIgnoreEvents.put(device.getAddress(),true);
                 BleClient.getInstance().disConnect(device.getAddress());
                 if(mDeviceMap.containsKey(device.getAddress())){
@@ -719,7 +719,7 @@ public  class BleService extends Service {
                 LogUtils.d("bleService","贴片开始报警----->"+device.getAddress());
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_ALERT_STARTED);
                 intent.putExtra("address", device.getAddress());
-                sendBroadcast(intent);
+                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
             }
 
             @Override
@@ -742,7 +742,7 @@ public  class BleService extends Service {
                 LogUtils.d("bleService","贴片结束报警----->"+device.getAddress());
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_ALERT_STOPED);
                 intent.putExtra("address", device.getAddress());
-                sendBroadcast(intent);
+                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
             }
 
             @Override
@@ -785,7 +785,7 @@ public  class BleService extends Service {
             Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
             intent.putExtra("ret", IntentExtras.RET.LOCATION);
             intent.putExtra("data", locinfo);
-            sendBroadcast(intent);
+            App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
 
 //            Intent task= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
 //            task.putExtra("cmd",IntentExtras.CMD.CMD_TASK_EXCE);

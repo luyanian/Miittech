@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.luck.picture.lib.permissions.RxPermissions;
+import com.miittech.you.App;
 import com.miittech.you.R;
 import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.utils.Common;
@@ -89,14 +90,14 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
 
         IntentFilter filter=new IntentFilter();
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-        this.registerReceiver(cmdResponseReceiver,filter);
+        App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver,filter);
         sacnDevice();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(cmdResponseReceiver);
+        App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
     }
 
     private void sacnDevice() {
@@ -110,7 +111,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                         if (aBoolean) {
                             Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_BIND_SCAN);
-                            sendBroadcast(intent);
+                            App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                         }
                     }
                 });
@@ -148,13 +149,13 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                             Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_CONNECT_BIND);
                             intent.putExtra("address",mac);
-                            sendBroadcast(intent);
+                            App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                         }else{
                             response.onVerError();
                             Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
                             intent.putExtra("address",mac);
-                            sendBroadcast(intent);
+                            App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                             outBindError();
                         }
                     }
@@ -165,7 +166,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                         Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                         intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
                         intent.putExtra("address",mac);
-                        sendBroadcast(intent);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                     }
                 });
     }
@@ -225,7 +226,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                             Intent intent= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
                             intent.putExtra("cmd",IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR);
                             intent.putExtra("address",mac);
-                            sendBroadcast(intent);
+                            App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                             outBindError();
                         }
                     }
