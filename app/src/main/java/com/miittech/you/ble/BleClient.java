@@ -127,10 +127,10 @@ public class BleClient {
             mGattCallback.onConnectFail(mDevice.getAddress());
             return;
         }
-        if(mGattCallbacks.containsKey(mDevice.getAddress())&&mGattCallbacks.get(mDevice.getAddress())!=null){
-            LogUtils.d("bleService", mDevice.getAddress()+" has another connectting options,cancle current option");
-            return;
-        }
+//        if(mGattCallbacks.containsKey(mDevice.getAddress())&&mGattCallbacks.get(mDevice.getAddress())!=null){
+//            LogUtils.d("bleService", mDevice.getAddress()+" has another connectting options,cancle current option");
+//            return;
+//        }
 
         mGattCallback.onStartConnect(mDevice.getAddress());
 
