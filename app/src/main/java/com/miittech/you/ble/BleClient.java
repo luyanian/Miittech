@@ -549,6 +549,11 @@ public class BleClient {
                                 if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
 
                                 } else {
+                                    try {
+                                        Thread.sleep(300);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
                                     boolean success1 = gatt.setCharacteristicNotification(bluetoothGattCharacteristic, true);
                                     LogUtils.d("bleService", gatt.getDevice().getAddress() + "--->setCharacteristicNotification = " + success1);
                                     if(success1) {
@@ -564,7 +569,6 @@ public class BleClient {
                                             LogUtils.d("bleService", gatt.getDevice().getAddress() + "--->writeDescriptor:NOTIFICATION_VALUE = " + success2);
                                         }
                                     }
-
                                 }
                             }
                         }
