@@ -152,7 +152,7 @@ public  class BleService extends Service {
             @Override
             public void run() {
                 Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
-                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent1);
+                App.getInstance().sendBroadcast(intent1);
             }
         }, 1, 5, TimeUnit.SECONDS);
 
@@ -287,7 +287,7 @@ public  class BleService extends Service {
     }
     int index= 0;
     private synchronized void exceTask() {
-        if(++index>2){
+        if(++index>3){
             index=0;
             isConnectting=false;
         }
@@ -450,10 +450,10 @@ public  class BleService extends Service {
                 LogUtils.d("bleService", "getConnectState("+bleDevice.getAddress()+") is not disconnected");
                 return;
             }
+            isConnectting = true;
             BleClient.getInstance().connectDevice(bleDevice, new GattCallback() {
                 @Override
                 public synchronized void onStartConnect(String mac) {
-                    isConnectting = true;
                     LogUtils.d("bleService", "贴片开始连接----->" + mac);
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_START);
@@ -596,6 +596,7 @@ public  class BleService extends Service {
                 @Override
                 public void onBindModeFaild(BluetoothDevice device) {
                     LogUtils.d("bleService","贴片设置绑定模式失败----->"+device.getAddress());
+                    isIgnoreEvents.put(device.getAddress(),true);
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_FAIL);
                     intent.putExtra("address", device.getAddress());
@@ -635,6 +636,7 @@ public  class BleService extends Service {
                 @Override
                 public void onWorkModeFaild(BluetoothDevice device) {
                     LogUtils.d("bleService","贴片设置工作模式失败----->"+device.getAddress());
+                    isIgnoreEvents.put(device.getAddress(),true);
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_FAIL);
                     intent.putExtra("address", device.getAddress());
