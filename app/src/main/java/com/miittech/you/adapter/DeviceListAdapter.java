@@ -5,37 +5,75 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadListener;
+import com.liulishuo.filedownloader.FileDownloader;
 import com.miittech.you.App;
 import com.miittech.you.R;
+import com.miittech.you.activity.device.DeviceDetailSettingActivity;
 import com.miittech.you.ble.BleClient;
+import com.miittech.you.ble.BleUUIDS;
+import com.miittech.you.ble.gatt.BleReadCallback;
+import com.miittech.you.ble.update.IOtaUpdateListener;
+import com.miittech.you.ble.update.OtaOptions;
+import com.miittech.you.ble.update.UpConst;
+import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.dialog.MsgTipDialog;
+import com.miittech.you.dialog.ProgressDialog;
+import com.miittech.you.dialog.UpdateDialog;
 import com.miittech.you.entity.Locinfo;
+import com.miittech.you.global.HttpUrl;
+import com.miittech.you.global.PubParam;
 import com.miittech.you.global.SPConst;
+import com.miittech.you.impl.OnMsgTipOptions;
+import com.miittech.you.net.ApiServiceManager;
+import com.miittech.you.net.response.BleVersionResponse;
 import com.miittech.you.utils.Common;
 import com.miittech.you.entity.DeviceInfo;
 import com.miittech.you.glide.GlideApp;
 import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnListItemClick;
 import com.miittech.you.weight.CircleImageView;
+import com.ryon.mutils.EncryptUtils;
+import com.ryon.mutils.FileUtils;
 import com.ryon.mutils.LogUtils;
+import com.ryon.mutils.NetworkUtils;
 import com.ryon.mutils.SPUtils;
 import com.ryon.mutils.TimeUtils;
+import com.ryon.mutils.ToastUtils;
+
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 
 /**
  * Created by Administrator on 2017/10/19.
@@ -47,6 +85,9 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
     private OnListItemClick onDeviceItemClick;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
     private Map<String,ViewHolder> holders = new HashMap<>();
+    private LinkedBlockingQueue<String> devicesCanUpdate = new LinkedBlockingQueue<>();
+    private boolean isUpdating = false;
+    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     public DeviceListAdapter(Activity activity, OnListItemClick onDeviceItemClick) {
         this.activity = activity;
@@ -201,10 +242,12 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
         public void onReceive(Context context, Intent intent) {
             if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
-                String address = intent.getStringExtra("address");
+                final String address = intent.getStringExtra("address");
                 switch (ret){
                     case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
                         setConnectStatusStyle(address);
+//                        devicesCanUpdate.add(address);
+//                        recycleUpdate();
                         break;
                     case IntentExtras.RET.RET_BLE_READ_RSSI:
                         LogUtils.d("RET_DEVICE_READ_RSSI");
@@ -297,5 +340,169 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
 
     public void unregist() {
         App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
+    }
+
+    private void recycleUpdate() {
+        if(isUpdating){
+            return;
+        }
+        if(devicesCanUpdate.size()>0) {
+            isUpdating = true;
+            executorService.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    String address = devicesCanUpdate.remove();
+                    if (BleClient.getInstance().isConnected(address)) {
+                        getBleVersion(address);
+                    } else {
+                        isUpdating = false;
+                    }
+                }
+            }, 2, TimeUnit.SECONDS);
+        }
+    }
+
+    public synchronized void getBleVersion(final String mac){
+        BleClient.getInstance().read(
+                mac,
+                BleUUIDS.versionServiceUUID,
+                BleUUIDS.firmwareVertionCharacteristicUUID,
+                new BleReadCallback(){
+                    @Override
+                    public synchronized void onReadResponse(final byte[] data) {
+                        super.onReadResponse(data);
+                        String firmware = new String(data);
+                        LogUtils.d("bleservice_update","("+mac+") current device firmware version is:"+firmware);
+                        getNetBleVersion(mac,firmware);
+                    }
+                });
+    }
+    private void getNetBleVersion(final String mac, final String firmware){
+        if(!NetworkUtils.isConnected()){
+            ToastUtils.showShort("网络链接断开，请检查网络");
+            isUpdating = false;
+            return;
+        }
+        Map param = new HashMap();
+        param.put("devtype", "1");
+        param.put("debug", "1");
+        String json = new Gson().toJson(param);
+        PubParam pubParam = new PubParam(Common.getUserId());
+        String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();
+        LogUtils.d("sign_unsha1", sign_unSha1);
+        String sign = EncryptUtils.encryptSHA1ToString(sign_unSha1).toLowerCase();
+        LogUtils.d("sign_sha1", sign);
+        String path = HttpUrl.Api + "devicefirmware/" + pubParam.toUrlParam(sign);
+        final RequestBody requestBody = RequestBody.create(MediaType.parse(HttpUrl.MediaType_Json), json);
+
+        ApiServiceManager.getInstance().buildApiService(App.getInstance()).postGetBleVersion(path, requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BleVersionResponse>() {
+                    @Override
+                    public void accept(final BleVersionResponse response) throws Exception {
+                        if (response.isSuccessful()) {
+                            final BleVersionResponse.FirmwareBean firmwareBean = response.getFirmware();
+                            if(firmwareBean!=null&&(firmware.compareTo(firmwareBean.getFirmware())<0)){
+                                LogUtils.d("bleservice_update","("+mac+") find new firmware version:"+firmwareBean.getFirmware());
+                                startDownloadFirmware(mac,firmwareBean.getDl_url());
+                                return;
+                            }else{
+                                isUpdating = false;
+                            }
+                        } else {
+                            response.onError(activity);
+                            isUpdating = false;
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                        isUpdating = false;
+                    }
+                });
+    }
+    private void startDownloadFirmware(final String mac, String downloadUrl) {
+        FileDownloader.setup(activity);
+        LogUtils.d("bleservice_update","("+mac+") start download the last firmware");
+        FileDownloader.getImpl().create(downloadUrl)
+                .setPath(UpConst.file_blefirmware_download_path+ File.separator+"firmware.img")
+                .setListener(new FileDownloadListener() {
+                    @Override
+                    protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                    }
+
+                    @Override
+                    protected void connected(BaseDownloadTask task, String etag, boolean isContinue, int soFarBytes, int totalBytes) {
+
+                    }
+
+                    @Override
+                    protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                        LogUtils.d("bleservice_update","("+mac+") download "+soFarBytes+"/"+totalBytes);
+                    }
+
+                    @Override
+                    protected void blockComplete(BaseDownloadTask task) {
+                    }
+
+                    @Override
+                    protected void retry(final BaseDownloadTask task, final Throwable ex, final int retryingTimes, final int soFarBytes) {
+                    }
+
+                    @Override
+                    protected void completed(BaseDownloadTask task) {
+                        LogUtils.d("bleservice_update","("+mac+") download completed ,and start update");
+                        updateDevice(mac,task);
+                    }
+
+                    @Override
+                    protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                    }
+
+                    @Override
+                    protected void error(BaseDownloadTask task, Throwable e) {
+                        LogUtils.d("bleservice_update","("+mac+") download error");
+                        isUpdating = false;
+                    }
+
+                    @Override
+                    protected void warn(BaseDownloadTask task) {
+                    }
+                }).start();
+    }
+    private void updateDevice(final String mac, final BaseDownloadTask task) {
+        String filePath = UpConst.file_blefirmware_download_path+ File.separator+task.getFilename();
+        final OtaOptions otaOptions = new OtaOptions(activity);
+        try {
+            otaOptions.init(filePath,mac);
+            otaOptions.startUpdate(new IOtaUpdateListener() {
+                @Override
+                public void updateTitle(final String title) {
+                }
+
+                @Override
+                public void onProgress(final int progress) {
+                    LogUtils.d("bleservice_update","("+mac+") update "+progress);
+                }
+
+                @Override
+                public void onUpdateComplete() {
+                    try {
+                        FileUtils.deleteFile(task.getPath() + File.separator + task.getFilename());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    LogUtils.d("bleservice_update","("+mac+") update complete and sendRebootSignal");
+                    isUpdating = false;
+                    otaOptions.sendRebootSignal();
+                    recycleUpdate();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            LogUtils.d("bleservice_update","("+mac+") exception "+e.getMessage());
+        }
     }
 }

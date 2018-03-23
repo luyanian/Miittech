@@ -29,8 +29,11 @@ import com.miittech.you.global.IntentExtras;
 import com.miittech.you.global.Params;
 import com.miittech.you.utils.BingGoPlayUtils;
 import com.miittech.you.utils.Common;
+import com.ryon.constant.TimeConstants;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.SPUtils;
+import com.ryon.mutils.TimeUtils;
+import com.ryon.mutils.ToastUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -59,6 +62,7 @@ public class BleClient {
     private SimpleArrayMap<String, Boolean> isEffectConnectSuccess = new SimpleArrayMap<String, Boolean>();
     private SimpleArrayMap<UUID,BleWriteCallback> bleWriteCallbacks = new SimpleArrayMap<>();
     private SimpleArrayMap<UUID,BleNotifyCallback> bleNotifyCallbacks = new SimpleArrayMap<>();
+    private SimpleArrayMap<String,Long> bleLastScanTime = new SimpleArrayMap<>();
     private Context context;
     private SimpleArrayMap<String,Boolean> isActivityDisConnects = new SimpleArrayMap();
     private SimpleArrayMap<String,BluetoothGatt> bluetoothGatts = new SimpleArrayMap<>();
@@ -123,6 +127,9 @@ public class BleClient {
             bleLeScanCallback = null;
         }
     }
+    public void scanning(String mac){
+        bleLastScanTime.put(mac, TimeUtils.getNowMills());
+    }
     public synchronized void connectDevice(BluetoothDevice mDevice, GattCallback mGattCallback){
 //        if (mDevice == null) {
 //            mGattCallback.onConnectFail(mDevice.getAddress());
@@ -175,31 +182,46 @@ public class BleClient {
 //                                        mGattCallback.onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
                             isEffectiveOption.put(mac,false);
                             isEffectConnectSuccess.put(gatt.getDevice().getAddress(),false);
-                            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+                            final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
                             executorService.schedule(new Runnable() {
                                 @Override
                                 public void run() {
                                     LogUtils.d("bleService", mac+" in not reconnect in 5s isEffectiveOption--->"+isEffectiveOption.get(mac));
-//                                    synchronized (isEffectiveOption) {
-    //                                                mGattCallback.onDisConnected(isActivityDisConnects.get(mac), mac, newState);
-                                        if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
-                                            if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
-                                                mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
-                                            }else{
-                                                LogUtils.d("bleService", "gattcallback is not exsist or is null  "+mGattCallbacks);
-                                            }
-                                            isEffectiveOption.put(mac, true);
-
-//                                            if(mGattCallbacks.containsKey(gatt.getDevice().getAddress())){
-//                                                mGattCallbacks.remove(gatt.getDevice().getAddress());
-//                                            }
-                                        } else {
-                                            LogUtils.d("bleService", "device reconnected in short time  isEffectiveOption-->true"+"    "+gatt.getDevice().getAddress());
+                                    if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
+                                        if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
+                                            mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                        }else{
+                                            LogUtils.d("bleService", "gattcallback is not exsist or is null  "+mGattCallbacks);
                                         }
-//                                }
-//                                              executorService.shutdown();
+                                        isEffectiveOption.put(mac, true);
+                                    } else {
+                                        LogUtils.d("bleService", "device reconnected in short time  isEffectiveOption-->true"+"    "+mac);
+                                    }
                                 }
                             },5, TimeUnit.SECONDS);
+                            final ScheduledExecutorService executorService1 = Executors.newSingleThreadScheduledExecutor();
+                            executorService1.scheduleAtFixedRate(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
+                                        if(!isReciveScanning(mac)) {
+                                            LogUtils.d("bleService", "not find this device in 5s  " + mac);
+                                            if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
+                                                mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
+                                            } else {
+                                                LogUtils.d("bleService", "gattcallback is not exsist or is null  " + mGattCallbacks);
+                                            }
+                                            isEffectiveOption.put(mac, true);
+                                            executorService1.shutdownNow();
+                                        }else{
+                                            LogUtils.d("bleService", "sanning this device in 5s  "+mac);
+                                        }
+                                    }else{
+                                        LogUtils.d("bleService", "this device already be option  "+mac);
+                                        executorService1.shutdownNow();
+                                    }
+                                }
+                            }, 6, 1, TimeUnit.SECONDS);
                             isDisConnectMaps.put(gatt.getDevice().getAddress(), false);
                             if (bluetoothGatts.containsKey(gatt.getDevice().getAddress())) {
                                 BluetoothGatt bluetoothGatt = bluetoothGatts.get(gatt.getDevice().getAddress());
@@ -231,6 +253,7 @@ public class BleClient {
                     if(mGattCallbacks.containsKey(mac)&&mGattCallbacks.get(mac)!=null) {
                         mGattCallbacks.get(mac).onReadRemoteRssi(mac, rssi, status);
                     }
+                    bleLastScanTime.put(mac,TimeUtils.getNowMills());
                 }
             }
 
@@ -303,6 +326,14 @@ public class BleClient {
                 }
             }
         });
+    }
+
+    private boolean isReciveScanning(String mac) {
+        if(!bleLastScanTime.containsKey(mac)){
+            return false;
+        }else{
+            return  bleLastScanTime.containsKey(mac)&&(TimeUtils.getTimeSpan(bleLastScanTime.get(mac),TimeUtils.getNowMills(), TimeConstants.SEC)<5);
+        }
     }
 
     public synchronized void setWorkMode(final BluetoothGatt gatt){

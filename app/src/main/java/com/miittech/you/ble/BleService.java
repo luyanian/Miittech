@@ -406,6 +406,7 @@ public  class BleService extends Service {
                     return;
                 }
                 LogUtils.d("bleService", "扫描有物贴片----->" + scanResult.getMac() +"  rssi:"+scanResult.getRssi());
+                BleClient.getInstance().scanning(scanResult.getMac());
 //                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
 //                intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCANING);
 //                intent.putExtra("address",scanResult.getMac());
