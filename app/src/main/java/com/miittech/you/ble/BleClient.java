@@ -182,23 +182,24 @@ public class BleClient {
 //                                        mGattCallback.onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
                             isEffectiveOption.put(mac,false);
                             isEffectConnectSuccess.put(gatt.getDevice().getAddress(),false);
-                            final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-                            executorService.schedule(new Runnable() {
-                                @Override
-                                public void run() {
-                                    LogUtils.d("bleService", mac+" in not reconnect in 5s isEffectiveOption--->"+isEffectiveOption.get(mac));
-                                    if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
-                                        if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
-                                            mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
-                                        }else{
-                                            LogUtils.d("bleService", "gattcallback is not exsist or is null  "+mGattCallbacks);
-                                        }
-                                        isEffectiveOption.put(mac, true);
-                                    } else {
-                                        LogUtils.d("bleService", "device reconnected in short time  isEffectiveOption-->true"+"    "+mac);
-                                    }
-                                }
-                            },5, TimeUnit.SECONDS);
+//                            final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+//                            executorService.schedule(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    LogUtils.d("bleService", mac+" in not reconnect in 5s isEffectiveOption--->"+isEffectiveOption.get(mac));
+//                                    if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
+//                                        if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
+//                                            mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
+//                                        }else{
+//                                            LogUtils.d("bleService", "gattcallback is not exsist or is null  "+mGattCallbacks);
+//                                        }
+//                                        isEffectiveOption.put(mac, true);
+//                                    } else {
+//                                        LogUtils.d("bleService", "device reconnected in short time  isEffectiveOption-->true"+"    "+mac);
+//                                    }
+//                                }
+//                            },5, TimeUnit.SECONDS);
+                            bleLastScanTime.put(mac,TimeUtils.getNowMills());
                             final ScheduledExecutorService executorService1 = Executors.newSingleThreadScheduledExecutor();
                             executorService1.scheduleAtFixedRate(new Runnable() {
                                 @Override
@@ -221,7 +222,7 @@ public class BleClient {
                                         executorService1.shutdownNow();
                                     }
                                 }
-                            }, 6, 1, TimeUnit.SECONDS);
+                            }, 1, 1, TimeUnit.SECONDS);
                             isDisConnectMaps.put(gatt.getDevice().getAddress(), false);
                             if (bluetoothGatts.containsKey(gatt.getDevice().getAddress())) {
                                 BluetoothGatt bluetoothGatt = bluetoothGatts.get(gatt.getDevice().getAddress());
