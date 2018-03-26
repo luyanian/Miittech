@@ -215,6 +215,9 @@ public class BleClient {
                                             isEffectiveOption.put(mac, true);
                                             executorService1.shutdownNow();
                                         }else{
+                                            if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
+                                                mGattCallbacks.get(mac).onCancelAlert(mac);
+                                            }
                                             LogUtils.d("bleService", "sanning this device in 5s  "+mac);
                                         }
                                     }else{

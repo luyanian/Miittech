@@ -85,6 +85,7 @@ public  class BleService extends Service {
     private SimpleArrayMap<String,Byte> mLinkLoseMap = new SimpleArrayMap<>();
     private SimpleArrayMap<String,Boolean> isIgnoreEvents = new SimpleArrayMap<>();
     private SimpleArrayMap<String,Boolean> mNotFirstConnect = new SimpleArrayMap<>();
+    private SimpleArrayMap<String,Boolean> isDevicesNeedAlert = new SimpleArrayMap<>();
     private SimpleArrayMap<String,Boolean> mNotFirstDisConnect = new SimpleArrayMap<>();
     private Boolean isConnectting = false;
 //    private List<String> isConnecttingMacs = new ArrayList<>();
@@ -508,6 +509,7 @@ public  class BleService extends Service {
                     } else {
                         Common.doCommitEvents(App.getInstance(), mac, Params.EVENT_TYPE.DEVICE_LOSE);
                     }
+                    isDevicesNeedAlert.put(mac,true);
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_DISCONNECT);
                     intent.putExtra("address", mac);
@@ -620,11 +622,13 @@ public  class BleService extends Service {
                     }
                     DeviceInfo.AlertinfoBean alertinfoBean = deviceInfo.getAlertinfo();
                     if(mNotFirstConnect.containsKey(device.getAddress())&&mNotFirstConnect.get(device.getAddress())) {
-
-                        if(alertinfoBean.getIsReconnect() == 1 && Common.isBell()){
-                            BingGoPlayUtils.playBingGo();
+                        if(isDevicesNeedAlert.containsKey(device.getAddress())&&isDevicesNeedAlert.get(device.getAddress())) {
+                            if(alertinfoBean.getIsReconnect() == 1 && Common.isBell()){
+                                BingGoPlayUtils.playBingGo();
+                            }
+                            Common.doCommitEvents(App.getInstance(), device.getAddress(), Params.EVENT_TYPE.DEVICE_REDISCOVER);
                         }
-                        Common.doCommitEvents(App.getInstance(), device.getAddress(), Params.EVENT_TYPE.DEVICE_REDISCOVER);
+
                     }else{
                         mNotFirstConnect.put(device.getAddress(),true);
                         BingGoPlayUtils.playBingGo();
@@ -641,6 +645,11 @@ public  class BleService extends Service {
                     intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_FAIL);
                     intent.putExtra("address", device.getAddress());
                     App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                }
+
+                @Override
+                public void onCancelAlert(String mac) {
+                    isDevicesNeedAlert.put(mac,false);
                 }
             });
 

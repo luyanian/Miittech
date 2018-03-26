@@ -25,5 +25,5 @@ public abstract class GattCallback{
     public abstract void onWorkModeSuccess(BluetoothDevice device);
     public abstract void onWorkModeFaild(BluetoothDevice device);
 
-
+    public abstract void onCancelAlert(String mac);
 }
