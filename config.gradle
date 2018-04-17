@@ -9,7 +9,7 @@ ext{
     ]
 
     dependencies = [
-            supportVersion   : "25.+"
+            supportVersion   : "27.0.0"
     ]
 
 }
