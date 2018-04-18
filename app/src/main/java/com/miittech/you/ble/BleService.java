@@ -286,12 +286,12 @@ public  class BleService extends Service {
             }
         }
     }
-    int index= 0;
+    int onnecttingcStatecounts= 0;
     private synchronized void exceTask() {
-//        if(++index>3){
-//            index=0;
-//            isConnectting=false;
-//        }
+        if(onnecttingcStatecounts>50){
+            onnecttingcStatecounts=0;
+            isConnectting=false;
+        }
         checkLocationService();
         exceCheckScaning();
         exceReportSubmit();
@@ -446,7 +446,10 @@ public  class BleService extends Service {
             synchronized (this) {
                 LogUtils.d("bleService", "isConnectting----->" + isConnectting+"   mac-->"+bleDevice.getAddress());
                 if (isConnectting) {
+                    onnecttingcStatecounts++;
                     return;
+                }else{
+                    onnecttingcStatecounts=0;
                 }
                 if (BleClient.getInstance().getConnectState(bleDevice.getAddress()) != BluetoothGatt.STATE_DISCONNECTED) {
                     LogUtils.d("bleService", "getConnectState("+bleDevice.getAddress()+") is not disconnected");
