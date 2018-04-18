@@ -425,16 +425,19 @@ public  class BleService extends Service {
                         return;
                     }
                 }else {
-                    LogUtils.d("bleService","扫描到并开始连接贴片----->"+scanResult.getMac());
-                    mDeviceMap.put(scanResult.getMac(), scanResult.getDevice());
-                    Intent intent2 = new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-                    intent2.putExtra("cmd", IntentExtras.CMD.CMD_DEVICE_SCANING);
-                    intent2.putExtra("address", scanResult.getMac());
-                    App.getInstance().getLocalBroadCastManager().sendBroadcast(intent2);
+                    LogUtils.d("bleService", "扫描到并开始连接贴片----->" + scanResult.getMac()+"   rssi:"+scanResult.getRssi());
+                    if(scanResult.getRssi()>-90){
+                        mDeviceMap.put(scanResult.getMac(), scanResult.getDevice());
+                        Intent intent2 = new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
+                        intent2.putExtra("cmd", IntentExtras.CMD.CMD_DEVICE_SCANING);
+                        intent2.putExtra("address", scanResult.getMac());
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent2);
+                    }
                 }
             }
         });
     }
+
     public synchronized void connectDevice(BluetoothDevice bleDevice){
             if (TextUtils.isEmpty(Common.getTocken())) {
                 return;
@@ -445,7 +448,7 @@ public  class BleService extends Service {
             }
             synchronized (this) {
                 LogUtils.d("bleService", "isConnectting----->" + isConnectting+"   mac-->"+bleDevice.getAddress());
-                if (isConnectting) {
+                if (isConnectting&&!isBind) {
                     onnecttingcStatecounts++;
                     return;
                 }else{
