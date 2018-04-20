@@ -131,19 +131,8 @@ public class BleClient {
         bleLastScanTime.put(mac, TimeUtils.getNowMills());
     }
     public synchronized void connectDevice(BluetoothDevice mDevice, GattCallback mGattCallback){
-//        if (mDevice == null) {
-//            mGattCallback.onConnectFail(mDevice.getAddress());
-//            return;
-//        }
-//        if(mGattCallbacks.containsKey(mDevice.getAddress())&&mGattCallbacks.get(mDevice.getAddress())!=null){
-//            LogUtils.d("bleService", mDevice.getAddress()+" has another connectting options,cancle current option");
-//            return;
-//        }
-
         mGattCallback.onStartConnect(mDevice.getAddress());
-
         mGattCallbacks.put(mDevice.getAddress(),mGattCallback);
-
         mDevice.connectGatt(context, false, new BluetoothGattCallback() {
             @Override
             public synchronized void onConnectionStateChange(final BluetoothGatt gatt, int status, final int newState) {
@@ -182,23 +171,6 @@ public class BleClient {
 //                                        mGattCallback.onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
                             isEffectiveOption.put(mac,false);
                             isEffectConnectSuccess.put(gatt.getDevice().getAddress(),false);
-//                            final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-//                            executorService.schedule(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    LogUtils.d("bleService", mac+" in not reconnect in 5s isEffectiveOption--->"+isEffectiveOption.get(mac));
-//                                    if (isEffectiveOption.containsKey(mac) && !isEffectiveOption.get(mac)) {
-//                                        if (mGattCallbacks.containsKey(mac) && mGattCallbacks.get(mac) != null) {
-//                                            mGattCallbacks.get(mac).onEffectDisConnected(isActivityDisConnects.get(mac), mac, newState);
-//                                        }else{
-//                                            LogUtils.d("bleService", "gattcallback is not exsist or is null  "+mGattCallbacks);
-//                                        }
-//                                        isEffectiveOption.put(mac, true);
-//                                    } else {
-//                                        LogUtils.d("bleService", "device reconnected in short time  isEffectiveOption-->true"+"    "+mac);
-//                                    }
-//                                }
-//                            },5, TimeUnit.SECONDS);
                             bleLastScanTime.put(mac,TimeUtils.getNowMills());
                             final ScheduledExecutorService executorService1 = Executors.newSingleThreadScheduledExecutor();
                             executorService1.scheduleAtFixedRate(new Runnable() {

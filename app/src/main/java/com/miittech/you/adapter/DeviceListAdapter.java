@@ -174,6 +174,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             }else if(rssi<=-100){
                 holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.ic_connect5));
             }
+            updateItemRssi(mac,rssi);
         }else{
             holder.itemIcon.setBorderColor(activity.getResources().getColor(R.color.windowBg));
         }
@@ -288,12 +289,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
             }
             SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmss");
             setTimeText(viewHolder.itemTime,TimeUtils.getNowString(sdf));
-//            for(DeviceInfo devlistBean : mData){
-//                if(address.equals(Common.formatDevId2Mac(devlistBean.getDevidX()))){
-//                    viewHolder.itemLocation.setText(Common.decodeBase64(devlistBean.getLocinfo().getAddr()));
-//                    setTimeText(viewHolder.itemTime,devlistBean.getLasttime());
-//                }
-//            }
         }
     }
 
