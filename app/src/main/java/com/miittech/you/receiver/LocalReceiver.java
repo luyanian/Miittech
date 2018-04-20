@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.miittech.you.App;
+import com.miittech.you.activity.MainActivity;
 import com.miittech.you.entity.MsgData;
 import com.miittech.you.utils.MsgDataUtils;
 import com.miittech.you.utils.SoundPlayUtils;
@@ -33,6 +34,9 @@ public class LocalReceiver extends BroadcastReceiver {
             SoundPlayUtils.stopAll();
             NotificationManager notificationManager = (NotificationManager) App.getInstance().getSystemService(NOTIFICATION_SERVICE);
             notificationManager.cancel(1);
+            if (!AppUtils.isAppForeground()) {
+                AppUtils.launchApp(AppUtils.getAppPackageName());
+            }
         }else if(intent.getAction()==IntentExtras.ACTION.ACTION_SOUND_PLAY_DIALOG){
             Activity activity = ActivityPools.getTopActivity();
             if (activity != null&& AppUtils.isAppForeground()) {

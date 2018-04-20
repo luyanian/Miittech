@@ -210,7 +210,8 @@
         </provider>
 
         <activity android:name=".activity.MainActivity"
-            android:hardwareAccelerated="true"/>
+            android:hardwareAccelerated="true"
+            android:launchMode="singleInstance"/>
         <activity android:name=".activity.StartActivity"
             android:theme="@style/Theme.AppStartLoadTranslucent">
             <intent-filter>

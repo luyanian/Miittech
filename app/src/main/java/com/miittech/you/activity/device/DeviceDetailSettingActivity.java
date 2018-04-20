@@ -382,6 +382,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
         final ProgressBar progressBar = progressDialog.getProgressBar();
         FileDownloader.setup(this);
         FileDownloader.getImpl().create(downloadUrl)
+                .setForceReDownload(true)
                 .setPath(UpConst.file_blefirmware_download_path+File.separator+"firmware.img")
                 .setListener(new FileDownloadListener() {
                     @Override
