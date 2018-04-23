@@ -550,11 +550,11 @@ public class BleClient {
                         if (services == null) {
                             return;
                         }
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+//                        try {
+//                            Thread.sleep(100);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
                         for (BluetoothGattService service : services) {
                             List<BluetoothGattCharacteristic> bluetoothGattCharacteristics = service.getCharacteristics();
                             if (bluetoothGattCharacteristics != null&&bluetoothGattCharacteristics.size()>0) {
@@ -564,11 +564,11 @@ public class BleClient {
                                         if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
 
                                         } else {
-                                            try {
-                                                Thread.sleep(300);
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
+//                                            try {
+//                                                Thread.sleep(300);
+//                                            } catch (InterruptedException e) {
+//                                                e.printStackTrace();
+//                                            }
                                             boolean success1 = gatt.setCharacteristicNotification(bluetoothGattCharacteristic, true);
                                             LogUtils.d("bleService", gatt.getDevice().getAddress() + "--->setCharacteristicNotification = " + success1);
                                             if(success1) {

@@ -129,7 +129,7 @@ public  class BleService extends Service {
             LocationClientOption option = new LocationClientOption();
             option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
             option.setCoorType("bd09ll");
-            option.setScanSpan(5000);
+            option.setScanSpan(30000);
             option.setOpenGps(true);
             option.setIsNeedAddress(true);
             option.setIgnoreKillProcess(true);
@@ -159,7 +159,7 @@ public  class BleService extends Service {
                 Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_TASK_SEND);
                 App.getInstance().sendBroadcast(intent1);
             }
-        }, 1, 5, TimeUnit.SECONDS);
+        }, 5, 30, TimeUnit.SECONDS);
 
         return START_REDELIVER_INTENT;
     }
@@ -765,7 +765,6 @@ public  class BleService extends Service {
         @Override
         public void onReceiveLocation(BDLocation location){
             LogUtils.d("bleService","接收到定位信息----->"+location.getLatitude()+","+location.getLongitude());
-//            if(!TextUtils.isEmpty(location.getAddrStr())){
             Locinfo locinfo = new Locinfo();
             locinfo.setCity(location.getCity());
             locinfo.setAddr(location.getAddrStr());
