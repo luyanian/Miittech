@@ -378,6 +378,9 @@ public class DeviceDetailActivity extends BaseActivity {
                     case IntentExtras.RET.RET_BLE_UNBIND_COMPLETE:
                         unbindDevice();
                         break;
+                    case IntentExtras.RET.RET_BLE_UNBIND_FAILD:
+                        ToastUtils.showShort("解绑失败，请重试");
+                        break;
                 }
 
             }

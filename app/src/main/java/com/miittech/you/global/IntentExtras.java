@@ -66,6 +66,8 @@ public class IntentExtras {
         public final static int LOCATION=0x36;
         public final static int RET_BLE_STATE_ON=0x37;
         public final static int RET_BLE_STATE_OFF=0x38;
+        public final static int RET_BLE_MODE_BIND_NOTIFY_SUCCESS=0x39;
+        public final static int RET_BLE_UNBIND_FAILD=0x40;
     }
     public static class HANDLER{
         public final static int MSG_HANDLER_DEVECE_LIST = 0x50;

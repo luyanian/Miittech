@@ -1,26 +1,17 @@
-package com.miittech.you.task;
+package com.miittech.you.ble.task.connect;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.miittech.you.App;
 import com.miittech.you.ble.BleClient;
-import com.miittech.you.ble.BleUUIDS;
 import com.miittech.you.ble.gatt.GattCallback;
-import com.miittech.you.entity.DeviceInfo;
-import com.miittech.you.global.IntentExtras;
-import com.miittech.you.global.Params;
-import com.miittech.you.utils.BingGoPlayUtils;
+import com.miittech.you.ble.task.Priority;
 import com.miittech.you.utils.Common;
 import com.ryon.mutils.LogUtils;
-import com.ryon.mutils.SPUtils;
 
 // 做一件打印自己的id的事。
-public class ConnectDeviceTask implements ITask {
+public class BleConnectTask implements IBleConnectTask {
     private BluetoothDevice bleDevice;
     private boolean isBind;
     private GattCallback gattCallback;
@@ -28,7 +19,7 @@ public class ConnectDeviceTask implements ITask {
     private Priority priority = Priority.DEFAULT;
     private int sequence;
 
-    public ConnectDeviceTask(BluetoothDevice device, boolean isBind,GattCallback gattCallback) {
+    public BleConnectTask(BluetoothDevice device, boolean isBind, GattCallback gattCallback) {
         this.bleDevice = device;
         this.isBind = isBind;
         this.gattCallback = gattCallback;
@@ -43,13 +34,13 @@ public class ConnectDeviceTask implements ITask {
             return;
         }
         synchronized (this) {
-            LogUtils.d("bleService", "ConnectDeviceTask----->" + isBind+"   mac-->"+bleDevice.getAddress());
+            LogUtils.d("bleService", "BleNotifyTask----->" + isBind+"   mac-->"+bleDevice.getAddress());
             if (BleClient.getInstance().getConnectState(bleDevice.getAddress()) != BluetoothGatt.STATE_DISCONNECTED) {
                 LogUtils.d("bleService", "getConnectState("+bleDevice.getAddress()+") is not disconnected");
                 return;
             }
+            BleClient.getInstance().connectDevice(bleDevice, gattCallback);
         }
-        BleClient.getInstance().connectDevice(bleDevice, gattCallback);
     }
 
     @Override
@@ -71,9 +62,14 @@ public class ConnectDeviceTask implements ITask {
         return sequence;
     }
 
+    @Override
+    public String getMac() {
+        return bleDevice.getAddress();
+    }
+
     // 做优先级比较。
     @Override
-    public int compareTo(ITask another) {
+    public int compareTo(IBleConnectTask another) {
         final Priority me = this.getPriority();
         final Priority it = another.getPriority();
         return me == it ?  this.getSequence() - another.getSequence() :

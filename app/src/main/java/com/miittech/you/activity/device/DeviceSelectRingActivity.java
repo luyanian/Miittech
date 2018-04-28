@@ -201,7 +201,7 @@ public class DeviceSelectRingActivity extends BaseActivity{
             alertinfo.put("vol",31);//音量
             alertinfo.put("isShake",0);//是否振东
             alertinfo.put("duration",30);//响铃时长
-            alertinfo.put("isRepeat",0);//是否重复提醒，选填
+            alertinfo.put("isRepeat",1);//是否重复提醒，选填
             alertinfo.put("isReconnect",0);//是否重连提醒，选填
             alertinfo.put("id",this.sourndlistBean.getId());//铃声ID,缺省1，铃音编号
             alertinfo.put("name",this.sourndlistBean.getName());//铃声名称

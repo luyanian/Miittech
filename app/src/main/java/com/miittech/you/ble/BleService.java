@@ -24,13 +24,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.miittech.you.App;
+import com.miittech.you.ble.gatt.BleNotifyCallback;
 import com.miittech.you.ble.gatt.BleWriteCallback;
 import com.miittech.you.ble.gatt.GattCallback;
 import com.miittech.you.ble.scan.ScanResult;
 import com.miittech.you.ble.scan.ScanResultCallback;
-import com.miittech.you.task.ConnectDeviceTask;
-import com.miittech.you.task.Priority;
-import com.miittech.you.task.TaskQueue;
+import com.miittech.you.ble.task.connect.BleConnectTask;
+import com.miittech.you.ble.task.Priority;
+import com.miittech.you.ble.task.connect.BleConnectTaskQueue;
+import com.miittech.you.ble.task.trans.BleNotifyTask;
+import com.miittech.you.ble.task.trans.BleTransTaskQueue;
+import com.miittech.you.ble.task.trans.BleWriteTask;
 import com.miittech.you.utils.BingGoPlayUtils;
 import com.miittech.you.utils.Common;
 import com.miittech.you.utils.SoundPlayUtils;
@@ -90,9 +94,9 @@ public  class BleService extends Service {
     private SimpleArrayMap<String,Boolean> mNotFirstConnect = new SimpleArrayMap<>();
     private SimpleArrayMap<String,Boolean> isDevicesNeedAlert = new SimpleArrayMap<>();
     private SimpleArrayMap<String,Boolean> mNotFirstDisConnect = new SimpleArrayMap<>();
-    private boolean isBind = false;
+    private boolean isBindDevice = false;
     private static ScheduledExecutorService executorService = null;
-    private TaskQueue taskQueue;
+    private BleConnectTaskQueue bleConnectTaskQueue;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -106,7 +110,7 @@ public  class BleService extends Service {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
                 BleClient.getInstance().cancelScan();
-                LogUtils.d(e.getMessage());
+                LogUtils.d("bleservice",e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -118,8 +122,8 @@ public  class BleService extends Service {
         App.getInstance().getLocalBroadCastManager().registerReceiver(cmdReceiver, filter);
         LogUtils.d("bleService-onStartCommand()-new Thread");
         scanDevice();
-        taskQueue = new TaskQueue(1);
-        taskQueue.start();
+        bleConnectTaskQueue = new BleConnectTaskQueue();
+        bleConnectTaskQueue.start();
     }
 
     private synchronized void checkLocationService() {
@@ -172,8 +176,8 @@ public  class BleService extends Service {
         BleClient.getInstance().cancelScan();
         BleClient.getInstance().disconnectAllDevice();
 
-        if(taskQueue!=null){
-            taskQueue.stop();
+        if(bleConnectTaskQueue!=null){
+            bleConnectTaskQueue.stop();
         }
         if(executorService!=null) {
             executorService.shutdownNow();
@@ -215,12 +219,11 @@ public  class BleService extends Service {
                             break;
                         case IntentExtras.CMD.CMD_DEVICE_BIND_SCAN:
                             stringBuilder.append("CMD_DEVICE_BIND_SCAN");
-                            isBind = true;
+                            isBindDevice = true;
                             mBindMap.clear();
                             break;
                         case IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR:
                             stringBuilder.append("CMD_DEVICE_UNBIND_ERROR   mac==>" + intent.getStringExtra("address"));
-                            isBind = false;
                             String address = intent.getStringExtra("address");
                             if (mDeviceMap.containsKey(address)) {
                                 mDeviceMap.remove(address);
@@ -312,7 +315,7 @@ public  class BleService extends Service {
                 continue;
             }
             if(BleClient.getInstance().isConnected(bleDevice.getAddress())){
-                BleClient.getInstance().readRssi(bleDevice.getAddress());
+                BleClient.getInstance().readRemoteRssi(bleDevice.getAddress());
                 DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(bleDevice.getAddress());
                 if(deviceInfo!=null) {
                     if(mAlertingMap.containsKey(Common.formatDevId2Mac(deviceInfo.getDevidX()))&&mAlertingMap.get(Common.formatDevId2Mac(deviceInfo.getDevidX()))){
@@ -344,8 +347,8 @@ public  class BleService extends Service {
         }
     }
 
-    private void connectDevice(BluetoothDevice bleDevice, final boolean isBind) {
-        ConnectDeviceTask connectDeviceTask = new ConnectDeviceTask(bleDevice, isBind, new GattCallback() {
+    private void connectDevice(BluetoothDevice bleDevice, final boolean isBindDevice) {
+        BleConnectTask connectDeviceTask = new BleConnectTask(bleDevice, isBindDevice, new GattCallback() {
             @Override
             public synchronized void onStartConnect(String mac) {
                 LogUtils.d("bleService", "贴片开始连接----->" + mac);
@@ -370,13 +373,23 @@ public  class BleService extends Service {
             }
 
             @Override
-            public synchronized boolean onEffectConnectSuccess(String mac, int status) {
+            public synchronized void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                if (isBindDevice) {
+                    addNotifyQuery(gatt.getDevice());
+                    setBindMode(gatt);
+                } else {
+                    setWorkMode(gatt);
+                    addNotifyQuery(gatt.getDevice());
+                }
+            }
+
+            @Override
+            public synchronized void onEffectConnectSuccess(String mac, int status) {
                 LogUtils.d("bleService", "贴片连接成功----->" + mac);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_SUCCESS);
                 intent.putExtra("address", mac);
                 App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
-                return mBindMap.containsKey(mac);
             }
 
             @Override
@@ -447,21 +460,16 @@ public  class BleService extends Service {
             @Override
             public void onCharacteristicChanged(String mac, BluetoothGattCharacteristic characteristic) {
                 super.onCharacteristicChanged(mac, characteristic);
-                if (characteristic != null && characteristic.getUuid().equals(BleUUIDS.userCharactButtonStateUUID)) {
+                if (characteristic != null && BleUUIDS.userCharactButtonStateUUID.equals(characteristic.getUuid())) {
                     byte[] data = characteristic.getValue();
                     LogUtils.d("bleService", "监测到" + mac + "点击事件(" + data[0] + ")--->报警广播数据");
                     if (data[0] == 02) {
-//                                if (!Common.isBell()) {
-//                                    LogUtils.d("贴片在勿扰范围内,报警忽略!!");
-//                                    return;
-//                                }
                         DeviceInfo deviceInfo = (DeviceInfo) SPUtils.getInstance().readObject(mac);
                         if (deviceInfo != null) {
                             doPlay(deviceInfo);
                         }
-
                     }
-                } else if (characteristic != null && characteristic.getUuid().equals(BleUUIDS.batCharacteristicUUID)) {
+                } else if (characteristic != null && BleUUIDS.batCharacteristicUUID.equals(characteristic.getUuid())) {
                     byte[] data = characteristic.getValue();
                     LogUtils.d("bleService", "监测到" + mac + "电池电量" + data[0] + "%");
                     Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
@@ -471,6 +479,86 @@ public  class BleService extends Service {
                     App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                     mapBattery.put(mac, data[0] + "");
 
+                }else if (characteristic != null && BleUUIDS.userCharacteristicLogUUID.equals(characteristic.getUuid())) {
+                    byte[] data = characteristic.getValue();
+                    if (data[0] == 0x10) {//工作模式成功
+                        LogUtils.d("bleService", "监测到" + mac + "工作模式UserLog验证(0x10=" + data[0] + ")");
+                    }
+                    if (data[0] == 0x11) {//工作模式失败：无绑定信息
+                        LogUtils.d("bleService", "监测到" + mac + "工作模式UserLog验证(0x11=" + data[0] + ")");
+                    }
+                    if (data[0] == 0x12) {//工作模式失败：已存在绑定信息
+                        LogUtils.d("bleService", "监测到" + mac + "工作模式UserLog验证(0x12=" + data[0] + ")");
+                    }
+                    if (data[0] == 0x1f) {//工作模式失败
+                        LogUtils.d("bleService", "监测到" + mac + "工作模式UserLog验证(0x1f=" + data[0] + ")");
+                    }
+                    if (data[0] == 0x20) {//绑定模式成功
+                        LogUtils.d("bleService", "监测到" + mac + "绑定模式UserLog验证(0x20=" + data[0] + ")");
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_NOTIFY_SUCCESS);
+                        intent.putExtra("address", mac);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                    }
+                    if (data[0] == 0x20) {//绑定模式失败：无绑定信息
+                        LogUtils.d("bleService", "监测到" + mac + "绑定模式UserLog验证(0x21=" + data[0] + ")");
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_FAIL);
+                        intent.putExtra("address", mac);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                    }
+                    if (data[0] == 0x20) {//绑定模式失败：已存在绑定信息
+                        LogUtils.d("bleService", "监测到" + mac + "绑定模式UserLog验证(0x22=" + data[0] + ")");
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_FAIL);
+                        intent.putExtra("address", mac);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                    }
+                    if (data[0] == 0x2f) {//绑定模式失败
+                        LogUtils.d("bleService", "监测到" + mac + "绑定模式UserLog验证(0x2f=" + data[0] + ")");
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_FAIL);
+                        intent.putExtra("address", mac);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                    }
+                    if (data[0] == 0x40) {//解绑成功
+                        LogUtils.d("bleService", "监测到" + mac + "解绑模式UserLog验证(0x40=" + data[0] + ")");
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_COMPLETE);
+                        intent.putExtra("address", mac);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                        isIgnoreEvents.put(mac,true);
+                        BleClient.getInstance().disConnect(mac);
+                        if(mDeviceMap.containsKey(mac)){
+                            mDeviceMap.remove(mac);
+                        }
+                        if(mLinkLoseMap.containsKey(mac)){
+                            mLinkLoseMap.remove(mac);
+                        }
+                        mBindMap.clear();
+                    }
+                    if (data[0] == 0x40) {//解绑失败:无绑定信息
+                        LogUtils.d("bleService", "监测到" + mac + "解绑模式UserLog验证(0x41=" + data[0] + ")");
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_FAILD);
+                        intent.putExtra("address", mac);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                    }
+                    if (data[0] == 0x40) {//解绑失败：已存在绑定信息
+                        LogUtils.d("bleService", "监测到" + mac + "解绑模式UserLog验证(0x42=" + data[0] + ")");
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_FAILD);
+                        intent.putExtra("address", mac);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                    }
+                    if (data[0] == 0x4f) {//解绑失败
+                        LogUtils.d("bleService", "监测到" + mac + "解绑模式UserLog验证(0x4f=" + data[0] + ")");
+                        Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_FAILD);
+                        intent.putExtra("address", mac);
+                        App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+                        unbindDevice(mac);
+                    }
                 }
             }
 
@@ -482,9 +570,6 @@ public  class BleService extends Service {
                 intent.putExtra("address", device.getAddress());
                 App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                 mBindMap.clear();
-                if(isBind) {
-                    BleService.this.isBind = false;
-                }
                 if(!mDeviceMap.containsKey(device.getAddress())){
                     mDeviceMap.put(device.getAddress(),device);
                 }
@@ -508,7 +593,6 @@ public  class BleService extends Service {
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS);
                 intent.putExtra("address", device.getAddress());
                 App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
-
                 if(!mDeviceMap.containsKey(device.getAddress())) {
                     return;
                 }
@@ -548,14 +632,26 @@ public  class BleService extends Service {
                 isDevicesNeedAlert.put(mac,false);
             }
         });
-        if(isBind){
+        if(isBindDevice){
             connectDeviceTask.setPriority(Priority.Immediately);
         }else{
             connectDeviceTask.setPriority(Priority.LOW);
         }
-        taskQueue.add(connectDeviceTask);
+        bleConnectTaskQueue.add(connectDeviceTask);
     }
 
+    public synchronized void setWorkMode(final BluetoothGatt gatt){
+        BleClient.getInstance().setWorkMode(gatt);
+    }
+    public synchronized void setBindMode(final BluetoothGatt gatt){
+        BleClient.getInstance().setBindMode(gatt);
+    }
+
+
+    private void addNotifyQuery(BluetoothDevice device) {
+        BleClient.getInstance().readRemoteRssi(device.getAddress());
+        BleClient.getInstance().enableAllNotify(device);
+    }
     private void exceCalibrationDevice() {
         if(TextUtils.isEmpty(Common.getTocken())){
             return;
@@ -612,13 +708,12 @@ public  class BleService extends Service {
                 if(scanResult==null||TextUtils.isEmpty(scanResult.getName())||!scanResult.getName().contains("yoowoo")){
                     return;
                 }
-                LogUtils.d("bleService", "扫描有物贴片----->" + scanResult.getMac() +"  rssi:"+scanResult.getRssi());
                 BleClient.getInstance().scanning(scanResult.getMac());
                 if(!mDeviceMap.containsKey(scanResult.getMac())){
-                    if(isBind&&scanResult.getRssi()>-50){
+                    if(isBindDevice&&scanResult.getRssi()>-50){
                         if(mBindMap.size()==0) {
                             mBindMap.put(scanResult.getMac(),scanResult.getDevice());
-                            LogUtils.d("bleService", "扫描到并开始绑定贴片----->" + scanResult.getMac());
+//                            LogUtils.d("bleService", "扫描到并开始绑定贴片----->" + scanResult.getMac());
                             Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                             intent1.putExtra("ret", IntentExtras.RET.RET_BLE_FIND_BIND_DEVICE);
                             intent1.putExtra("address", scanResult.getMac());
@@ -627,7 +722,7 @@ public  class BleService extends Service {
                         return;
                     }
                 }else {
-                    LogUtils.d("bleService", "扫描到并开始连接贴片----->" + scanResult.getMac()+"   rssi:"+scanResult.getRssi());
+//                    LogUtils.d("bleService", "扫描到并开始连接贴片----->" + scanResult.getMac()+"   rssi:"+scanResult.getRssi());
                     if(scanResult.getRssi()>-90){
                         mDeviceMap.put(scanResult.getMac(), scanResult.getDevice());
                         Intent intent2 = new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
@@ -648,21 +743,20 @@ public  class BleService extends Service {
         BleClient.getInstance().write(address, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
             @Override
             public void onWriteSuccess(BluetoothDevice device) {
-                LogUtils.d("bleService","贴片解绑成功----->"+device.getAddress());
-                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_COMPLETE);
-                intent.putExtra("address", device.getAddress());
-                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
-                isIgnoreEvents.put(device.getAddress(),true);
-                BleClient.getInstance().disConnect(device.getAddress());
-                if(mDeviceMap.containsKey(device.getAddress())){
-                    mDeviceMap.remove(device.getAddress());
-                }
-                if(mLinkLoseMap.containsKey(device.getAddress())){
-                    mLinkLoseMap.remove(device.getAddress());
-                }
-                mBindMap.clear();
-                isBind=false;
+//                LogUtils.d("bleService","贴片解绑成功----->"+device.getAddress());
+//                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+//                intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_COMPLETE);
+//                intent.putExtra("address", device.getAddress());
+//                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+//                isIgnoreEvents.put(device.getAddress(),true);
+//                BleClient.getInstance().disConnect(device.getAddress());
+//                if(mDeviceMap.containsKey(device.getAddress())){
+//                    mDeviceMap.remove(device.getAddress());
+//                }
+//                if(mLinkLoseMap.containsKey(device.getAddress())){
+//                    mLinkLoseMap.remove(device.getAddress());
+//                }
+//                mBindMap.clear();
             }
 
             @Override
@@ -677,14 +771,14 @@ public  class BleService extends Service {
         BleClient.getInstance().disconnectAllDevice();
         mDeviceMap.clear();
         mBindMap.clear();
-        isBind=false;
+        isBindDevice=false;
     }
     private synchronized void diableBluetooth(){
         LogUtils.d("bleService","diableBluetooth");
         BleClient.getInstance().diableBluetooth();
         mDeviceMap.clear();
         mBindMap.clear();
-        isBind=false;
+        isBindDevice=false;
     }
     private synchronized void doLogOut(){
         LogUtils.d("bleService","doLogOut");
@@ -695,7 +789,7 @@ public  class BleService extends Service {
         mBindMap.clear();
         mNotFirstConnect.clear();
         mNotFirstDisConnect.clear();
-        isBind=false;
+        isBindDevice=false;
     }
 
     private synchronized void startAlert(String address) {
@@ -764,7 +858,7 @@ public  class BleService extends Service {
     public class MyLocationListener extends BDAbstractLocationListener {
         @Override
         public void onReceiveLocation(BDLocation location){
-            LogUtils.d("bleService","接收到定位信息----->"+location.getLatitude()+","+location.getLongitude());
+//            LogUtils.d("bleService","接收到定位信息----->"+location.getLatitude()+","+location.getLongitude());
             Locinfo locinfo = new Locinfo();
             locinfo.setCity(location.getCity());
             locinfo.setAddr(location.getAddrStr());
@@ -779,11 +873,6 @@ public  class BleService extends Service {
             intent.putExtra("data", locinfo);
             App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
 
-//            Intent task= new Intent(IntentExtras.ACTION.ACTION_BLE_COMMAND);
-//            task.putExtra("cmd",IntentExtras.CMD.CMD_TASK_EXCE);
-//            sendBroadcast(task);
-//            exceTask();
-//            }
             LatLng current = new LatLng(location.getLatitude(), location.getLongitude());
             long curMillis = TimeUtils.getNowMills();
             if(lastLocation!=null) {

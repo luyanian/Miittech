@@ -3,6 +3,7 @@ package com.miittech.you.ble.update;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -16,6 +17,7 @@ import com.miittech.you.ble.BleClient;
 import com.miittech.you.ble.BleUUIDS;
 import com.miittech.you.ble.gatt.BaseOptionCallback;
 import com.miittech.you.ble.gatt.BleNotifyCallback;
+import com.miittech.you.ble.gatt.BleReadCallback;
 import com.miittech.you.ble.gatt.BleWriteCallback;
 import com.miittech.you.dialog.DialogUtils;
 import com.miittech.you.impl.OnMsgTipOptions;
@@ -24,7 +26,10 @@ import com.ryon.mutils.LogUtils;
 import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.UUID;
 
 import static android.content.ContentValues.TAG;
 
@@ -32,7 +37,7 @@ public class OtaOptions {
 	static final String TAG = "OtaOptions";
 	private Context context;
 	private UpdateFile updateFile;
-	private BluetoothGatt bluetoothGatt;
+//	private BluetoothGatt bluetoothGatt;
 	private IOtaUpdateListener iOtaUpdateListener;
 	private String mac;
 	public static final int MEMORY_TYPE_EXTERNAL_SPI = 0x13;
@@ -48,7 +53,7 @@ public class OtaOptions {
 	int gs_gpio = 0x03;
 	int sck_gpio = 0x00;
 
-	HashMap errors;
+	Map<Integer,String> errors;
 
 	boolean lastBlock = false;
 	boolean lastBlockSent = false;
@@ -66,16 +71,9 @@ public class OtaOptions {
 	long uploadStart;
 	PowerManager.WakeLock wakeLock;
 
-	public Queue characteristicsQueue;
-
 
 	public void init(String path,String mac) throws Exception {
     	this.mac = mac;
-    	if(bluetoothGatt==null) {
-			bluetoothGatt = BleClient.getInstance().getBluetoothGatt(this.mac);
-		}else{
-    		throw new Exception("gatt is null");
-		}
 		this.updateFile = UpdateFile.getByFilePath(path);
 	}
 
@@ -83,6 +81,7 @@ public class OtaOptions {
 		this.iOtaUpdateListener=iOtaUpdateListener;
 		this.updateFile.setFileBlockSize(fileBlockSize);
 		processStep(1);
+//		readNextCharacteristic();
 	}
 	public void processStep(int step) {
 		if(memDevValue >= 0) {
@@ -96,19 +95,15 @@ public class OtaOptions {
 			}
 		}
 		// If a step is set, change the global step to this value
-		if (step < 0) {
-			readNextCharacteristic();
-		}
+//		if (step < 0) {
+//			readNextCharacteristic();
+//		}
 		Log.d(TAG, "step " + step);
 		switch (step) {
 			// Enable notifications
 			case 1:
-				if (Build.VERSION.SDK_INT >= 21) {
-					Log.d(TAG, "Connection parameters update request (high)");
-
-					bluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
-				}
-				BleClient.getInstance().notify(mac,BleUUIDS.SPOTA_SERV_STATUS_UUID, new BleNotifyCallback() {
+				BleClient.getInstance().requestConnectionPriority(mac,BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+				BleClient.getInstance().onNotifyListener(mac,BleUUIDS.SPOTA_SERV_STATUS_UUID, new BleNotifyCallback() {
 					@Override
 					public void onOptionSucess() {
 						processStep(2);
@@ -135,11 +130,17 @@ public class OtaOptions {
 						} else {
 							error = value;
 						}
-						if (step >= 0 || error >= 0 || memDevValue >= 0) {
+						if (step >= 0 || memDevValue >= 0) {
 							processStep(step);
 						}
+						if(error>=0){
+                            if(iOtaUpdateListener!=null){
+                                iOtaUpdateListener.onError(errors.get(error));
+                            }
+                        }
 					}
 				});
+				BleClient.getInstance().notify(mac,BleUUIDS.SPOTA_SERV_STATUS_SERVICE_UUID,BleUUIDS.SPOTA_SERV_STATUS_UUID,true);
 				break;
 			// Init mem type
 			case 2:
@@ -157,12 +158,13 @@ public class OtaOptions {
 				uploadStart = new Date().getTime();
 
 				int memType = (MEMORY_TYPE_EXTERNAL_SPI << 24) | imageBank;
-				BleClient.getInstance().writeNonThread(
+				BleClient.getInstance().writeOffset(
 						mac,BleUUIDS.SPOTA_SERVICE_UUID,
 						BleUUIDS.SPOTA_MEM_DEV_UUID,
 						memType,
 						BluetoothGattCharacteristic.FORMAT_UINT32,
 						0,
+						true,
 						new BleWriteCallback(){
 							@Override
 							public void onOptionSucess() {
@@ -182,21 +184,28 @@ public class OtaOptions {
 				// Since this call is synchronized, we can wait for both broadcast intents from the callbacks before proceeding.
 				// The order of the callbacks doesn't matter with this implementation.
 				if (++gpioMapPrereq == 2) {
-					int memInfoData = (miso_gpio << 24) | (mosi_gpio << 16) | (gs_gpio << 8) | sck_gpio;
+					final int memInfoData = (miso_gpio << 24) | (mosi_gpio << 16) | (gs_gpio << 8) | sck_gpio;
 					LogUtils.d(TAG, "Set SPOTA_GPIO_MAP: " + String.format("%#10x", memInfoData));
-					BleClient.getInstance().writeNonThread(
+					BleClient.getInstance().writeOffset(
 							mac, BleUUIDS.SPOTA_SERVICE_UUID,
 							BleUUIDS.SPOTA_GPIO_MAP_UUID,
 							memInfoData,
 							BluetoothGattCharacteristic.FORMAT_UINT32,
 							0,
+							true,
 							new BleWriteCallback() {
 								@Override
 								public void onOptionSucess() {
 									super.onOptionSucess();
 									processStep(4);
 								}
-							});
+
+                                @Override
+                                public synchronized void onWriteFialed(BluetoothDevice device) {
+                                    super.onWriteFialed(device);
+
+                                }
+                            });
 
 				}
 				break;
@@ -209,12 +218,13 @@ public class OtaOptions {
 				}
 				LogUtils.d(TAG, "setPatchLength: " + blocksize + " - " + String.format("%#4x", blocksize));
 				LogUtils.d(TAG,"Set SPOTA_PATCH_LENGTH: " + blocksize);
-				BleClient.getInstance().writeNonThread(
+				BleClient.getInstance().writeOffset(
 						mac,BleUUIDS.SPOTA_SERVICE_UUID,
 						BleUUIDS.SPOTA_PATCH_LEN_UUID,
 						blocksize,
 						BluetoothGattCharacteristic.FORMAT_UINT16,
 						0,
+						true,
 						new BleWriteCallback(){
 							@Override
 							public void onOptionSucess() {
@@ -248,7 +258,6 @@ public class OtaOptions {
 	public OtaOptions(Context context) {
 		this.context = context;
 		initErrorMap();
-		characteristicsQueue = new ArrayDeque<BluetoothGattCharacteristic>();
 	}
 
 
@@ -287,14 +296,16 @@ public class OtaOptions {
 			}
 			String systemLogMessage = "Sending block " + (blockCounter + 1) + ", chunk " + (i + 1) + " of " + block.length + ", size " + chunk.length;
 			Log.d(TAG, systemLogMessage);
-			BleClient.getInstance().writeNonThread(mac,
+			BleClient.getInstance().write(mac,
 					BleUUIDS.SPOTA_SERVICE_UUID,
 					BleUUIDS.SPOTA_PATCH_DATA_UUID,
 					chunk,
+					true,
 					new BleWriteCallback(){
 						@Override
 						public void onOptionSucess() {
 							super.onOptionSucess();
+							LogUtils.d(TAG, "writeCharacteristic: " + true);
 							if(chunkCounter != -1) {
 								sendBlock();
 							}
@@ -303,7 +314,6 @@ public class OtaOptions {
 						@Override
 						public synchronized void onWriteSuccess(BluetoothDevice device) {
 							super.onWriteSuccess(device);
-							LogUtils.d(TAG, "writeCharacteristic: " + true);
 						}
 
 						@Override
@@ -335,14 +345,16 @@ public class OtaOptions {
 	public void sendEndSignal() {
 		LogUtils.d(TAG, "sendEndSignal");
 		LogUtils.d(TAG,"send SUOTA END command");
-		BleClient.getInstance().writeNonThread(mac,
+		BleClient.getInstance().writeOffset(mac,
 				BleUUIDS.SPOTA_SERVICE_UUID,
 				BleUUIDS.SPOTA_MEM_DEV_UUID,
 				END_SIGNAL,BluetoothGattCharacteristic.FORMAT_UINT32, 0,
+				true,
 				new BleWriteCallback(){
 					@Override
 					public void onOptionSucess() {
 						super.onOptionSucess();
+//						sendRebootSignal();
 					}
 				});
 		endSignalSent = true;
@@ -350,11 +362,12 @@ public class OtaOptions {
 	public void sendRebootSignal() {
 		LogUtils.d(TAG, "sendRebootSignal");
 		LogUtils.d(TAG,"send SUOTA REBOOT command");
-		BleClient.getInstance().writeNonThread(mac,
+		BleClient.getInstance().writeOffset(mac,
 				BleUUIDS.SPOTA_SERVICE_UUID,
 				BleUUIDS.SPOTA_MEM_DEV_UUID,
 				REBOOT_SIGNAL,
 				BluetoothGattCharacteristic.FORMAT_UINT32, 0,
+				true,
 				new BleWriteCallback(){
 					@Override
 					public void onOptionSucess() {
@@ -365,13 +378,54 @@ public class OtaOptions {
 
 	}
 
-	public void readNextCharacteristic() {
-		if (characteristicsQueue.size() >= 1) {
-			BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) characteristicsQueue.poll();
-			bluetoothGatt.readCharacteristic(characteristic);
-			Log.d(TAG, "readNextCharacteristic");
-		}
-	}
+//	public void readNextCharacteristic() {
+//		BleClient.getInstance().readWithCharacteristicUUID(mac,new BleReadCallback(){
+//					@Override
+//					public synchronized void onReadResponse(BluetoothDevice device,BluetoothGattCharacteristic characteristic,byte[] data) {
+//						super.onReadResponse(device,characteristic,data);
+//						boolean sendUpdate = true;
+//						int index = -1;
+//						int step = -1;
+//
+//						if (characteristic.getUuid().equals(BleUUIDS.ORG_BLUETOOTH_CHARACTERISTIC_MANUFACTURER_NAME_STRING)) {
+//							index = 0;
+//						} else if (characteristic.getUuid().equals(BleUUIDS.ORG_BLUETOOTH_CHARACTERISTIC_MODEL_NUMBER_STRING)) {
+//							index = 1;
+//						} else if (characteristic.getUuid().equals(BleUUIDS.ORG_BLUETOOTH_CHARACTERISTIC_FIRMWARE_REVISION_STRING)) {
+//							index = 2;
+//						} else if (characteristic.getUuid().equals(BleUUIDS.ORG_BLUETOOTH_CHARACTERISTIC_SOFTWARE_REVISION_STRING)) {
+//							index = 3;
+//						}
+//						// SPOTA
+//						else if (characteristic.getUuid().equals(BleUUIDS.SPOTA_MEM_INFO_UUID)) {
+//							//int memInfoValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT32, 0);
+//							//Log.d("mem info", memInfoValue + "");
+//							//DeviceActivity.getInstance().logMemInfoValue(memInfoValue);
+//							step = 5;
+//						} else {
+//							sendUpdate = false;
+//						}
+//
+//						if (sendUpdate) {
+//							Log.d(TAG, "onCharacteristicRead: " + index);
+//							if (index >= 0) {
+////								initItem(index,characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT32, 0))
+//							} else {
+//								processStep(step);
+////								intent.putExtra("step", step);
+////								intent.putExtra("value", characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT32, 0));
+//							}
+//						}
+//
+//					}
+//				},BleUUIDS.ORG_BLUETOOTH_CHARACTERISTIC_MANUFACTURER_NAME_STRING,
+//				BleUUIDS.ORG_BLUETOOTH_CHARACTERISTIC_MODEL_NUMBER_STRING,
+//				BleUUIDS.ORG_BLUETOOTH_CHARACTERISTIC_FIRMWARE_REVISION_STRING,
+//				BleUUIDS.ORG_BLUETOOTH_CHARACTERISTIC_SOFTWARE_REVISION_STRING,
+//				BleUUIDS.SPOTA_MEM_INFO_UUID);
+//
+//
+//	}
 
 	public void disconnect() {
 		if (wakeLock != null && wakeLock.isHeld()) {
@@ -399,10 +453,7 @@ public class OtaOptions {
 			Log.d(TAG, "Release wake lock");
 			wakeLock.release();
 		}
-		if (Build.VERSION.SDK_INT >= 21) {
-			Log.d(TAG, "Connection parameters update request (balanced)");
-			bluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
-		}
+		BleClient.getInstance().requestConnectionPriority(mac,BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
 		if(iOtaUpdateListener!=null){
 			iOtaUpdateListener.onUpdateComplete();
 		}

@@ -1,6 +1,8 @@
 package com.miittech.you.adapter;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -150,7 +152,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 }
             }
         });
-        BleClient.getInstance().readRssi(Common.formatDevId2Mac(deviceInfo.getDevidX()));
+        BleClient.getInstance().readRemoteRssi(Common.formatDevId2Mac(deviceInfo.getDevidX()));
     }
 
     private void setConnectStatusStyle(String mac){
@@ -364,8 +366,8 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 BleUUIDS.firmwareVertionCharacteristicUUID,
                 new BleReadCallback(){
                     @Override
-                    public synchronized void onReadResponse(final byte[] data) {
-                        super.onReadResponse(data);
+                    public synchronized void onReadResponse(BluetoothDevice device, BluetoothGattCharacteristic characteristic, final byte[] data) {
+                        super.onReadResponse(device,characteristic,data);
                         String firmware = new String(data);
                         LogUtils.d("bleservice_update","("+mac+") current device firmware version is:"+firmware);
                         getNetBleVersion(mac,firmware);
@@ -480,6 +482,11 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 @Override
                 public void onProgress(final int progress) {
                     LogUtils.d("bleservice_update","("+mac+") update "+progress);
+                }
+
+                @Override
+                public void onError(String msg) {
+
                 }
 
                 @Override

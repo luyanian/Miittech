@@ -7,5 +7,6 @@ package com.miittech.you.ble.update;
 public interface IOtaUpdateListener {
     public void updateTitle(String title);
     public void onProgress(int progress);
+    public void onError(String msg);
     public void onUpdateComplete();
 }

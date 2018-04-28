@@ -1,4 +1,4 @@
-package com.miittech.you.task;
+package com.miittech.you.ble.task;
 
 public enum Priority {
     LOW, // 最低。

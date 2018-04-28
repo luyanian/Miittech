@@ -1,13 +1,13 @@
-package com.miittech.you.task;
+package com.miittech.you.ble.task.connect;
 
 import java.util.concurrent.BlockingQueue;
 
-public class TaskExecutor extends Thread {
+public class BleConnectTaskExecutor extends Thread {
 
-    private BlockingQueue<ITask> taskQueue;
+    private BlockingQueue<IBleConnectTask> taskQueue;
     private boolean isRunning = true;
 
-    public TaskExecutor(BlockingQueue<ITask> taskQueue) {
+    public BleConnectTaskExecutor(BlockingQueue<IBleConnectTask> taskQueue) {
         this.taskQueue = taskQueue;
     }
 
@@ -19,7 +19,12 @@ public class TaskExecutor extends Thread {
     @Override
     public void run() {
         while (isRunning) {
-            ITask iTask;
+            try {
+                sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            IBleConnectTask iTask;
             try {
                 iTask = taskQueue.take();
             } catch (InterruptedException e) {
@@ -30,11 +35,6 @@ public class TaskExecutor extends Thread {
                 continue;
             }
             iTask.run();
-            try {
-                sleep(1500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

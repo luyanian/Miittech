@@ -299,6 +299,12 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                             LogUtils.d("RET_BLE_MODE_BIND_SUCCESS");
                             handler.removeCallbacksAndMessages(null);
                             progressbar.setProgress(59);
+                        }
+                    case IntentExtras.RET.RET_BLE_MODE_BIND_NOTIFY_SUCCESS:
+                        if(address.equals(bindMac)){
+                            LogUtils.d("RET_BLE_MODE_BIND_SUCCESS");
+                            handler.removeCallbacksAndMessages(null);
+                            progressbar.setProgress(61);
                             bindDevice(address);
                         }
                         break;

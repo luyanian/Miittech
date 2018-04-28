@@ -1,5 +1,7 @@
 package com.miittech.you.activity.device;
 
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -138,8 +140,8 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 BleUUIDS.firmwareVertionCharacteristicUUID,
                 new BleReadCallback(){
             @Override
-            public synchronized void onReadResponse(final byte[] data) {
-                super.onReadResponse(data);
+            public synchronized void onReadResponse(BluetoothDevice device, BluetoothGattCharacteristic characteristic, final byte[] data) {
+                super.onReadResponse(device,characteristic,data);
                 DeviceDetailSettingActivity.this.firmware = new String(data);
                 LogUtils.d("value:"+DeviceDetailSettingActivity.this.firmware);
                 runOnUiThread(new Runnable() {
@@ -348,7 +350,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                                         if(updateDialog!=null&&updateDialog.isShowing()){
                                             updateDialog.dismiss();
                                         }
-                                        startDownloadFirmware(devidX,firmwareBean.getDl_url());
+                                        startDownloadFirmware(devidX,firmwareBean.getDl_url(),firmwareBean.getFirmware());
                                     }
 
                                     @Override
@@ -376,14 +378,13 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 });
     }
 
-    private void startDownloadFirmware(final String devidX, String downloadUrl) {
+    private void startDownloadFirmware(final String devidX, String downloadUrl,String firmware) {
         final ProgressDialog progressDialog = DialogUtils.getInstance().showProgressDialog(this);
         progressDialog.setTitle("正在准备更新...");
         final ProgressBar progressBar = progressDialog.getProgressBar();
         FileDownloader.setup(this);
         FileDownloader.getImpl().create(downloadUrl)
-                .setForceReDownload(true)
-                .setPath(UpConst.file_blefirmware_download_path+File.separator+"firmware.img")
+                .setPath(UpConst.file_blefirmware_download_path+File.separator+"firmware"+firmware+".img")
                 .setListener(new FileDownloadListener() {
                     @Override
                     protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
@@ -473,6 +474,21 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 }
 
                 @Override
+                public void onError(final String msg) {
+                    LogUtils.e("贴片更新失败："+msg);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtils.showShort("贴片更新失败："+msg);
+                            if(progressDialog!=null&&progressDialog.isShowing()){
+                                progressDialog.dismiss();
+                            }
+                        }
+                    });
+
+                }
+
+                @Override
                 public void onUpdateComplete() {
                     runOnUiThread(new Runnable() {
                         @Override
@@ -495,20 +511,20 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                                         public void onSure() {
                                             super.onSure();
                                             otaOptions.sendRebootSignal();
-                                            runOnUiThread(new Runnable() {
+                                            new Handler().postDelayed(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    new Handler().postDelayed(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            BleClient.getInstance().read(
-                                                                    Common.formatDevId2Mac(DeviceDetailSettingActivity.this.deviceInfo.getDevidX()),
-                                                                    BleUUIDS.versionServiceUUID,
-                                                                    BleUUIDS.firmwareVertionCharacteristicUUID,
-                                                                    new BleReadCallback(){
+                                                    BleClient.getInstance().read(
+                                                            Common.formatDevId2Mac(DeviceDetailSettingActivity.this.deviceInfo.getDevidX()),
+                                                            BleUUIDS.versionServiceUUID,
+                                                            BleUUIDS.firmwareVertionCharacteristicUUID,
+                                                            new BleReadCallback(){
+                                                                @Override
+                                                                public synchronized void onReadResponse(BluetoothDevice device, BluetoothGattCharacteristic characteristic,final byte[] data) {
+                                                                    super.onReadResponse(device,characteristic,data);
+                                                                    runOnUiThread(new Runnable() {
                                                                         @Override
-                                                                        public synchronized void onReadResponse(final byte[] data) {
-                                                                            super.onReadResponse(data);
+                                                                        public void run() {
                                                                             DeviceDetailSettingActivity.this.firmware = new String(data);
                                                                             LogUtils.d("value:"+DeviceDetailSettingActivity.this.firmware);
                                                                             runOnUiThread(new Runnable() {
@@ -519,10 +535,10 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                                                                             });
                                                                         }
                                                                     });
-                                                        }
-                                                    },1000);
+                                                                }
+                                                            });
                                                 }
-                                            });
+                                            },2000);
 
                                         }
 
