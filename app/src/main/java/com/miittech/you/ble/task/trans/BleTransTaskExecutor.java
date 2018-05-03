@@ -1,6 +1,15 @@
 package com.miittech.you.ble.task.trans;
 
+import com.miittech.you.ble.BleClient;
+import com.miittech.you.ble.task.connect.BleConnectTask;
+import com.ryon.mutils.LogUtils;
+
 import java.util.concurrent.BlockingQueue;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class BleTransTaskExecutor extends Thread {
 
@@ -32,11 +41,11 @@ public class BleTransTaskExecutor extends Thread {
             iTask.run();
             if(iTask.isUpdate()) {
                 try {
-                    Thread.sleep(30);
+                    Thread.sleep(20);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }else {
+            }else{
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {

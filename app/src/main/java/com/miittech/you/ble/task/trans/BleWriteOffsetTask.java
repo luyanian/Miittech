@@ -42,10 +42,10 @@ public class BleWriteOffsetTask implements IBleTransTask {
         }
         synchronized (this) {
             LogUtils.d("bleService", "BleWriteOffsetTask----->" +mac);
-            if (BleClient.getInstance().getConnectState(mac) == BluetoothGatt.STATE_CONNECTED) {
+            if (BleClient.getInstance().isConnected(mac)) {
                 BleClient.getInstance().writeOffsetData(mac,serviceUUID,characteristicUUID,memType,formatUni32,offset,bleWriteCallback);
             }else{
-                LogUtils.d("bleService", "getConnectState("+mac+") is not disconnected");
+                LogUtils.d("bleService", "getConnectState("+mac+") is not connect");
             }
         }
 

@@ -30,10 +30,10 @@ public class BleReadRemoteRssiTask implements IBleTransTask {
         }
         synchronized (this) {
             LogUtils.d("bleService", "BleReadRemoteRssiTask----->" +mac);
-            if (BleClient.getInstance().getConnectState(mac) == BluetoothGatt.STATE_CONNECTED) {
+            if (BleClient.getInstance().isConnected(mac)) {
                 BleClient.getInstance().readRemoteRssiData(mac);
             }else{
-                LogUtils.d("bleService", "getConnectState("+mac+") is not disconnected");
+                LogUtils.d("bleService", "getConnectState("+mac+") is not connect");
             }
         }
 

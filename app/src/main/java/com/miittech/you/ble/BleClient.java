@@ -20,6 +20,7 @@ import com.miittech.you.ble.gatt.BleWriteCallback;
 import com.miittech.you.ble.gatt.GattCallback;
 import com.miittech.you.ble.scan.BleLeScanCallback;
 import com.miittech.you.ble.scan.ScanResultCallback;
+import com.miittech.you.ble.task.Priority;
 import com.miittech.you.ble.task.trans.BleNotifyTask;
 import com.miittech.you.ble.task.trans.BleReadRemoteRssiTask;
 import com.miittech.you.ble.task.trans.BleReadTask;
@@ -159,13 +160,14 @@ public class BleClient {
                             if (mGattCallbacks.containsKey(gatt.getDevice().getAddress()) && mGattCallbacks.get(gatt.getDevice().getAddress()) != null) {
                                 mGattCallbacks.get(gatt.getDevice().getAddress()).onEffectConnectSuccess(gatt.getDevice().getAddress(), status);
                                 isEffectConnectSuccess.put(gatt.getDevice().getAddress(),true);
-
                             }
                         }
                     }
                     gatt.discoverServices();
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     if (gatt != null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
+                        refreshDeviceCache(gatt);
+                        LogUtils.d("bleservice",gatt.getDevice().getAddress()+">>>onConnectionStateChange>>>STATE_DISCONNECTED:"+status);
                         final String mac = gatt.getDevice().getAddress();
                         if (mGattCallbacks.containsKey(gatt.getDevice().getAddress())
                                 && isActivityDisConnects.containsKey(mac) && !isConnected(gatt.getDevice().getAddress())
@@ -300,6 +302,7 @@ public class BleClient {
                 if(gatt==null||gatt.getDevice()==null||TextUtils.isEmpty(gatt.getDevice().getAddress())||characteristic==null){
                     return;
                 }
+                LogUtils.d("bleservice",gatt.getDevice().getAddress()+">>>"+characteristic.getUuid()+">>>onCharacteristicWrite:"+status);
                 String mac = gatt.getDevice().getAddress();
                 if(deviceWriteCallbacks.containsKey(mac)&&deviceWriteCallbacks.get(mac)!=null) {
                     SimpleArrayMap<UUID,BleWriteCallback> bleWriteCallbacks = deviceWriteCallbacks.get(mac);
@@ -331,6 +334,7 @@ public class BleClient {
                     }
                 }
             }
+
         });
     }
 
@@ -540,9 +544,13 @@ public class BleClient {
                                     final UUID uuid_characristic,
                                     final boolean isUpdate,
                                     BleReadCallback bleReadCallback) {
-        BleReadTask bleReadTask = new BleReadTask(mac,uuid_service,uuid_characristic,bleReadCallback);
-        bleReadTask.setIsUpdate(isUpdate);
-        bleTransTaskQueue.add(bleReadTask);
+//        if(isUpdate){
+//            read(mac,uuid_service,uuid_characristic,bleReadCallback);
+//        }else {
+            BleReadTask bleReadTask = new BleReadTask(mac, uuid_service, uuid_characristic, bleReadCallback);
+            bleReadTask.setIsUpdate(isUpdate);
+            bleTransTaskQueue.add(bleReadTask);
+//        }
     }
     public synchronized void readData(final String mac,
                                    final UUID uuid_service,
@@ -583,37 +591,37 @@ public class BleClient {
         if(device==null||TextUtils.isEmpty(device.getAddress())) {
             return;
         }
-        BleNotifyTask bleNotifyTask1 = new BleNotifyTask(device.getAddress(), BleUUIDS.userServiceUUID,BleUUIDS.userCharacteristicLogUUID);
-        bleTransTaskQueue.add(bleNotifyTask1);
-        BleNotifyTask bleNotifyTask2 = new BleNotifyTask(device.getAddress(), BleUUIDS.userServiceUUID,BleUUIDS.userCharactButtonStateUUID);
-        bleTransTaskQueue.add(bleNotifyTask2);
-        BleNotifyTask bleNotifyTask3 = new BleNotifyTask(device.getAddress(), BleUUIDS.batServiceUUID,BleUUIDS.batCharacteristicUUID);
-        bleTransTaskQueue.add(bleNotifyTask3);
+//        BleNotifyTask bleNotifyTask1 = new BleNotifyTask(device.getAddress(), BleUUIDS.userServiceUUID,BleUUIDS.userCharacteristicLogUUID);
+//        bleTransTaskQueue.add(bleNotifyTask1);
+//        BleNotifyTask bleNotifyTask2 = new BleNotifyTask(device.getAddress(), BleUUIDS.userServiceUUID,BleUUIDS.userCharactButtonStateUUID);
+//        bleTransTaskQueue.add(bleNotifyTask2);
+//        BleNotifyTask bleNotifyTask3 = new BleNotifyTask(device.getAddress(), BleUUIDS.batServiceUUID,BleUUIDS.batCharacteristicUUID);
+//        bleTransTaskQueue.add(bleNotifyTask3);
 
-//        String mac = device.getAddress();
-//        if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
-//            BluetoothGatt gatt = bluetoothGatts.get(mac);
-//            List<BluetoothGattService> services = gatt.getServices();
-//            if (services != null) {
-//                for (BluetoothGattService service : services) {
-//                    if(service!=null) {
-//                        List<BluetoothGattCharacteristic> bluetoothGattCharacteristics = service.getCharacteristics();
-//                        if (bluetoothGattCharacteristics != null && bluetoothGattCharacteristics.size() > 0) {
-//                            for (BluetoothGattCharacteristic bluetoothGattCharacteristic : bluetoothGattCharacteristics) {
-//                                if (bluetoothGattCharacteristic != null) {
-//                                    int properties = bluetoothGattCharacteristic.getProperties();
-//                                    if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
-//                                    } else {
-//                                        BleNotifyTask bleNotifyTask = new BleNotifyTask(device.getAddress(), service.getUuid(), bluetoothGattCharacteristic.getUuid());
-//                                        bleTransTaskQueue.add(bleNotifyTask);
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        String mac = device.getAddress();
+        if(bluetoothGatts.containsKey(mac)&&bluetoothGatts.get(mac)!=null) {
+            BluetoothGatt gatt = bluetoothGatts.get(mac);
+            List<BluetoothGattService> services = gatt.getServices();
+            if (services != null) {
+                for (BluetoothGattService service : services) {
+                    if(service!=null) {
+                        List<BluetoothGattCharacteristic> bluetoothGattCharacteristics = service.getCharacteristics();
+                        if (bluetoothGattCharacteristics != null && bluetoothGattCharacteristics.size() > 0) {
+                            for (BluetoothGattCharacteristic bluetoothGattCharacteristic : bluetoothGattCharacteristics) {
+                                if (bluetoothGattCharacteristic != null) {
+                                    int properties = bluetoothGattCharacteristic.getProperties();
+                                    if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
+                                    } else {
+                                        BleNotifyTask bleNotifyTask = new BleNotifyTask(device.getAddress(), service.getUuid(), bluetoothGattCharacteristic.getUuid());
+                                        bleTransTaskQueue.add(bleNotifyTask);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     public void onNotifyListener(String mac,UUID charastic_uuid,BleNotifyCallback bleNotifyCallback){
         if(bleNotifyCallback!=null){
@@ -724,12 +732,18 @@ public class BleClient {
             if(bluetoothGatt!=null){
                 if(bluetoothGatt.getDevice()!=null){
                     if(isConnected(bluetoothGatt.getDevice().getAddress())){
-                        write(bluetoothGatt.getDevice().getAddress(), BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data, new BleWriteCallback() {
+                        BleWriteTask bleWriteTask = new BleWriteTask(bluetoothGatt.getDevice().getAddress(), BleUUIDS.linkLossUUID, BleUUIDS.characteristicUUID, data,new BleWriteCallback(){
                             @Override
-                            public void onWriteSuccess(BluetoothDevice device) {
-                                isActivityDisConnects.put(device.getAddress(),true);
+                            public void onOptionSucess() {
+                                super.onOptionSucess();
+                                isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(),true);
                                 bluetoothGatt.disconnect();
                                 bluetoothGatt.close();
+                            }
+
+                            @Override
+                            public void onWriteSuccess(BluetoothDevice device) {
+                                isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(),true);
                             }
 
                             @Override
@@ -739,6 +753,9 @@ public class BleClient {
                                 bluetoothGatt.close();
                             }
                         });
+                        bleWriteTask.setIsUpdate(true);
+                        bleWriteTask.setPriority(Priority.HIGH);
+                        bleTransTaskQueue.add(bleWriteTask);
                     }else{
                         isActivityDisConnects.put(bluetoothGatt.getDevice().getAddress(),true);
                         bluetoothGatt.disconnect();
@@ -752,35 +769,17 @@ public class BleClient {
             }
         }
         try {
-            Thread.sleep(500);
+            Thread.sleep(2500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        bluetoothGatts.clear();
-        mGattCallbacks.clear();
-        isDisConnectMaps.clear();
+        disconnectAllDevice();
     }
 
     public void enaableBluetooth() {
         if(mBluetoothAdapter!=null){
             mBluetoothAdapter.enable();
         }
-    }
-    public static boolean refresh(BluetoothGatt gatt) {
-        try {
-            Log.d("bleclient", "refresh device cache");
-            Method localMethod = gatt.getClass().getMethod("refresh", (Class[]) null);
-            if (localMethod != null) {
-                boolean result = (Boolean) localMethod.invoke(gatt, (Object[]) null);
-                if (!result)
-                    Log.d("bleclient", "refresh failed");
-                return result;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e("bleclient", "An exception occurred while refreshing device cache");
-        }
-        return false;
     }
 
     public void diableBluetooth() {
@@ -842,5 +841,19 @@ public class BleClient {
             }
         }
 
+    }
+    public boolean refreshDeviceCache(BluetoothGatt gatt) {
+        if(gatt!=null){
+            try {
+                Method localMethod = gatt.getClass().getMethod("refresh", new Class[0]);
+                if (localMethod != null) {
+                    boolean bool = ((Boolean) localMethod.invoke(gatt, new Object[0])).booleanValue();
+                    return bool;
+                }
+            } catch (Exception localException) {
+                LogUtils.d("bleservice", "An exception occured while refreshing device");
+            }
+        }
+        return false;
     }
 }

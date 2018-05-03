@@ -4,8 +4,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 
+import com.miittech.you.App;
 import com.miittech.you.ble.BleClient;
 import com.miittech.you.ble.BleUUIDS;
 import com.miittech.you.ble.gatt.BaseOptionCallback;
@@ -20,6 +23,7 @@ import com.miittech.you.ble.gatt.BleNotifyCallback;
 import com.miittech.you.ble.gatt.BleReadCallback;
 import com.miittech.you.ble.gatt.BleWriteCallback;
 import com.miittech.you.dialog.DialogUtils;
+import com.miittech.you.global.IntentExtras;
 import com.miittech.you.impl.OnMsgTipOptions;
 import com.ryon.mutils.LogUtils;
 
@@ -69,7 +73,9 @@ public class OtaOptions {
 	int chunkCounter = -1;
 	int gpioMapPrereq = 0;
 	long uploadStart;
+	int step2Count = 0;
 	PowerManager.WakeLock wakeLock;
+	private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
 
 
 	public void init(String path,String mac) throws Exception {
@@ -135,15 +141,26 @@ public class OtaOptions {
 						}
 						if(error>=0){
                             if(iOtaUpdateListener!=null){
-                                iOtaUpdateListener.onError(errors.get(error));
+                                iOtaUpdateListener.onError(OtaOptions.this,errors.get(error));
                             }
                         }
 					}
 				});
+				if(!BleClient.getInstance().isConnected(mac)){
+					if(iOtaUpdateListener!=null){
+						iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+					}
+				}
 				BleClient.getInstance().notify(mac,BleUUIDS.SPOTA_SERV_STATUS_SERVICE_UUID,BleUUIDS.SPOTA_SERV_STATUS_UUID,true);
 				break;
 			// Init mem type
 			case 2:
+				step2Count++;
+				if(step2Count>5){
+					if(iOtaUpdateListener!=null) {
+						iOtaUpdateListener.onError(OtaOptions.this,"固件更新失败，请重试！");
+					}
+				}
 				if(iOtaUpdateListener!=null){
 					iOtaUpdateListener.updateTitle("正在加载镜像文件...");
 				}
@@ -156,8 +173,12 @@ public class OtaOptions {
 				wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "SUOTA");
 				wakeLock.acquire();
 				uploadStart = new Date().getTime();
-
 				int memType = (MEMORY_TYPE_EXTERNAL_SPI << 24) | imageBank;
+				if(!BleClient.getInstance().isConnected(mac)){
+					if(iOtaUpdateListener!=null){
+						iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+					}
+				}
 				BleClient.getInstance().writeOffset(
 						mac,BleUUIDS.SPOTA_SERVICE_UUID,
 						BleUUIDS.SPOTA_MEM_DEV_UUID,
@@ -170,6 +191,14 @@ public class OtaOptions {
 							public void onOptionSucess() {
 								super.onOptionSucess();
 								processStep(3);
+							}
+
+							@Override
+							public synchronized void onWriteFialed(BluetoothDevice device) {
+								super.onWriteFialed(device);
+								if(iOtaUpdateListener!=null) {
+									iOtaUpdateListener.onError(OtaOptions.this,"固件更新失败，请重试！");
+								}
 							}
 						});
 
@@ -186,6 +215,11 @@ public class OtaOptions {
 				if (++gpioMapPrereq == 2) {
 					final int memInfoData = (miso_gpio << 24) | (mosi_gpio << 16) | (gs_gpio << 8) | sck_gpio;
 					LogUtils.d(TAG, "Set SPOTA_GPIO_MAP: " + String.format("%#10x", memInfoData));
+					if(!BleClient.getInstance().isConnected(mac)){
+						if(iOtaUpdateListener!=null){
+							iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+						}
+					}
 					BleClient.getInstance().writeOffset(
 							mac, BleUUIDS.SPOTA_SERVICE_UUID,
 							BleUUIDS.SPOTA_GPIO_MAP_UUID,
@@ -218,6 +252,11 @@ public class OtaOptions {
 				}
 				LogUtils.d(TAG, "setPatchLength: " + blocksize + " - " + String.format("%#4x", blocksize));
 				LogUtils.d(TAG,"Set SPOTA_PATCH_LENGTH: " + blocksize);
+				if(!BleClient.getInstance().isConnected(mac)){
+					if(iOtaUpdateListener!=null){
+						iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+					}
+				}
 				BleClient.getInstance().writeOffset(
 						mac,BleUUIDS.SPOTA_SERVICE_UUID,
 						BleUUIDS.SPOTA_PATCH_LEN_UUID,
@@ -257,6 +296,9 @@ public class OtaOptions {
 
 	public OtaOptions(Context context) {
 		this.context = context;
+		IntentFilter filter=new IntentFilter();
+		filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+		App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver,filter);
 		initErrorMap();
 	}
 
@@ -296,6 +338,11 @@ public class OtaOptions {
 			}
 			String systemLogMessage = "Sending block " + (blockCounter + 1) + ", chunk " + (i + 1) + " of " + block.length + ", size " + chunk.length;
 			Log.d(TAG, systemLogMessage);
+			if(!BleClient.getInstance().isConnected(mac)){
+				if(iOtaUpdateListener!=null){
+					iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+				}
+			}
 			BleClient.getInstance().write(mac,
 					BleUUIDS.SPOTA_SERVICE_UUID,
 					BleUUIDS.SPOTA_PATCH_DATA_UUID,
@@ -305,15 +352,16 @@ public class OtaOptions {
 						@Override
 						public void onOptionSucess() {
 							super.onOptionSucess();
-							LogUtils.d(TAG, "writeCharacteristic: " + true);
-							if(chunkCounter != -1) {
-								sendBlock();
-							}
+
 						}
 
 						@Override
 						public synchronized void onWriteSuccess(BluetoothDevice device) {
 							super.onWriteSuccess(device);
+							LogUtils.d(TAG, "writeCharacteristic: " + true);
+							if(chunkCounter != -1) {
+								sendBlock();
+							}
 						}
 
 						@Override
@@ -481,5 +529,29 @@ public class OtaOptions {
 		// Application error codes
 //		errors.put(Statics.ERROR_COMMUNICATION, "Communication error.");
 //		errors.put(Statics.ERROR_SUOTA_NOT_FOUND, "The remote device does not support SUOTA.");
+	}
+
+	public void distroy() {
+		App.getInstance().getLocalBroadCastManager().unregisterReceiver(cmdResponseReceiver);
+		this.iOtaUpdateListener=null;
+		BleClient.getInstance().onNotifyListener(mac,BleUUIDS.SPOTA_SERV_STATUS_UUID,null);
+	}
+
+	private class CmdResponseReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if(intent.getAction().equals(IntentExtras.ACTION.ACTION_CMD_RESPONSE)){
+				int ret = intent.getIntExtra("ret", -1);//获取Extra信息
+				final String address = intent.getStringExtra("address");
+				switch (ret){
+					case IntentExtras.RET.RET_BLE_DISCONNECT:
+						if(iOtaUpdateListener!=null){
+							iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+						}
+						break;
+				}
+
+			}
+		}
 	}
 }

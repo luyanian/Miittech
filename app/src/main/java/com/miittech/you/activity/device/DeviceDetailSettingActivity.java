@@ -23,6 +23,7 @@ import com.miittech.you.activity.BaseActivity;
 import com.miittech.you.ble.BleClient;
 import com.miittech.you.ble.gatt.BleReadCallback;
 import com.miittech.you.ble.BleUUIDS;
+import com.miittech.you.ble.task.trans.BleTransTaskQueue;
 import com.miittech.you.ble.update.IOtaUpdateListener;
 import com.miittech.you.ble.update.OtaOptions;
 import com.miittech.you.ble.update.UpConst;
@@ -474,7 +475,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 }
 
                 @Override
-                public void onError(final String msg) {
+                public void onError(OtaOptions options,final String msg) {
                     LogUtils.e("贴片更新失败："+msg);
                     runOnUiThread(new Runnable() {
                         @Override
@@ -485,6 +486,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                             }
                         }
                     });
+                    options.distroy();
 
                 }
 
@@ -518,6 +520,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                                                             Common.formatDevId2Mac(DeviceDetailSettingActivity.this.deviceInfo.getDevidX()),
                                                             BleUUIDS.versionServiceUUID,
                                                             BleUUIDS.firmwareVertionCharacteristicUUID,
+                                                            true,
                                                             new BleReadCallback(){
                                                                 @Override
                                                                 public synchronized void onReadResponse(BluetoothDevice device, BluetoothGattCharacteristic characteristic,final byte[] data) {

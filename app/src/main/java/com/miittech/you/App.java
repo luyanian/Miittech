@@ -46,7 +46,7 @@ public class  App extends MobApplication {
         UpdateFile.createFileDirectories(this);
         Utils.init(getApplicationContext());
         LogUtils.Builder builder = new LogUtils.Builder();
-        builder.setLog2FileSwitch(false);
+        builder.setLog2FileSwitch(true);
         builder.setConsoleSwitch(true);
         registerActivityListener();
         startService(new Intent(this,BleService.class));

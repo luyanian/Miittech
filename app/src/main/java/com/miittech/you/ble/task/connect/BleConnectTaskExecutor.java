@@ -1,6 +1,13 @@
 package com.miittech.you.ble.task.connect;
 
+import com.miittech.you.ble.BleClient;
+
 import java.util.concurrent.BlockingQueue;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class BleConnectTaskExecutor extends Thread {
 
@@ -35,6 +42,7 @@ public class BleConnectTaskExecutor extends Thread {
                 continue;
             }
             iTask.run();
+
         }
     }
 }

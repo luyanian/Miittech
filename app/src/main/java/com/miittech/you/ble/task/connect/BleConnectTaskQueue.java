@@ -49,4 +49,13 @@ public class BleConnectTaskQueue {
             return mTaskQueue.size();
         }
     }
+//    // 开一个门，让办事的人能进来。
+//    public <T extends IBleConnectTask> int add(T task) {
+//        if (!mTaskQueue.contains(task)) {
+//            task.setSequence(mAtomicInteger.incrementAndGet()); // 注意这行
+//            mTaskQueue.add(task);
+//        }
+//        // 返回排的队的人数，公开透明，让外面的人看的有多少人在等着办事。
+//        return mTaskQueue.size();
+//    }
 }

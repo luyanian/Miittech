@@ -485,7 +485,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 }
 
                 @Override
-                public void onError(String msg) {
+                public void onError(OtaOptions options,String msg) {
 
                 }
 

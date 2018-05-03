@@ -34,10 +34,10 @@ public class BleNotifyTask implements IBleTransTask {
         }
         synchronized (this) {
             LogUtils.d("bleService", "BleNotifyTask----->" +mac);
-            if (BleClient.getInstance().getConnectState(mac) == BluetoothGatt.STATE_CONNECTED) {
+            if (BleClient.getInstance().isConnected(mac)) {
                 BleClient.getInstance().notifyData(mac,serviceUUID,characteristicUUID);
             }else{
-                LogUtils.d("bleService", "getConnectState("+mac+") is not disconnected");
+                LogUtils.d("bleService", "getConnectState("+mac+") is not connect");
             }
         }
 

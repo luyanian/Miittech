@@ -40,10 +40,10 @@ public class BleWriteTask implements IBleTransTask {
         }
         synchronized (this) {
             LogUtils.d("bleService", "BleWriteTask----->" +mac);
-            if (BleClient.getInstance().getConnectState(mac) == BluetoothGatt.STATE_CONNECTED) {
+            if (BleClient.getInstance().isConnected(mac)) {
                 BleClient.getInstance().writeData(mac,serviceUUID,characteristicUUID,data,bleWriteCallback);
             }else{
-                LogUtils.d("bleService", "getConnectState("+mac+") is not disconnected");
+                LogUtils.d("bleService", "getConnectState("+mac+") is not connect");
             }
         }
 
@@ -82,6 +82,7 @@ public class BleWriteTask implements IBleTransTask {
     public boolean isUpdate() {
         return isUpdate;
     }
+
 
 
     // 做优先级比较。
