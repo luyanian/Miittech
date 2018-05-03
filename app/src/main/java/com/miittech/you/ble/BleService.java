@@ -94,7 +94,7 @@ public  class BleService extends Service {
     private SimpleArrayMap<String,Boolean> mNotFirstConnect = new SimpleArrayMap<>();
     private SimpleArrayMap<String,Boolean> isDevicesNeedAlert = new SimpleArrayMap<>();
     private SimpleArrayMap<String,Boolean> mNotFirstDisConnect = new SimpleArrayMap<>();
-    private boolean isBindDevice = false;
+    private boolean isBind = false;
     private static ScheduledExecutorService executorService = null;
     private BleConnectTaskQueue bleConnectTaskQueue;
 
@@ -229,7 +229,7 @@ public  class BleService extends Service {
                             break;
                         case IntentExtras.CMD.CMD_DEVICE_BIND_SCAN:
                             stringBuilder.append("CMD_DEVICE_BIND_SCAN");
-                            isBindDevice = true;
+                            isBind = true;
                             mBindMap.clear();
                             break;
                         case IntentExtras.CMD.CMD_DEVICE_UNBIND_ERROR:
@@ -590,10 +590,10 @@ public  class BleService extends Service {
             @Override
             public void onBindModeSuccess(BluetoothDevice device) {
                 LogUtils.d("bleService","贴片设置绑定模式成功----->"+device.getAddress());
-                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_SUCCESS);
-                intent.putExtra("address", device.getAddress());
-                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
+//                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
+//                intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_SUCCESS);
+//                intent.putExtra("address", device.getAddress());
+//                App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                 mBindMap.clear();
                 if(!mDeviceMap.containsKey(device.getAddress())){
                     mDeviceMap.put(device.getAddress(),device);
@@ -729,7 +729,8 @@ public  class BleService extends Service {
                 }
                 BleClient.getInstance().scanning(scanResult.getMac());
                 if(!mDeviceMap.containsKey(scanResult.getMac())){
-                    if(isBindDevice&&scanResult.getRssi()>-50){
+                    if(isBind&&scanResult.getRssi()>-50){
+                        isBind = false;
                         if(mBindMap.size()==0) {
                             mBindMap.put(scanResult.getMac(),scanResult.getDevice());
 //                            LogUtils.d("bleService", "扫描到并开始绑定贴片----->" + scanResult.getMac());
@@ -787,14 +788,12 @@ public  class BleService extends Service {
         BleClient.getInstance().disconnectAllDevice();
         mDeviceMap.clear();
         mBindMap.clear();
-        isBindDevice=false;
     }
     private synchronized void diableBluetooth(){
         LogUtils.d("bleService","diableBluetooth");
         BleClient.getInstance().diableBluetooth();
         mDeviceMap.clear();
         mBindMap.clear();
-        isBindDevice=false;
     }
     private synchronized void doLogOut(){
         LogUtils.d("bleService","doLogOut");
@@ -805,7 +804,6 @@ public  class BleService extends Service {
         mBindMap.clear();
         mNotFirstConnect.clear();
         mNotFirstDisConnect.clear();
-        isBindDevice=false;
     }
 
     private synchronized void startAlert(String address) {
