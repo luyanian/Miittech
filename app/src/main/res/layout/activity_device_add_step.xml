@@ -10,15 +10,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-    <TextView
+    <!--<TextView-->
+        <!--android:id="@+id/step1"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="60dp"-->
+        <!--android:text="按贴片的LOGO按钮"-->
+        <!--android:textSize="16dp"-->
+        <!--android:layout_below="@+id/titlebar"-->
+        <!--android:layout_centerHorizontal="true"/>-->
+    <SurfaceView
         android:id="@+id/step1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
-        android:text="按贴片的LOGO按钮"
-        android:textSize="16dp"
-        android:layout_below="@+id/titlebar"
-        android:layout_centerHorizontal="true"/>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/titlebar"/>
 
     <RelativeLayout
         android:id="@+id/step2"

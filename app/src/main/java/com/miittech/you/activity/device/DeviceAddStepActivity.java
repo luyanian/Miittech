@@ -9,6 +9,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -28,6 +29,7 @@ import com.miittech.you.global.PubParam;
 import com.miittech.you.net.response.BaseResponse;
 import com.miittech.you.net.response.DeviceListResponse;
 import com.miittech.you.weight.CircleProgressBar;
+import com.miittech.you.weight.SilkyAnimation;
 import com.miittech.you.weight.Titlebar;
 import com.ryon.mutils.EncryptUtils;
 import com.ryon.mutils.LogUtils;
@@ -51,7 +53,7 @@ import okhttp3.RequestBody;
 
 public class DeviceAddStepActivity extends BaseActivity implements Handler.Callback{
     @BindView(R.id.step1)
-    TextView step1;
+    SurfaceView step1;
     @BindView(R.id.progressbar)
     CircleProgressBar progressbar;
     @BindView(R.id.tv_progress)
@@ -84,6 +86,22 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                 finish();
             }
         });
+        SilkyAnimation silkyAnimation = new SilkyAnimation.Builder(step1)
+                //设置常驻内存的缓存数量, 默认5.
+                .setCacheCount(8)
+                //设置帧间隔, 默认100
+                .setFrameInterval(25)
+                //设置缩放类型, 默认fit center，与ImageView的缩放模式通用
+                .setScaleType(SilkyAnimation.SCALE_TYPE_FIT_CENTER)
+                //设置动画开始结束状态监听
+//                .setAnimationListener(new Anina)
+                //设置是否支持bitmap复用，默认为true
+                .setSupportInBitmap(true)
+                //设置循环模式, 默认不循环
+                .setRepeatMode(SilkyAnimation.MODE_INFINITE)
+                .build();
+        silkyAnimation.start("anim/guide");
+
         step2.setVisibility(View.GONE);
         step3.setVisibility(View.GONE);
         step1.setVisibility(View.VISIBLE);
