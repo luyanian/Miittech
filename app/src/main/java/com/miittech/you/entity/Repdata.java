@@ -50,13 +50,13 @@ public class Repdata implements Serializable {
     }
 
     class DeviceItem implements Serializable{
-        private String devid;//贴片id
+        private String devid;//有物id
         private int devbattery;//百分比，0-100
-        private int devstate;//当前贴片状态值
+        private int devstate;//当前有物状态值
         private int devposstate;//与当前使用者的距离
         private int usedstate;//使用状态
         private int bindstate;//绑定状态
-        private String sourceid;//当贴片为别人分享过来的归属者userid
+        private String sourceid;//当有物为别人分享过来的归属者userid
 
         public String getDevid() {
             return devid;

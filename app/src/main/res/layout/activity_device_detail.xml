@@ -98,17 +98,21 @@
         android:orientation="vertical"
         android:visibility="visible"
         android:gravity="center_horizontal">
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginTop="30dp"
-            android:src="@drawable/ic_tip_click_to_bell"/>
+        <com.youth.banner.Banner
+            android:id="@+id/banner"
+            android:layout_width="wrap_content"
+            app:image_scale_type="center_inside"
+            app:delay_time="4000"
+            android:layout_margin="10dp"
+            android:layout_height="200dp" />
 
         <TextView
+            android:id="@+id/tv_tips"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="点击寻找让贴片发声，来寻找它"
             android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
             android:textColor="#323232"
             android:textSize="16dp"/>
     </LinearLayout>

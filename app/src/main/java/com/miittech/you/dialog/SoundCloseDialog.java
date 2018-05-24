@@ -68,7 +68,7 @@ public class SoundCloseDialog extends Dialog {
 
     public SoundCloseDialog setDevTitle(String devName) {
         if(TextUtils.isEmpty(devName)){
-            msgTitle.setText("关闭贴片报警");
+            msgTitle.setText("关闭有物报警");
         }else {
             msgTitle.setText(devName);
         }

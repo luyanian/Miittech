@@ -23,10 +23,10 @@ public class Params {
         public static final String ALL="ALL";//全部明细信息(不含轨迹)
         public static final String BASE="BASE";//基本信息
         public static final String CONF="CONF";//勿扰等配置
-        public static final String EVENTLOG="EVENTLOG";//历史事件（实际为用户下所有贴片的事件信息，按事件时间倒排）
+        public static final String EVENTLOG="EVENTLOG";//历史事件（实际为用户下所有有物的事件信息，按事件时间倒排）
         public static final String TRACE="TRACE";//历史轨迹
-        public static final String USED="USED";//当前账户绑定的贴片列表
-        public static final String SHARED="SHARED";//分享给好有的贴片列表
+        public static final String USED="USED";//当前账户绑定的有物列表
+        public static final String SHARED="SHARED";//分享给好有的有物列表
     }
 
     public static class METHOD{
@@ -47,9 +47,9 @@ public class Params {
         public static final String FRIEND_UPDATE="UPDATE";//编辑好友信息
         public static final String BINGD = "Bind";//绑定设备
         public static final String UNBIND = "Unbind";//解除绑定
-        public static final String CONFIRM_YES="YES";//YES:确认操作事件，比如确认贴片的移交
-        public static final String CONFIRM_NO="NO";//NO:拒绝事件操作，比如拒绝贴片的移交
-        public static final String CONFIRM_DELETE="DELETE";//DELETE:删除该条事件，对于待确认的比如贴片移交操作，将同时执行一个NO操作
+        public static final String CONFIRM_YES="YES";//YES:确认操作事件，比如确认有物的移交
+        public static final String CONFIRM_NO="NO";//NO:拒绝事件操作，比如拒绝有物的移交
+        public static final String CONFIRM_DELETE="DELETE";//DELETE:删除该条事件，对于待确认的比如有物移交操作，将同时执行一个NO操作
     }
 
     public static class FRIEND_STATUS{
@@ -61,7 +61,7 @@ public class Params {
 
     }
     public static class EVENT_TYPE{
-        public final static int DEVICE_ADD=1;//添加贴片
+        public final static int DEVICE_ADD=1;//添加有物
         public final static int DEVICE_CONNECT=2;//建立连接
         public final static int DEVICE_FAR_FROM=3;//远离
         public final static int DEVICE_LOSE=4;//丢失
@@ -70,13 +70,13 @@ public class Params {
         public final static int DEVICE_HIDE_OFF=7;//恢复隐藏
         public final static int DEVICE_ALERM_DISABLE=8;//禁用告警
         public final static int DEVICE_ALERM_ENABLE=9;//恢复告警
-        public final static int DEVICE_SHARE=10;//贴片分享
+        public final static int DEVICE_SHARE=10;//有物分享
         public final static int DEVICE_SHARE_SUCCESSFUL=11;//分享成功
         public final static int DEVICE_SHARE_REFUSE=12;//分项拒绝
-        public final static int DEVICE_SHARE_TACKBACK=13;//收回分享贴片
-        public final static int DEVICE_FIND=10101;//手机查找贴片
+        public final static int DEVICE_SHARE_TACKBACK=13;//收回分享有物
+        public final static int DEVICE_FIND=10101;//手机查找有物
     }
-    //当前贴片状态值
+    //当前有物状态值
     public static class DEVICE_STATUS{
         public final static int DIABLE=-100;//禁用
         public final static int LOSE=-99;//丢失
@@ -101,7 +101,7 @@ public class Params {
     //绑定状态
     public static class BIND_STATE{
         public static final int BIND=1;//正常绑定
-        public static final int UNBIND=0;//已解绑（已解绑的贴片自动隐藏）
+        public static final int UNBIND=0;//已解绑（已解绑的有物自动隐藏）
     }
 
 

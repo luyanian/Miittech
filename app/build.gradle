@@ -126,4 +126,5 @@ dependencies {
     implementation 'com.android.support:multidex:1.+'
     implementation 'com.liulishuo.filedownloader:library:1.7.1'
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.5@aar'
+    implementation 'com.youth.banner:banner:1.4.10'
 }

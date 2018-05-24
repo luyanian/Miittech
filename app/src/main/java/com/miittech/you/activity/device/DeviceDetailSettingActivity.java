@@ -476,11 +476,11 @@ public class DeviceDetailSettingActivity extends BaseActivity {
 
                 @Override
                 public void onError(OtaOptions options,final String msg) {
-                    LogUtils.e("贴片更新失败："+msg);
+                    LogUtils.e("有物更新失败："+msg);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            ToastUtils.showShort("贴片更新失败："+msg);
+                            ToastUtils.showShort("有物更新失败："+msg);
                             if(progressDialog!=null&&progressDialog.isShowing()){
                                 progressDialog.dismiss();
                             }

@@ -33,8 +33,8 @@ public class BaseResponse implements Serializable{
     private String url;
     private String errmsg;
     private int configid;
-    private String devid;//蓝牙贴片的出厂id
-    private int valid;//1:可用，0：不可用(已被其他绑int定),-1：不合法贴片id
+    private String devid;//蓝牙有物的出厂id
+    private int valid;//1:可用，0：不可用(已被其他绑int定),-1：不合法有物id
     private int bindstate;//1：已绑定 0：未绑定
 
 

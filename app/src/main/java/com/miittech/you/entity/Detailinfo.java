@@ -7,9 +7,9 @@ import java.io.Serializable;
  */
 
 public class Detailinfo implements Serializable {
-    private String fromuserid;//贴片拥有者userid
-    private String fromnickname;//贴片拥有者nickname
-    private String touserid;//被分享贴片的userid
+    private String fromuserid;//有物拥有者userid
+    private String fromnickname;//有物拥有者nickname
+    private String touserid;//被分享有物的userid
 
     public String getFromuserid() {
         return fromuserid;

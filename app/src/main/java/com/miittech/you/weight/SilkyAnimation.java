@@ -320,6 +320,7 @@ public final class SilkyAnimation {
         mCallBack = new MyCallBack();
         mSurfaceHolder.setFormat(PixelFormat.TRANSLUCENT);
         mSurfaceView.setZOrderOnTop(true);
+        mSurfaceView.setZOrderMediaOverlay(true);
         mSurfaceHolder.addCallback(mCallBack);
     }
 

@@ -46,14 +46,14 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/rl_device"
-            android:text="选择您要绑定的贴片"
+            android:text="选择您要绑定的有物"
             android:textColor="@color/black"
             android:textSize="16dp"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
-            android:text="还没有贴片？"/>
+            android:text="还没有有物？"/>
         <TextView
             android:id="@+id/btn_buy"
             android:layout_width="200dp"

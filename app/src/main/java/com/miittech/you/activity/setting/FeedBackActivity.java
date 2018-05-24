@@ -82,7 +82,7 @@ public class FeedBackActivity extends BaseActivity {
         }
         Map param = new LinkedHashMap();
         param.put("email", email);
-        param.put("content", content);
+        param.put("content", Common.encodeBase64(content));
         String json = new Gson().toJson(param);
         PubParam pubParam = new PubParam(Common.getUserId());
         String sign_unSha1 = pubParam.toValueString() + json + Common.getTocken();

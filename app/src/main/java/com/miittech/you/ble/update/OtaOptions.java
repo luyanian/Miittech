@@ -148,7 +148,7 @@ public class OtaOptions {
 				});
 				if(!BleClient.getInstance().isConnected(mac)){
 					if(iOtaUpdateListener!=null){
-						iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+						iOtaUpdateListener.onError(OtaOptions.this,"有物已断开连接");
 					}
 				}
 				BleClient.getInstance().notify(mac,BleUUIDS.SPOTA_SERV_STATUS_SERVICE_UUID,BleUUIDS.SPOTA_SERV_STATUS_UUID,true);
@@ -176,7 +176,7 @@ public class OtaOptions {
 				int memType = (MEMORY_TYPE_EXTERNAL_SPI << 24) | imageBank;
 				if(!BleClient.getInstance().isConnected(mac)){
 					if(iOtaUpdateListener!=null){
-						iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+						iOtaUpdateListener.onError(OtaOptions.this,"有物已断开连接");
 					}
 				}
 				BleClient.getInstance().writeOffset(
@@ -217,7 +217,7 @@ public class OtaOptions {
 					LogUtils.d(TAG, "Set SPOTA_GPIO_MAP: " + String.format("%#10x", memInfoData));
 					if(!BleClient.getInstance().isConnected(mac)){
 						if(iOtaUpdateListener!=null){
-							iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+							iOtaUpdateListener.onError(OtaOptions.this,"有物已断开连接");
 						}
 					}
 					BleClient.getInstance().writeOffset(
@@ -254,7 +254,7 @@ public class OtaOptions {
 				LogUtils.d(TAG,"Set SPOTA_PATCH_LENGTH: " + blocksize);
 				if(!BleClient.getInstance().isConnected(mac)){
 					if(iOtaUpdateListener!=null){
-						iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+						iOtaUpdateListener.onError(OtaOptions.this,"有物已断开连接");
 					}
 				}
 				BleClient.getInstance().writeOffset(
@@ -340,7 +340,7 @@ public class OtaOptions {
 			Log.d(TAG, systemLogMessage);
 			if(!BleClient.getInstance().isConnected(mac)){
 				if(iOtaUpdateListener!=null){
-					iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+					iOtaUpdateListener.onError(OtaOptions.this,"有物已断开连接");
 				}
 			}
 			BleClient.getInstance().write(mac,
@@ -546,7 +546,7 @@ public class OtaOptions {
 				switch (ret){
 					case IntentExtras.RET.RET_BLE_DISCONNECT:
 						if(iOtaUpdateListener!=null){
-							iOtaUpdateListener.onError(OtaOptions.this,"贴片已断开连接");
+							iOtaUpdateListener.onError(OtaOptions.this,"有物已断开连接");
 						}
 						break;
 				}

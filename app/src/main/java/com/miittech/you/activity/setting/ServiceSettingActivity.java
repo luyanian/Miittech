@@ -81,7 +81,7 @@ public class ServiceSettingActivity extends BaseActivity{
         switch (view.getId()) {
             case R.id.check_bluetooth:
                 if (!checkBluetooth.isChecked()) {
-                    msgTipDialog.setTitle("蓝牙服务已关闭").setMsg("关闭蓝牙服务后，贴片将不能与您的手机连接，是否确定关闭");
+                    msgTipDialog.setTitle("蓝牙服务已关闭").setMsg("关闭蓝牙服务后，有物将不能与您的手机连接，是否确定关闭");
                     msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
                         @Override
                         public void onSure() {
@@ -127,7 +127,7 @@ public class ServiceSettingActivity extends BaseActivity{
                 break;
             case R.id.check_notification:
                 if (!checkNotification.isChecked()) {
-                    msgTipDialog.setTitle("通知服务已关闭").setMsg("关闭通知服务后，贴片将无法给您发送消息，是否确定关闭");
+                    msgTipDialog.setTitle("通知服务已关闭").setMsg("关闭通知服务后，有物将无法给您发送消息，是否确定关闭");
                     msgTipDialog.setOnMsgTipOptions(new OnMsgTipOptions() {
                         @Override
                         public void onSure() {

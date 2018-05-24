@@ -376,7 +376,7 @@ public  class BleService extends Service {
         BleClient.getInstance().connectDevice(bleDevice, new GattCallback() {
             @Override
             public synchronized void onStartConnect(String mac) {
-                LogUtils.d("bleService", "贴片开始连接----->" + mac);
+                LogUtils.d("bleService", "有物开始连接----->" + mac);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_START);
                 intent.putExtra("address", mac);
@@ -385,7 +385,7 @@ public  class BleService extends Service {
 
             @Override
             public synchronized void onConnectFail(String mac) {
-                LogUtils.d("bleService", "贴片连接失败----->" + mac);
+                LogUtils.d("bleService", "有物连接失败----->" + mac);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_FAILED);
                 intent.putExtra("address", mac);
@@ -394,7 +394,7 @@ public  class BleService extends Service {
 
             @Override
             public synchronized void onConnectSuccess(String mac, int status) {
-                LogUtils.d("bleService", "贴片连接成功----->" + mac);
+                LogUtils.d("bleService", "有物连接成功----->" + mac);
             }
 
             @Override
@@ -410,7 +410,7 @@ public  class BleService extends Service {
 
             @Override
             public synchronized void onEffectConnectSuccess(String mac, int status) {
-                LogUtils.d("bleService", "贴片连接成功----->" + mac);
+                LogUtils.d("bleService", "有物连接成功----->" + mac);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_CONNECT_SUCCESS);
                 intent.putExtra("address", mac);
@@ -430,7 +430,7 @@ public  class BleService extends Service {
 
             @Override
             public synchronized void onEffectDisConnected(boolean isActiveDisConnected, final String mac, int status) {
-                LogUtils.d("bleService", "贴片连接断开----->" + mac + "   isActiveDisConnected--->" + isActiveDisConnected);
+                LogUtils.d("bleService", "有物连接断开----->" + mac + "   isActiveDisConnected--->" + isActiveDisConnected);
                 if (mLinkLoseMap.containsKey(mac)) {
                     mLinkLoseMap.remove(mac);
                 }
@@ -536,6 +536,7 @@ public  class BleService extends Service {
                         LogUtils.d("bleService", "监测到" + mac + "绑定模式UserLog验证(0x22=" + data[0] + ")");
                         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                         intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_FAIL);
+//                        intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_NOTIFY_SUCCESS);
                         intent.putExtra("address", mac);
                         App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
                     }
@@ -589,7 +590,7 @@ public  class BleService extends Service {
 
             @Override
             public void onBindModeSuccess(BluetoothDevice device) {
-                LogUtils.d("bleService","贴片设置绑定模式成功----->"+device.getAddress());
+                LogUtils.d("bleService","有物设置绑定模式成功----->"+device.getAddress());
 //                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
 //                intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_SUCCESS);
 //                intent.putExtra("address", device.getAddress());
@@ -603,7 +604,7 @@ public  class BleService extends Service {
 
             @Override
             public void onBindModeFaild(BluetoothDevice device) {
-                LogUtils.d("bleService","贴片设置绑定模式失败----->"+device.getAddress());
+                LogUtils.d("bleService","有物设置绑定模式失败----->"+device.getAddress());
                 isIgnoreEvents.put(device.getAddress(),true);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_BIND_FAIL);
@@ -613,7 +614,7 @@ public  class BleService extends Service {
 
             @Override
             public void onWorkModeSuccess(BluetoothDevice device) {
-                LogUtils.d("bleService","贴片设置工作模式成功(isNeedAlerts-->"+mNotFirstConnect.get(device.getAddress())+")----->"+device.getAddress());
+                LogUtils.d("bleService","有物设置工作模式成功(isNeedAlerts-->"+mNotFirstConnect.get(device.getAddress())+")----->"+device.getAddress());
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS);
                 intent.putExtra("address", device.getAddress());
@@ -644,7 +645,7 @@ public  class BleService extends Service {
 
             @Override
             public void onWorkModeFaild(BluetoothDevice device) {
-                LogUtils.d("bleService","贴片设置工作模式失败----->"+device.getAddress());
+                LogUtils.d("bleService","有物设置工作模式失败----->"+device.getAddress());
                 isIgnoreEvents.put(device.getAddress(),true);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_MODE_WORK_FAIL);
@@ -715,7 +716,7 @@ public  class BleService extends Service {
         if(TextUtils.isEmpty(Common.getTocken())||BleClient.getInstance().isScaning()){
             return;
         }
-        LogUtils.d("bleService","贴片扫描开始----->");
+        LogUtils.d("bleService","有物扫描开始----->");
         Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
         intent.putExtra("ret",IntentExtras.RET.RET_BLE_SCAN_START);
         App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
@@ -733,7 +734,7 @@ public  class BleService extends Service {
                         isBind = false;
                         if(mBindMap.size()==0) {
                             mBindMap.put(scanResult.getMac(),scanResult.getDevice());
-//                            LogUtils.d("bleService", "扫描到并开始绑定贴片----->" + scanResult.getMac());
+//                            LogUtils.d("bleService", "扫描到并开始绑定有物----->" + scanResult.getMac());
                             Intent intent1 = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
                             intent1.putExtra("ret", IntentExtras.RET.RET_BLE_FIND_BIND_DEVICE);
                             intent1.putExtra("address", scanResult.getMac());
@@ -742,7 +743,7 @@ public  class BleService extends Service {
                         return;
                     }
                 }else {
-//                    LogUtils.d("bleService", "扫描到并开始连接贴片----->" + scanResult.getMac()+"   rssi:"+scanResult.getRssi());
+//                    LogUtils.d("bleService", "扫描到并开始连接有物----->" + scanResult.getMac()+"   rssi:"+scanResult.getRssi());
                     if(scanResult.getRssi()>-90){
                         mDeviceMap.put(scanResult.getMac(), scanResult.getDevice());
                         addConenectDeviceTask(mDeviceMap.get(scanResult.getMac()),false);
@@ -760,7 +761,7 @@ public  class BleService extends Service {
         BleClient.getInstance().write(address, userServiceUUID, userCharacteristicLogUUID, dataWork, new BleWriteCallback() {
             @Override
             public void onWriteSuccess(BluetoothDevice device) {
-//                LogUtils.d("bleService","贴片解绑成功----->"+device.getAddress());
+//                LogUtils.d("bleService","有物解绑成功----->"+device.getAddress());
 //                Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
 //                intent.putExtra("ret", IntentExtras.RET.RET_BLE_UNBIND_COMPLETE);
 //                intent.putExtra("address", device.getAddress());
@@ -778,7 +779,7 @@ public  class BleService extends Service {
 
             @Override
             public void onWriteFialed(BluetoothDevice device) {
-                LogUtils.d("bleService","贴片解绑失败----->"+device.getAddress());
+                LogUtils.d("bleService","有物解绑失败----->"+device.getAddress());
                 unbindDevice(device.getAddress());
             }
         });
@@ -817,7 +818,7 @@ public  class BleService extends Service {
             public void onWriteSuccess(BluetoothDevice device) {
                 mAlertingMap.put(device.getAddress(),true);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                LogUtils.d("bleService","贴片开始报警----->"+device.getAddress());
+                LogUtils.d("bleService","有物开始报警----->"+device.getAddress());
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_ALERT_STARTED);
                 intent.putExtra("address", device.getAddress());
                 App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
@@ -825,7 +826,7 @@ public  class BleService extends Service {
 
             @Override
             public void onWriteFialed(BluetoothDevice device) {
-                LogUtils.d("bleService","贴片开始报警---->失败了----->"+device.getAddress());
+                LogUtils.d("bleService","有物开始报警---->失败了----->"+device.getAddress());
             }
         });
     }
@@ -840,7 +841,7 @@ public  class BleService extends Service {
             public void onWriteSuccess(BluetoothDevice device) {
                 mAlertingMap.put(device.getAddress(),false);
                 Intent intent = new Intent(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
-                LogUtils.d("bleService","贴片结束报警----->"+device.getAddress());
+                LogUtils.d("bleService","有物结束报警----->"+device.getAddress());
                 intent.putExtra("ret", IntentExtras.RET.RET_BLE_ALERT_STOPED);
                 intent.putExtra("address", device.getAddress());
                 App.getInstance().getLocalBroadCastManager().sendBroadcast(intent);
@@ -848,7 +849,7 @@ public  class BleService extends Service {
 
             @Override
             public void onWriteFialed(BluetoothDevice device) {
-                LogUtils.d("bleService","贴片结束报警--->失败了----->"+device.getAddress());
+                LogUtils.d("bleService","有物结束报警--->失败了----->"+device.getAddress());
             }
         });
     }

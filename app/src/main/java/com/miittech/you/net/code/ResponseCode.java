@@ -18,7 +18,7 @@ public class ResponseCode {
     public static final int invalid_method=-20003;
     public static final int sms_senderror=-20004;
     public static final int server_inittoken=-20005;
-    public static final int server_notfound=-20006; //没有绑定蓝牙贴片
+    public static final int server_notfound=-20006; //没有绑定蓝牙有物
 
     public static final int upload_filetoolarge=-20020;
     public static final int upload_notmultipart=-20021;
