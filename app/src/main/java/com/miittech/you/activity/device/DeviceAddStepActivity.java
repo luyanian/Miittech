@@ -339,6 +339,7 @@ public class DeviceAddStepActivity extends BaseActivity implements Handler.Callb
                 if(bindSuccessful) {
                     Intent urlIntent = new Intent(DeviceAddStepActivity.this, WebViewActivity.class);
                     urlIntent.putExtra("url", WebViewActivity.authority);
+                    urlIntent.putExtra("title", "权限设置");
                     startActivity(urlIntent);
                 }else{
                     startScan();

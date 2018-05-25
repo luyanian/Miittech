@@ -15,6 +15,7 @@ import com.miittech.you.ble.update.UpdateFile;
 import com.miittech.you.utils.BingGoPlayUtils;
 import com.miittech.you.utils.SoundPlayUtils;
 import com.mob.MobApplication;
+import com.mob.MobSDK;
 import com.ryon.mutils.ActivityPools;
 import com.ryon.mutils.LogUtils;
 import com.ryon.mutils.Utils;
@@ -40,6 +41,7 @@ public class  App extends MobApplication {
         });
         instance = this;
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        MobSDK.init(this);
         SDKInitializer.initialize(getApplicationContext());
         JPushInterface.setDebugMode(true);
         JPushInterface.init(getApplicationContext());

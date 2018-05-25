@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.miittech.you">
 
     <!-- 这个权限用于进行网络定位 -->
@@ -44,6 +45,7 @@
 
     <application
         android:name=".App"
+        tools:replace="android:name"
         android:allowBackup="true"
         android:hardwareAccelerated="false"
         android:icon="@mipmap/icon"
@@ -88,8 +90,8 @@
             android:exported="true"
             android:screenOrientation="portrait" />
         <!-- 填写您从Mob开发者后台中得到的Appkey和AppSecret -->
-        <meta-data android:name="Mob-AppKey" android:value="23311d1f1b15c"/>
-        <meta-data android:name="Mob-AppSecret" android:value="1a60b62d60385fba6ed4851a50d761e5"/>
+        <!--<meta-data android:name="Mob-AppKey" android:value="23311d1f1b15c"/>-->
+        <!--<meta-data android:name="Mob-AppSecret" android:value="1a60b62d60385fba6ed4851a50d761e5"/>-->
         <!-- ............................ShareSDK配置end.................... -->
 
         <!-- ............................JPUSH配置start.................... -->

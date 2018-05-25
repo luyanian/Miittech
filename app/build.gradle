@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+// 添加插件
+apply plugin: "com.mob.sdk"
 def config = rootProject.ext.android;
 def libraries = rootProject.ext.dependencies;
 android {
@@ -81,6 +83,54 @@ def releaseTime() {
     return new Date().format("yyyyMMdd", TimeZone.getTimeZone("UTC"))
 }
 
+// 在MobSDK的扩展中注册ShareSDK的相关信息
+MobSDK {
+    appKey "23311d1f1b15c"
+    appSecret "1a60b62d60385fba6ed4851a50d761e5"
+
+    ShareSDK {
+        devInfo {
+            Wechat {
+                id 1
+                sortId 1
+                appId "wxd2771c7423e43c51"
+                appSecret "59e57bdc3caa5eaa647968e59f14e4d5"
+                userName "gh_afb25ac019c9"
+                path "pages/index/index.html?id=1"
+                bypassApproval false
+                enable true
+            }
+            QQ {
+                id 2
+                sortId 2
+                appId "1106620908"
+                appKey "5qz0G5DzPGn8rKS3"
+                bypassApproval true
+                shareByAppClient true
+                enable true
+            }
+            WechatMoments {
+                id 3
+                sortId 3
+                appId "wxd2771c7423e43c51"
+                appSecret "59e57bdc3caa5eaa647968e59f14e4d5"
+                bypassApproval false
+                enable true
+            }
+            Email {
+                id 4
+                sortId 4
+                enable true
+            }
+            ShortMessage {
+                id 5
+                sortId 5
+                enable true
+            }
+        }
+    }
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
@@ -108,13 +158,6 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     implementation 'com.scwang.smartrefresh:SmartRefreshLayout:1.0.3'
     implementation files('libs/BaiduLBS_Android.jar')
-    implementation files('libs/MobCommons-2017.0914.1125.jar')
-    implementation files('libs/MobTools-2017.0914.1125.jar')
-    implementation files('libs/ShareSDK-Core-3.1.0.jar')
-    implementation files('libs/ShareSDK-QQ-3.1.0.jar')
-    implementation files('libs/ShareSDK-Wechat-3.1.0.jar')
-    implementation files('libs/ShareSDK-Wechat-Core-3.1.0.jar')
-    implementation files('libs/ShareSDK-Wechat-Moments-3.1.0.jar')
     implementation files('libs/jcore-android-1.1.7.jar')
     implementation files('libs/jpush-android-3.0.9.jar')
     implementation project(':mutils')
