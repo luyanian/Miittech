@@ -163,7 +163,10 @@ public class BleClient {
                             }
                         }
                     }
-                    gatt.discoverServices();
+                    List<BluetoothGattService> list = gatt.getServices();
+                    if(list==null||list.size()<1) {
+                        gatt.discoverServices();
+                    }
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     if (gatt != null&&gatt.getDevice()!=null&&!TextUtils.isEmpty(gatt.getDevice().getAddress())) {
                         refreshDeviceCache(gatt);

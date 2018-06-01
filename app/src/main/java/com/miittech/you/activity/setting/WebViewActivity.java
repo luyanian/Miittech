@@ -43,7 +43,7 @@ public class WebViewActivity extends BaseActivity {
         WebSettings settings = webview.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(true);
+//        settings.setLoadWithOverviewMode(true);
         settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); //关闭webview中缓存
         settings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
         settings.setLoadsImagesAutomatically(true); //支持自动加载图片

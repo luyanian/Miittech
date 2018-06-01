@@ -4,12 +4,11 @@ ext{
         buildToolsVersion : "27.0.3",
         minSdkVersion     : 19,
         targetSdkVersion  : 22,
-        versionCode       : 39,
-        versionName       : "1.0.1431"
+        versionCode       : 40,
+        versionName       : "1.0.1491"
     ]
 
     dependencies = [
             supportVersion   : "27.0.2"
     ]
-
 }
