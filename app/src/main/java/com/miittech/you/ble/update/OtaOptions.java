@@ -503,7 +503,7 @@ public class OtaOptions {
 		}
 		BleClient.getInstance().requestConnectionPriority(mac,BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
 		if(iOtaUpdateListener!=null){
-			iOtaUpdateListener.onUpdateComplete();
+			iOtaUpdateListener.onUpdateComplete(OtaOptions.this,mac);
 		}
 	}
 

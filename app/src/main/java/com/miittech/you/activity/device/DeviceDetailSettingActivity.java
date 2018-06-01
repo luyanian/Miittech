@@ -178,7 +178,6 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 case REQUEST_DEVICE_CLASSFY:
                     tvDeviceClassify.setText(data.getStringExtra(IntentExtras.DEVICE.CLASSIFY));
                     break;
-
             }
         }
     }
@@ -491,7 +490,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                 }
 
                 @Override
-                public void onUpdateComplete() {
+                public void onUpdateComplete(final OtaOptions options, final String msg) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -503,6 +502,7 @@ public class DeviceDetailSettingActivity extends BaseActivity {
                             }catch (Exception e){
                                 e.printStackTrace();
                             }
+                            options.distroy();
                             DialogUtils.getInstance().createMsgTipDialog(DeviceDetailSettingActivity.this)
                                     .setTitle("更新")
                                     .setMsg("已完成固件更新，是否重启蓝牙设备？")

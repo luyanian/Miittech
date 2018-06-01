@@ -490,7 +490,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter {
                 }
 
                 @Override
-                public void onUpdateComplete() {
+                public void onUpdateComplete(OtaOptions options,String msg) {
                     try {
                         FileUtils.deleteFile(task.getPath() + File.separator + task.getFilename());
                     } catch (Exception e) {
