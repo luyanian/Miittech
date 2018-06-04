@@ -163,6 +163,6 @@
             android:layout_below="@+id/btn_authority"
             android:textColor="@color/black"
             android:textSize="16dp"
-            android:text="跳过"/>
+            android:text="继续"/>
     </RelativeLayout>
 </RelativeLayout>

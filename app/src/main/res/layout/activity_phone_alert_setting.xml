@@ -110,10 +110,12 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="10dp"
+        android:visibility="gone"
         android:background="@drawable/bg_setting_lines"/>
     <RelativeLayout
         android:id="@+id/rl_disconnect_repeated_remind"
         android:layout_width="match_parent"
+        android:visibility="gone"
         android:layout_height="50dp">
         <TextView
             android:layout_width="wrap_content"
@@ -138,6 +140,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
+        android:visibility="gone"
         android:textSize="14dp"/>
     <TextView
         android:layout_width="match_parent"

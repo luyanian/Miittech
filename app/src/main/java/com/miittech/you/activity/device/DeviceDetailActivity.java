@@ -96,6 +96,10 @@ public class DeviceDetailActivity extends BaseActivity {
     TextView tvTips;
     private DeviceInfo deviceInfo;
     private CmdResponseReceiver cmdResponseReceiver = new CmdResponseReceiver();
+    private int deviceState_connect = 0x01;
+    private int deviceState_disconnect = 0x02;
+    private int deviceState_lowbattery = 0x03;
+    private int deviceState = deviceState_disconnect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,15 +120,6 @@ public class DeviceDetailActivity extends BaseActivity {
         filter.addAction(IntentExtras.ACTION.ACTION_CMD_RESPONSE);
         App.getInstance().getLocalBroadCastManager().registerReceiver(cmdResponseReceiver, filter);
 
-        //设置图片加载器
-        banner.setImageLoader(new GlideImageLoader());
-        List<Integer> list = new ArrayList<>();
-        list.add(R.drawable.ic_tips_1);
-        list.add(R.drawable.ic_tips_2);
-        list.add(R.drawable.ic_tips_3);
-        list.add(R.drawable.ic_tips_4);
-        //设置图片集合
-        banner.setImages(list);
         //banner设置方法全部调用完毕时最后调用
         banner.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -134,19 +129,16 @@ public class DeviceDetailActivity extends BaseActivity {
 
             @Override
             public void onPageSelected(int position) {
-                switch (position) {
-                    case 0:
+                if(deviceState == deviceState_connect){
+                    if(position==0){
                         tvTips.setText("您的物品就在附近\n试试点击“响铃“按钮来找");
-                        break;
-                    case 1:
+                    }else if(position==1){
                         tvTips.setText("当您找不到手机的时候\n试试双击有物背面中央处的按钮，让手机响起来");
-                        break;
-                    case 2:
-                        tvTips.setText("在附近走走，发现图标变成连接状态时\n点击“响铃”按钮，来寻找有物");
-                        break;
-                    case 3:
-                        tvTips.setText("贴片电池电量低时\n打开背面盖板，更换贴片电池");
-                        break;
+                    }
+                }else if(deviceState ==deviceState_disconnect){
+                    tvTips.setText("在附近走走，发现图标变成连接状态时\n点击“响铃”按钮，来寻找有物");
+                }else if(deviceState == deviceState_lowbattery){
+                    tvTips.setText("贴片电池电量低时\n打开背面盖板，更换贴片电池");
                 }
             }
 
@@ -156,7 +148,6 @@ public class DeviceDetailActivity extends BaseActivity {
             }
         });
         banner.setBannerStyle(BannerConfig.NOT_INDICATOR);
-        banner.start();
 
         typeSelector.setItemText("小贴士", "功能");
         typeSelector.setTypeSelectorChangeLisener(new TypeSelectorChangeLisener() {
@@ -321,6 +312,7 @@ public class DeviceDetailActivity extends BaseActivity {
     private void switchFindBtnStyle() {
         String mac = Common.formatDevId2Mac(deviceInfo.getDevidX());
         if (BleClient.getInstance().isConnected(mac)) {
+            onDeviceStateChange(deviceState_connect);
             if (SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).getInt(deviceInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL) == SPConst.ALET_STATUE.STATUS_UNBELL) {
                 rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_find);
                 imgFindBtn.setImageResource(R.drawable.ic_device_find);
@@ -329,6 +321,7 @@ public class DeviceDetailActivity extends BaseActivity {
                 imgFindBtn.setImageResource(R.drawable.ic_device_bell);
             }
         } else {
+            onDeviceStateChange(deviceState_disconnect);
             rlBellStatus.setBackgroundResource(R.drawable.shape_corner_device_diconnect);
             imgFindBtn.setImageResource(R.drawable.ic_device_find);
         }
@@ -395,6 +388,13 @@ public class DeviceDetailActivity extends BaseActivity {
                 String address = intent.getStringExtra("address");
                 int ret = intent.getIntExtra("ret", -1);//获取Extra信息
                 switch (ret) {
+                    case IntentExtras.RET.RET_BLE_CONNECT_SUCCESS:
+                        if (address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
+                            LogUtils.d("RET_BLE_CONNECT_SUCCESS");
+                            setConnectStatusStyle(address);
+                            switchFindBtnStyle();
+                        }
+                        break;
                     case IntentExtras.RET.RET_BLE_MODE_WORK_SUCCESS:
                         if (address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
                             LogUtils.d("RET_DEVICE_CONNECT_SUCCESS");
@@ -419,6 +419,12 @@ public class DeviceDetailActivity extends BaseActivity {
                         if (address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
                             SPUtils.getInstance(SPConst.ALET_STATUE.SP_NAME).put(deviceInfo.getDevidX(), SPConst.ALET_STATUE.STATUS_UNBELL);
                             switchFindBtnStyle();
+                        }
+                        break;
+                    case IntentExtras.RET.RET_BLE_DISCONNECT:
+                        if (address.equals(Common.formatDevId2Mac(deviceInfo.getDevidX()))) {
+                            switchFindBtnStyle();
+                            setConnectStatusStyle(address);
                         }
                         break;
                     case IntentExtras.RET.RET_BLE_READ_RSSI:
@@ -468,8 +474,10 @@ public class DeviceDetailActivity extends BaseActivity {
             } else if (rssi <= -100) {
                 imgDeviceIcon.setBorderColor(getResources().getColor(R.color.ic_connect5));
             }
+            onDeviceStateChange(deviceState_connect);
         } else {
             imgDeviceIcon.setBorderColor(getResources().getColor(R.color.windowBg));
+            onDeviceStateChange(deviceState_disconnect);
         }
     }
 
@@ -494,9 +502,33 @@ public class DeviceDetailActivity extends BaseActivity {
         if (tvBattarry != null && Integer.valueOf(battery) < 20) {
             tvBattarry.setVisibility(View.VISIBLE);
             tvBattarry.setText("剩余电量  " + battery + "%");
+            onDeviceStateChange(deviceState_lowbattery);
         }
         if (tvDeviceTime != null) {
             tvDeviceTime.setText("现在");
         }
+    }
+
+    public void onDeviceStateChange(int state){
+        deviceState = state;
+        //设置图片加载器
+        banner.setImageLoader(new GlideImageLoader());
+        List<Integer> list = new ArrayList<>();
+        if(state == deviceState_connect){
+            list.add(R.drawable.ic_tips_1);
+            list.add(R.drawable.ic_tips_2);
+        }else if(state ==deviceState_disconnect){
+            list.add(R.drawable.ic_tips_3);
+        }else if(state == deviceState_lowbattery){
+            list.add(R.drawable.ic_tips_4);
+        }
+        if(banner.isActivated()){
+            banner.update(list);
+        }else{
+            //设置图片集合
+            banner.setImages(list);
+            banner.start();
+        }
+
     }
 }
